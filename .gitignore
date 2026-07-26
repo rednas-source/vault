@@ -1,0 +1,8 @@
+# Secrets — never commit these
+config.json
+users.json
+
+# Runtime
+node_modules/
+storage/
+*.log

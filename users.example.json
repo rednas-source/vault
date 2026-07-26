@@ -1,0 +1,4 @@
+{
+  "_comment": "Do not edit by hand. The app writes this file; use the Accounts panel to manage logins.",
+  "_recovery": "Locked out? Delete users.json, add a temporary { \"users\": { \"name\": \"password\" } } block to config.json, and start the app. It will hash that password into a fresh users.json and make the first account an admin."
+}
