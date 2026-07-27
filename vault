@@ -1,0 +1,276 @@
+#!/usr/bin/env bash
+# vault — command-line client for a Vault file server.
+#
+#   vault ls [shelf]              list files
+#   vault get <name|shelf/name>   download into the current directory
+#   vault put <file> [shelf]      upload, resuming if interrupted
+#   vault rm  <shelf/name>        delete
+#   vault mv  <shelf/name> <shelf> move to another shelf
+#   vault whoami                  show the account and its shelves
+#   vault shelves                 list shelves you can reach
+#
+# Configuration lives in ~/.vaultrc (chmod 600):
+#
+#   VAULT_URL=https://vault.example.com
+#   VAULT_TOKEN=vlt_xxxxxxxxxxxx_yyyyyyyy
+#   # only if Cloudflare Access guards the hostname:
+#   CF_ACCESS_CLIENT_ID=xxxx.access
+#   CF_ACCESS_CLIENT_SECRET=yyyy
+
+set -euo pipefail
+
+CONFIG="${VAULT_CONFIG:-$HOME/.vaultrc}"
+[ -f "$CONFIG" ] && . "$CONFIG"
+
+: "${VAULT_URL:=}"
+: "${VAULT_TOKEN:=}"
+CHUNK=$((64 * 1024 * 1024))
+
+die() { printf 'vault: %s\n' "$1" >&2; exit 1; }
+
+[ -n "$VAULT_URL" ]   || die "VAULT_URL is not set. Create $CONFIG — see the header of this script."
+[ -n "$VAULT_TOKEN" ] || die "VAULT_TOKEN is not set. Generate one in the Accounts panel."
+VAULT_URL="${VAULT_URL%/}"
+
+command -v curl >/dev/null || die "curl is required"
+
+# Cloudflare Access service-token headers, only when configured.
+cf_headers() {
+  if [ -n "${CF_ACCESS_CLIENT_ID:-}" ] && [ -n "${CF_ACCESS_CLIENT_SECRET:-}" ]; then
+    printf '%s\n' "-HCF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
+                  "-HCF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET"
+  fi
+}
+
+# Run curl with auth applied. Any extra arguments are passed through.
+api() {
+  local hdrs=()
+  mapfile -t hdrs < <(cf_headers)
+  curl -fsS --retry 3 --retry-delay 2 \
+       -H "Authorization: Bearer $VAULT_TOKEN" \
+       "${hdrs[@]}" "$@"
+}
+
+# As api(), but without --retry and without -f: used for chunk bodies, where
+# the payload arrives on stdin and so cannot be rewound for a retry, and where
+# we want to read the error response rather than have curl swallow it.
+api_raw() {
+  local hdrs=()
+  mapfile -t hdrs < <(cf_headers)
+  curl -sS -H "Authorization: Bearer $VAULT_TOKEN" "${hdrs[@]}" "$@"
+}
+
+# Extract one field from a JSON object on stdin, or print nothing.
+jfield() {
+  python3 -c '
+import json, sys
+try:
+    v = json.load(sys.stdin).get(sys.argv[1])
+except Exception:
+    v = None
+print("" if v is None else v)' "$1"
+}
+
+# Percent-encode each path segment, leaving the separators intact.
+url_for() {
+  python3 - "$1" <<'PY'
+import sys, urllib.parse
+print('/'.join(urllib.parse.quote(p, safe='') for p in sys.argv[1].split('/')))
+PY
+}
+
+human() {
+  awk -v b="$1" 'BEGIN{
+    split("B KB MB GB TB",u," "); i=1
+    while(b>=1024 && i<5){b/=1024;i++}
+    printf (i==1 ? "%d %s" : "%.1f %s"), b, u[i]
+  }'
+}
+
+# Resolve a bare filename to shelf/name, erroring if it is ambiguous.
+resolve() {
+  local want="$1"
+  case "$want" in */*) printf '%s' "$want"; return;; esac
+  local hits
+  hits=$(api "$VAULT_URL/api/list" | awk -F'\t' -v n="$want" '$4==n {print $1"/"$4}')
+  local count
+  count=$(printf '%s' "$hits" | grep -c . || true)
+  [ "$count" -eq 0 ] && die "no file named '$want'"
+  [ "$count" -gt 1 ] && { printf 'vault: ambiguous, matches:\n%s\n' "$hits" >&2; exit 1; }
+  printf '%s' "$hits"
+}
+
+# Fail early with a clear reason rather than letting curl's exit code leak.
+check_auth() {
+  local code
+  # curl prints 000 itself on a connection failure; don't append a second one.
+  code=$(api_raw -o /dev/null -w '%{http_code}' "$VAULT_URL/api/whoami" 2>/dev/null) || true
+  code="${code:-000}"
+  case "$code" in
+    200) return 0 ;;
+    000) die "cannot reach $VAULT_URL" ;;
+    401) die "token rejected — check VAULT_TOKEN in $CONFIG" ;;
+    302|403) die "blocked before reaching Vault — if Cloudflare Access guards this hostname, set CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET in $CONFIG" ;;
+    *)   die "unexpected response from $VAULT_URL (HTTP $code)" ;;
+  esac
+}
+
+cmd_whoami() {
+  check_auth
+  api "$VAULT_URL/api/whoami" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+print("%s (%s)" % (d["user"], d["role"]))
+print("shelves: " + ", ".join(d["shelves"]))'
+}
+
+cmd_shelves() {
+  api "$VAULT_URL/api/whoami" | python3 -c '
+import json,sys
+[print(s) for s in json.load(sys.stdin)["shelves"]]'
+}
+
+cmd_ls() {
+  check_auth
+  local q=""
+  [ $# -gt 0 ] && q="?shelf=$1"
+  api "$VAULT_URL/api/list$q" | while IFS=$'\t' read -r shelf size mtime name; do
+    [ -z "${name:-}" ] && continue
+    printf '%-10s %10s  %s\n' "$shelf" "$(human "$size")" "$name"
+  done
+}
+
+cmd_get() {
+  [ $# -ge 1 ] || die "usage: vault get <name|shelf/name>"
+  local rel; rel=$(resolve "$1")
+  local out="${2:-$(basename "$rel")}"
+  printf 'downloading %s\n' "$rel" >&2
+  # -C - resumes a partial download if the file is already here.
+  local hdrs=(); mapfile -t hdrs < <(cf_headers)
+  local code
+  code=$(curl -L --progress-bar -C - \
+       -H "Authorization: Bearer $VAULT_TOKEN" "${hdrs[@]}" \
+       -o "$out" -w '%{http_code}' \
+       "$VAULT_URL/api/download/$(url_for "$rel")" || true)
+
+  case "$code" in
+    200|206) printf 'saved %s\n' "$out" >&2 ;;
+    416)     printf 'already complete: %s\n' "$out" >&2 ;;
+    404)     rm -f "$out"; die "not found, or your account has no access to that shelf: $rel" ;;
+    401)     rm -f "$out"; die "token rejected — check VAULT_TOKEN in $CONFIG" ;;
+    403)     rm -f "$out"; die "forbidden: $rel" ;;
+    *)       rm -f "$out"; die "download failed (HTTP $code)" ;;
+  esac
+}
+
+cmd_rm() {
+  [ $# -ge 1 ] || die "usage: vault rm <shelf/name>"
+  local rel; rel=$(resolve "$1")
+  api -X DELETE "$VAULT_URL/api/file?rel=$(url_for "$rel")" >/dev/null
+  printf 'deleted %s\n' "$rel" >&2
+}
+
+cmd_mv() {
+  [ $# -ge 2 ] || die "usage: vault mv <shelf/name> <shelf>"
+  local rel; rel=$(resolve "$1")
+  api -X PATCH -H 'Content-Type: application/json' \
+      -d "$(python3 -c 'import json,sys; print(json.dumps({"rel":sys.argv[1],"shelf":sys.argv[2]}))' "$rel" "$2")" \
+      "$VAULT_URL/api/file" >/dev/null
+  printf 'moved %s -> %s\n' "$rel" "$2" >&2
+}
+
+# Uploads in slices so Cloudflare's 100 MB request ceiling never applies, and
+# so an interrupted transfer picks up where it stopped instead of restarting.
+cmd_put() {
+  [ $# -ge 1 ] || die "usage: vault put <file> [shelf]"
+  local file="$1" shelf="${2:-}"
+  [ -f "$file" ] || die "no such file: $file"
+
+  local name size
+  name=$(basename "$file")
+  size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file")
+
+  local body
+  body=$(python3 -c '
+import json,sys
+d={"name":sys.argv[1],"size":int(sys.argv[2])}
+if sys.argv[3]: d["shelf"]=sys.argv[3]
+print(json.dumps(d))' "$name" "$size" "$shelf")
+
+  local init id off
+  init=$(api_raw -X POST -H 'Content-Type: application/json' -d "$body" "$VAULT_URL/api/upload/init")
+  id=$(printf '%s' "$init" | jfield id)
+  off=$(printf '%s' "$init" | jfield received)
+  if [ -z "$id" ]; then
+    local why; why=$(printf '%s' "$init" | jfield error)
+    die "${why:-could not start the upload}"
+  fi
+
+  [ "$off" -gt 0 ] && printf 'resuming at %s of %s\n' "$(human "$off")" "$(human "$size")" >&2
+
+  # Ask the server where it thinks we are. It is the authority — the local
+  # idea of progress can be stale after an interrupted run.
+  sync_offset() {
+    local got
+    got=$(api "$VAULT_URL/api/upload/status/$id" 2>/dev/null | jfield received || true)
+    [ -n "$got" ] && off="$got"
+  }
+
+  local tries=0
+  while [ "$off" -lt "$size" ]; do
+    local n=$CHUNK
+    if [ $((off + n)) -gt "$size" ]; then n=$((size - off)); fi
+
+    local reply got
+    reply=$(dd if="$file" bs=1048576 iflag=skip_bytes,count_bytes skip="$off" count="$n" \
+              status=none 2>/dev/null \
+            | api_raw -X POST -H 'Content-Type: application/octet-stream' \
+                  --data-binary @- "$VAULT_URL/api/upload/chunk/$id?offset=$off")
+
+    got=$(printf '%s' "$reply" | jfield received)
+
+    if [ -z "$got" ]; then
+      # Rejected without telling us the offset — another writer, a dropped
+      # connection, or a transient server error. Re-sync and try again.
+      tries=$((tries + 1))
+      if [ "$tries" -ge 6 ]; then
+        printf '\n' >&2
+        die "upload failed after $tries attempts: $(printf '%s' "$reply" | jfield error)"
+      fi
+      printf '\r  retrying (%d/6)...            ' "$tries" >&2
+      sleep $((tries * 2))
+      sync_offset
+      continue
+    fi
+
+    tries=0
+    off="$got"
+    printf '\r  %s / %s (%d%%)   ' "$(human "$off")" "$(human "$size")" $((off * 100 / size)) >&2
+  done
+  printf '\n' >&2
+
+  local fin rel
+  fin=$(api_raw -X POST "$VAULT_URL/api/upload/finish/$id")
+  rel=$(printf '%s' "$fin" | jfield rel)
+  [ -n "$rel" ] || die "could not finish: $(printf '%s' "$fin" | jfield error)"
+  printf 'uploaded %s\n' "$rel" >&2
+}
+
+usage() {
+  sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+  exit 1
+}
+
+[ $# -ge 1 ] || usage
+sub="$1"; shift
+case "$sub" in
+  ls)      cmd_ls "$@" ;;
+  get)     cmd_get "$@" ;;
+  put)     cmd_put "$@" ;;
+  rm)      cmd_rm "$@" ;;
+  mv)      cmd_mv "$@" ;;
+  whoami)  cmd_whoami "$@" ;;
+  shelves) cmd_shelves "$@" ;;
+  -h|--help|help) usage ;;
+  *) die "unknown command '$sub' — try: ls get put rm mv whoami shelves" ;;
+esac

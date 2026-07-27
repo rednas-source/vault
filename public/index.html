@@ -302,6 +302,11 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   overflow:hidden;position:relative;
 }
 .tile-art img{width:100%;height:100%;object-fit:cover;display:block}
+/* video frame fades in over the extension placeholder */
+.tile-art img.thumb{
+  position:absolute;inset:0;opacity:0;transition:opacity .35s ease;
+}
+.tile-art img.thumb.ready{opacity:1}
 /* hairline graph paper behind file-type tiles, so they aren't dead rectangles */
 .tile-art.blank{
   background:
@@ -423,6 +428,30 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   .new-grid{grid-template-columns:1fr}
   .u-row{grid-template-columns:1fr;gap:9px}
   .u-acts{justify-content:flex-start}
+}
+
+.u-shelves{
+  grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;
+}
+.u-chip{
+  font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--line);padding:3px 7px;
+}
+.u-all,.u-none{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+}
+.u-none{color:var(--flare)}
+
+.tok-list{margin-bottom:16px}
+.tok{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.tok:last-child{border-bottom:0}
+.tok-id{flex:1;min-width:0}
+.tok-id b{display:block;font-weight:500;font-size:12.5px}
+.tok-id small{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.token-box{
+  border:1px solid var(--star-edge);background:var(--star-soft);
+  padding:12px;font-size:11px;word-break:break-all;line-height:1.6;
+  margin-bottom:10px;color:var(--text);user-select:all;
 }
 
 /* ══════════════════════════════════ dialog */
@@ -618,10 +647,11 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
 'use strict';
 
 const $ = (s) => document.querySelector(s);
-const state = { files: [], disk: null, shelf: 'all', q: '', sort: 'new', view: 'list', user: null, role: null, pendingShelf: null };
+const state = { files: [], disk: null, shelf: 'all', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, pendingShelf: null };
 
 const SHELF_LABEL = { movies:'Movies', series:'Series', music:'Music', photos:'Photos', docs:'Documents', archives:'Archives', misc:'Other' };
-const SHELF_ORDER = ['movies','series','music','photos','docs','archives','misc'];
+const ALL_SHELVES = ['movies','series','music','photos','docs','archives','misc'];
+let SHELF_ORDER = ALL_SHELVES.slice();   // narrowed to what this account may see
 const VIDEO = ['mp4','mkv','avi','mov','webm','m4v','wmv','flv','mpg','mpeg','ts'];
 const AUDIO = ['mp3','flac','wav','aac','ogg','m4a','opus','wma','aiff'];
 const IMAGE = ['jpg','jpeg','png','gif','webp','bmp','svg','avif'];
@@ -711,6 +741,9 @@ async function load(){
   const d = await r.json();
   state.files = d.files;
   state.disk = d.disk;
+  state.thumbs = !!d.thumbs;
+  if(Array.isArray(d.shelves) && d.shelves.length) SHELF_ORDER = d.shelves;
+  if(!SHELF_ORDER.includes(state.shelf) && state.shelf !== 'all') state.shelf = 'all';
   render();
 }
 
@@ -814,11 +847,21 @@ function listView(list){
 function gridView(list){
   return `<div class="tiles">${list.map((f,i)=>{
     const isImg = IMAGE.includes(f.ext);
-    const art = isImg
-      ? `<img src="${url('stream',f.rel)}" alt="" loading="lazy">`
-      : `<span class="ph">${esc((f.ext||'FILE').toUpperCase())}</span>`;
+    const isVid = state.thumbs && VIDEO.includes(f.ext);
+    const ph = `<span class="ph">${esc((f.ext||'FILE').toUpperCase())}</span>`;
+    let art, blank = true;
+    if(isImg){
+      art = `<img src="${url('stream',f.rel)}" alt="" loading="lazy">`; blank = false;
+    }else if(isVid){
+      // Placeholder shows until the frame arrives; if ffmpeg can't read the
+      // file the 404 just leaves the placeholder in place.
+      art = `${ph}<img class="thumb" src="${url('thumb',f.rel)}" alt="" loading="lazy"
+              onload="this.classList.add('ready')" onerror="this.remove()">`;
+    }else{
+      art = ph;
+    }
     return `<button class="tile" data-act="${playable(f)?'open':'get'}" data-i="${i}">
-      <div class="tile-art${isImg?'':' blank'}">${art}</div>
+      <div class="tile-art${blank?' blank':''}">${art}</div>
       <div class="tile-body"><b title="${esc(f.name)}">${esc(f.name)}</b><small>${bytes(f.size)} · ${ago(f.modified)}</small></div>
     </button>`;
   }).join('')}</div>`;
@@ -952,17 +995,31 @@ async function loadUsers(){
         ${u.disabled?'<span class="u-badge off">suspended</span>':''}
       </div>
       <div class="u-acts">
+        <button class="act" data-do="shelves" data-n="${esc(u.name)}">Shelves</button>
+        <button class="act" data-do="tokens" data-n="${esc(u.name)}">Tokens${u.tokens.length?` (${u.tokens.length})`:''}</button>
         <button class="act" data-do="pass" data-n="${esc(u.name)}">New password</button>
         <button class="act" data-do="role" data-n="${esc(u.name)}" data-to="${u.role==='admin'?'member':'admin'}">Make ${u.role==='admin'?'member':'admin'}</button>
         ${self?'':`<button class="act" data-do="toggle" data-n="${esc(u.name)}" data-to="${u.disabled?'0':'1'}">${u.disabled?'Restore':'Suspend'}</button>
         <button class="act kill" data-do="del" data-n="${esc(u.name)}">Delete</button>`}
       </div>
+      <div class="u-shelves">${
+        u.role === 'admin'
+          ? '<span class="u-all">every shelf — admin</span>'
+          : (u.shelves === '*'
+              ? '<span class="u-all">every shelf</span>'
+              : (u.shelves.length
+                  ? u.shelves.map((x)=>`<span class="u-chip">${esc(SHELF_LABEL[x]||x)}</span>`).join('')
+                  : '<span class="u-none">no shelves — can see nothing</span>'))
+      }</div>
     </div>`;
   }).join('');
+  window.__users = d.users;
 
   $('#userList').querySelectorAll('[data-do]').forEach((b) => {
     b.onclick = () => {
       const n = b.dataset.n;
+      if(b.dataset.do === 'shelves') return askShelves(n);
+      if(b.dataset.do === 'tokens') return askTokens(n);
       if(b.dataset.do === 'pass') return askPassword(n);
       if(b.dataset.do === 'del') return askRemove(n);
       if(b.dataset.do === 'role') return patchUser(n, { role: b.dataset.to });
@@ -1011,6 +1068,94 @@ function askRemove(name){
   };
 }
 
+function askShelves(name){
+  const u = (window.__users||[]).find((x)=>x.name===name) || {};
+  if(u.role === 'admin'){
+    return notify('Admins can reach every shelf. Make them a member first to restrict access.');
+  }
+  const have = new Set(u.shelves === '*' ? ALL_SHELVES : (u.shelves||[]));
+
+  sheet(`<span class="tag">Shelves for ${esc(name)}</span>
+    <p>Pick what this account can see. Everything else is hidden and blocked at the server, not just in the sidebar.</p>
+    <div class="shelf-pick">${ALL_SHELVES.map((x)=>
+      `<button data-s="${x}" class="${have.has(x)?'on':''}">${SHELF_LABEL[x]}</button>`).join('')}</div>
+    <div class="gate-error mono" id="shErr" style="margin:0 0 14px"></div>
+    <div class="sheet-row">
+      <button class="ghost" id="all">All</button>
+      <button class="ghost" id="none">None</button>
+      <button class="ghost" id="no">Cancel</button>
+      <button class="ghost accent" id="yes">Save</button>
+    </div>`);
+
+  const btns = () => [...$('#sheet').querySelectorAll('[data-s]')];
+  btns().forEach((b) => { b.onclick = () => b.classList.toggle('on'); });
+  $('#all').onclick = () => btns().forEach((b)=>b.classList.add('on'));
+  $('#none').onclick = () => btns().forEach((b)=>b.classList.remove('on'));
+  $('#no').onclick = closeSheet;
+  $('#yes').onclick = async () => {
+    const picked = btns().filter((b)=>b.classList.contains('on')).map((b)=>b.dataset.s);
+    const r = await fetch(`/api/users/${encodeURIComponent(name)}`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ shelves: picked }),
+    });
+    if(!r.ok){
+      const d = await r.json().catch(()=>({}));
+      return void ($('#shErr').textContent = d.error || 'Could not save.');
+    }
+    closeSheet(); loadUsers();
+  };
+}
+
+function askTokens(name){
+  const u = (window.__users||[]).find((x)=>x.name===name) || { tokens: [] };
+  const rows = u.tokens.length
+    ? u.tokens.map((t)=>`<div class="tok">
+        <div class="tok-id"><b>${esc(t.label)}</b>
+          <small>${t.lastUsed?`last used ${ago(t.lastUsed)}`:'never used'}</small></div>
+        <button class="act kill" data-tok="${esc(t.id)}">Revoke</button>
+      </div>`).join('')
+    : '<div class="rename-hint" style="margin:0 0 16px">No tokens yet.</div>';
+
+  sheet(`<span class="tag">API tokens — ${esc(name)}</span>
+    <p>For scripts and servers. A token acts as this account and inherits its shelves.</p>
+    <div class="tok-list">${rows}</div>
+    <div class="rename-field"><input id="tkLabel" placeholder="what is it for? e.g. media-server" autocomplete="off"></div>
+    <div class="gate-error mono" id="tkErr" style="margin:0 0 14px"></div>
+    <div class="sheet-row"><button class="ghost" id="no">Close</button><button class="ghost accent" id="yes">Create token</button></div>`);
+
+  $('#sheet').querySelectorAll('[data-tok]').forEach((b) => {
+    b.onclick = async () => {
+      await fetch(`/api/users/${encodeURIComponent(name)}/tokens/${b.dataset.tok}`, { method:'DELETE' });
+      closeSheet(); await loadUsers(); askTokens(name);
+    };
+  });
+  $('#no').onclick = closeSheet;
+  $('#yes').onclick = async () => {
+    const r = await fetch(`/api/users/${encodeURIComponent(name)}/tokens`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ label: $('#tkLabel').value.trim() || 'untitled' }),
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) return void ($('#tkErr').textContent = d.error || 'Could not create token.');
+    showToken(name, d.token);
+  };
+}
+
+/* Shown once. The server keeps only a hash, so there is no second chance. */
+function showToken(name, token){
+  sheet(`<span class="tag">Token created</span>
+    <p>Copy it now — this is the only time it will be shown.</p>
+    <div class="token-box mono" id="tkVal">${esc(token)}</div>
+    <div class="rename-hint">Put it in <b>~/.vaultrc</b> as <b>VAULT_TOKEN</b>, and chmod 600 the file.</div>
+    <div class="sheet-row"><button class="ghost" id="copy">Copy</button><button class="ghost accent" id="done">Done</button></div>`);
+  $('#copy').onclick = async () => {
+    try{ await navigator.clipboard.writeText(token); $('#copy').textContent = 'Copied'; }
+    catch{ const r=document.createRange(); r.selectNode($('#tkVal'));
+           getSelection().removeAllRanges(); getSelection().addRange(r); }
+  };
+  $('#done').onclick = async () => { closeSheet(); await loadUsers(); askTokens(name); };
+}
+
 function notify(msg){
   sheet(`<span class="tag">Can't do that</span><p>${esc(msg)}</p>
     <div class="sheet-row"><button class="ghost" id="ok">OK</button></div>`);
@@ -1028,6 +1173,7 @@ $('#newAcct').addEventListener('submit', async (e) => {
   if(!r.ok) return void ($('#nErr').textContent = d.error);
   $('#nName').value = ''; $('#nPass').value = ''; $('#nRole').value = 'member';
   loadUsers();
+  // New members start with every shelf; narrow it with the Shelves button.
 });
 
 /* ── uploads */
@@ -1053,45 +1199,131 @@ function chooseShelf(files){
   $('#go').onclick = () => { closeSheet(); files.forEach((f) => send(f, pick)); };
 }
 
+/* Cloudflare's free plan rejects any request body over 100 MB and a tunnel
+   can't bypass the proxy, so anything sizeable goes up in slices. Sequential
+   rather than parallel: it keeps the server's append-only part-file honest and
+   makes a resumed upload trivial to reason about. */
+const CHUNK = 64 * 1024 * 1024;
+const CHUNK_OVER = 80 * 1024 * 1024;   // below this, one request is simpler
+
 let active = 0;
-function send(file, shelf){
+
+function queueRow(name){
   $('#queue').classList.add('on');
   const row = document.createElement('div');
   row.className = 'q-item';
-  row.innerHTML = `<div class="q-top"><b>${esc(file.name)}</b><em>0%</em></div><div class="q-bar"><div class="q-fill"></div></div>`;
+  row.innerHTML = `<div class="q-top"><b>${esc(name)}</b><em>0%</em></div><div class="q-bar"><div class="q-fill"></div></div>`;
   $('#queueList').prepend(row);
-  const fill = row.querySelector('.q-fill');
-  const pct = row.querySelector('em');
+  return { row, fill: row.querySelector('.q-fill'), pct: row.querySelector('em') };
+}
+
+function busy(n){
+  active += n;
+  $('#railState').textContent = active ? `uploading ${active}` : 'idle';
+}
+
+async function sendChunked(file, shelf){
+  const ui = queueRow(file.name);
+  busy(1);
+  let cancelled = false;
+  ui.row.addEventListener('click', () => { cancelled = true; });
+
+  try{
+    const initRes = await fetch('/api/upload/init', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name:file.name, size:file.size, shelf: shelf==='auto'?undefined:shelf }),
+    });
+    const init = await initRes.json();
+    if(!initRes.ok) throw new Error(init.error || 'Could not start upload');
+
+    let sent = init.received || 0;
+    let stumbles = 0;
+    if(sent) ui.pct.textContent = `resuming ${Math.round(sent/file.size*100)}%`;
+
+    while(sent < file.size){
+      if(cancelled) throw new Error('cancelled');
+      const end = Math.min(sent + CHUNK, file.size);
+      const res = await fetch(`/api/upload/chunk/${init.id}?offset=${sent}`, {
+        method:'POST',
+        headers:{'Content-Type':'application/octet-stream'},
+        body: file.slice(sent, end),
+      });
+      const out = await res.json().catch(() => ({}));
+
+      if(res.status === 409 && typeof out.received === 'number'){
+        sent = out.received;          // server knows better — realign and retry
+        continue;
+      }
+      if(!res.ok){
+        // Rejected without an offset. Ask the server where it actually is and
+        // retry a few times before giving up — a dropped chunk shouldn't cost
+        // the whole transfer.
+        if(++stumbles > 5) throw new Error(out.error || 'Chunk rejected');
+        ui.pct.textContent = `retrying ${stumbles}/5`;
+        await new Promise((r) => setTimeout(r, stumbles * 1500));
+        const st = await fetch(`/api/upload/status/${init.id}`);
+        if(st.ok){ const sj = await st.json(); if(typeof sj.received === 'number') sent = sj.received; }
+        continue;
+      }
+      stumbles = 0;
+
+      sent = out.received;
+      const p = sent/file.size*100;
+      ui.fill.style.width = `${p}%`;
+      ui.pct.textContent = `${Math.round(p)}%`;
+    }
+
+    const finRes = await fetch(`/api/upload/finish/${init.id}`, { method:'POST' });
+    const fin = await finRes.json().catch(() => ({}));
+    if(!finRes.ok) throw new Error(fin.error || 'Could not finish upload');
+
+    ui.row.classList.add('done');
+    ui.fill.style.width = '100%';
+    ui.pct.textContent = 'done';
+    load();
+  }catch(err){
+    ui.row.classList.add('fail');
+    ui.pct.textContent = err.message === 'cancelled' ? 'cancelled'
+      : (err.message.length < 22 ? err.message : 'failed');
+  }finally{
+    busy(-1);
+  }
+}
+
+function send(file, shelf){
+  if(file.size > CHUNK_OVER) return sendChunked(file, shelf);
+  return sendSingle(file, shelf);
+}
+
+function sendSingle(file, shelf){
+  const ui = queueRow(file.name);
 
   const fd = new FormData();
   if(shelf !== 'auto') fd.append('shelf', shelf);  // must precede the file
   fd.append('files', file);
 
-  active++;
-  $('#railState').textContent = `uploading ${active}`;
+  busy(1);
 
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '/api/upload');
   xhr.upload.onprogress = (e) => {
     if(!e.lengthComputable) return;
     const p = e.loaded/e.total*100;
-    fill.style.width = `${p}%`;
-    pct.textContent = `${Math.round(p)}%`;
+    ui.fill.style.width = `${p}%`;
+    ui.pct.textContent = `${Math.round(p)}%`;
   };
   xhr.onload = () => {
-    active--;
-    $('#railState').textContent = active ? `uploading ${active}` : 'idle';
+    busy(-1);
     if(xhr.status >= 200 && xhr.status < 300){
-      row.classList.add('done'); fill.style.width = '100%'; pct.textContent = 'done';
+      ui.row.classList.add('done'); ui.fill.style.width = '100%'; ui.pct.textContent = 'done';
       load();
     }else{
-      row.classList.add('fail'); pct.textContent = xhr.status === 413 ? 'too large' : 'failed';
+      ui.row.classList.add('fail'); ui.pct.textContent = xhr.status === 413 ? 'too large' : 'failed';
     }
   };
   xhr.onerror = () => {
-    active--;
-    $('#railState').textContent = active ? `uploading ${active}` : 'idle';
-    row.classList.add('fail'); pct.textContent = 'lost connection';
+    busy(-1);
+    ui.row.classList.add('fail'); ui.pct.textContent = 'lost connection';
   };
   xhr.send(fd);
 }
