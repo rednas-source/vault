@@ -337,6 +337,8 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   color:var(--faint);text-transform:uppercase;overflow:hidden;white-space:nowrap;
 }
 .rail .live{color:var(--star)}
+.rail-keys{color:var(--faint);cursor:pointer;transition:color .15s}
+.rail-keys:hover{color:var(--dim)}
 .rail .sp{flex:1}
 
 /* ══════════════════════════════════ upload */
@@ -454,6 +456,26 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   margin-bottom:10px;color:var(--text);user-select:all;
 }
 
+.new-grid-shelf{grid-template-columns:1fr 1.4fr auto}
+.sh-row{
+  display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;
+  padding:12px 4px;border-bottom:1px solid var(--line);
+}
+.sh-move{display:flex;flex-direction:column;gap:1px}
+.sh-move .act{padding:1px 6px;font-size:11px;line-height:1.3}
+.sh-move .act[disabled]{opacity:.25;cursor:default}
+.sh-id{min-width:0}
+.sh-id b{display:block;font-weight:500;font-size:13.5px}
+.sh-id small{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.06em}
+.sh-exts{display:flex;flex-wrap:wrap;gap:4px;max-width:300px;justify-content:flex-end}
+
+@media (max-width:760px){
+  .new-grid-shelf{grid-template-columns:1fr}
+  .sh-row{grid-template-columns:auto 1fr;gap:10px}
+  .sh-exts{display:none}
+  .sh-move{flex-direction:row}
+}
+
 /* ══════════════════════════════════ dialog */
 .modal{position:fixed;inset:0;z-index:46;display:none;place-items:center;background:var(--scrim-modal)}
 .modal.on{display:grid}
@@ -485,6 +507,270 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   letter-spacing:.05em;margin-bottom:18px;
 }
 
+/* ══════════════════════════════════ continue watching */
+.resume{display:none;padding:18px 22px 0}
+.resume.on{display:block}
+.resume .tag{display:block;margin-bottom:11px}
+.resume-row{
+  display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;
+  scrollbar-width:thin;
+}
+.rz{
+  flex:0 0 176px;text-align:left;border:1px solid var(--line);
+  background:var(--deep);transition:border-color .15s;
+}
+.rz:hover{border-color:var(--star-edge)}
+.rz-art{
+  aspect-ratio:16/9;background:var(--raise);position:relative;overflow:hidden;
+}
+.rz-art img{width:100%;height:100%;object-fit:cover;display:block}
+.rz-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(0,0,0,.45)}
+.rz-bar i{display:block;height:100%;background:var(--star)}
+.rz-name{
+  padding:7px 9px 0;font-size:11.5px;font-weight:500;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.rz-left{
+  padding:2px 9px 9px;font-family:var(--mono);font-size:9.5px;
+  color:var(--faint);letter-spacing:.06em;
+}
+
+/* watch state on grid tiles */
+.watch-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(0,0,0,.45)}
+.watch-bar i{display:block;height:100%;background:var(--star)}
+.tile.seen .tile-art{opacity:.45;transition:opacity .15s}
+.tile.seen:hover .tile-art{opacity:.85}
+.seen-flag{
+  position:absolute;top:7px;right:7px;z-index:2;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--deep);border:1px solid var(--line-hot);color:var(--dim);padding:3px 6px;
+}
+.tile-art img.poster{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .4s;z-index:1;
+}
+.tile-art img.poster.ready{opacity:1}
+.tile.scrubbable:hover .poster{opacity:0}
+
+/* ══════════════════════════════════ share links */
+.opt-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 18px}
+.opt-tag{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:7px;
+}
+.opt-pick{display:flex;flex-wrap:wrap;gap:5px}
+.opt-pick button{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  border:1px solid var(--line);padding:6px 9px;color:var(--dim);transition:all .12s;
+}
+.opt-pick button:hover{border-color:var(--line-hot);color:var(--text)}
+.opt-pick button.on{border-color:var(--star);color:var(--star);background:var(--star-soft)}
+
+.link-list{max-height:300px;overflow-y:auto;margin-bottom:18px}
+.lk{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--rule)}
+.lk:last-child{border-bottom:0}
+.lk.dead{opacity:.5}
+.lk-id{flex:1;min-width:0}
+.lk-id b{display:block;font-weight:500;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lk-id small{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.04em}
+
+/* subtitle cues shouldn't sit on the very edge */
+video::cue{background:rgba(0,0,0,.75);font-size:.9em}
+
+@media (max-width:760px){
+  .resume{padding-left:12px;padding-right:12px}
+  .opt-row{grid-template-columns:1fr;gap:12px}
+}
+
+/* ══════════════════════════════════ spectrum motion */
+@keyframes seg-grow{from{transform:scaleX(.2);opacity:0}to{transform:scaleX(1)}}
+.spec-seg{transform-origin:left bottom}
+@keyframes seg-pulse{
+  0%{transform:scaleY(1)}
+  35%{transform:scaleY(4);filter:brightness(1.9)}
+  100%{transform:scaleY(1)}
+}
+.spec-seg.pulse{animation:seg-pulse 1.1s cubic-bezier(.2,.8,.3,1);transform-origin:bottom}
+
+/* ══════════════════════════════════ series groups */
+tr.grp{cursor:pointer;background:var(--hover)}
+tr.grp:hover{background:var(--row-hover)}
+.grp-caret{
+  width:12px;flex-shrink:0;font-size:10px;color:var(--faint);
+  font-family:var(--mono);text-align:center;
+}
+tr.grp.open .grp-caret{color:var(--star)}
+.glyph.grp-glyph{
+  border-color:var(--star-edge);color:var(--star);
+  font-size:10px;font-weight:500;
+}
+.grp-sub{
+  display:block;font-family:var(--mono);font-size:9.5px;font-weight:400;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:3px;
+}
+tr.nested td:nth-child(2){padding-left:34px}
+tr.nested .glyph{opacity:.5}
+.ep-no{
+  font-family:var(--mono);font-size:10px;color:var(--star);
+  margin-right:9px;letter-spacing:.06em;
+}
+
+/* ══════════════════════════════════ selection */
+.col-pick{width:30px;padding-right:0!important}
+.pick,#pickAll{
+  appearance:none;width:13px;height:13px;border:1px solid var(--line-hot);
+  cursor:pointer;position:relative;vertical-align:middle;transition:all .12s;
+}
+.pick:hover,#pickAll:hover{border-color:var(--star-edge)}
+.pick:checked,#pickAll:checked{background:var(--star);border-color:var(--star)}
+.pick:checked::after,#pickAll:checked::after{
+  content:'';position:absolute;left:3.5px;top:.5px;width:4px;height:8px;
+  border:solid var(--ink);border-width:0 1.5px 1.5px 0;transform:rotate(42deg);
+}
+tr.picked{background:var(--star-soft)!important}
+
+.bulk{
+  position:fixed;left:50%;transform:translate(-50%,14px);
+  bottom:calc(var(--rail) + 16px);z-index:38;
+  display:none;align-items:center;gap:10px;
+  background:var(--deep);border:1px solid var(--line-hot);
+  padding:9px 12px;box-shadow:var(--shadow);
+  opacity:0;transition:opacity .2s,transform .2s;
+  min-width:min(360px,88vw);
+}
+.bulk.on{display:flex;opacity:1;transform:translate(-50%,0)}
+.bulk .tag{padding:0;color:var(--star)}
+.bulk .sp{flex:1}
+
+/* ══════════════════════════════════ hover scrubber */
+.tile.scrubbable .tile-art{cursor:crosshair}
+.scrub-strip{
+  position:absolute;inset:0;
+  background-repeat:no-repeat;
+  background-size:900% 100%;      /* nine frames side by side */
+  opacity:0;transition:opacity .12s;
+  pointer-events:none;
+}
+.scrub-strip.on{opacity:1}
+.scrub-ticks{
+  position:absolute;left:0;right:0;bottom:0;height:2px;
+  display:flex;gap:1px;pointer-events:none;opacity:0;transition:opacity .15s;
+}
+.tile:hover .scrub-ticks{opacity:1}
+.scrub-ticks i{flex:1;background:rgba(127,217,255,.22)}
+.scrub-ticks i.on{background:var(--star)}
+html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
+
+/* ══════════════════════════════════ remux player */
+.player{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:12px}
+.player video{width:100%;max-height:70vh;background:#000;display:block}
+.rmx-bar{display:flex;align-items:center;gap:12px}
+.rmx-time{
+  font-family:var(--mono);font-size:10.5px;color:var(--dim);
+  font-variant-numeric:tabular-nums;min-width:48px;
+}
+.rmx-time:last-child{text-align:right}
+.rmx-track{
+  flex:1;height:3px;background:var(--line);cursor:pointer;position:relative;
+}
+.rmx-track::before{content:'';position:absolute;inset:-8px 0;cursor:pointer}
+.rmx-track:hover{background:var(--line-hot)}
+.rmx-fill{height:100%;background:var(--star);width:0;transition:width .25s linear}
+.rmx-note{
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);text-align:center;
+}
+.viewer-link{color:var(--star);word-break:break-all}
+
+/* ══════════════════════════════════ activity */
+.ev{
+  display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:baseline;
+  padding:9px 4px;border-bottom:1px solid var(--rule);
+}
+.ev-when{
+  font-family:var(--mono);font-size:10px;color:var(--faint);
+  letter-spacing:.06em;white-space:nowrap;
+}
+.ev-what{font-size:12.5px;color:var(--dim);min-width:0;word-break:break-word}
+.ev-what b{color:var(--text);font-weight:500}
+.ev-what span{
+  font-family:var(--mono);font-size:11px;color:var(--faint);
+  display:block;margin-top:2px;
+}
+.ev.bad .ev-what b{color:var(--flare)}
+.ev.warn .ev-what b{color:var(--star)}
+
+@media (max-width:760px){
+  .ev{grid-template-columns:1fr;gap:2px}
+  .bulk{left:12px;right:12px;transform:none;min-width:0}
+  .bulk.on{transform:none}
+  .col-pick{width:26px}
+}
+
+/* ══════════════════════════════════ loading skeleton */
+.skel{padding-top:34px}
+.skel-row{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;
+  border-bottom:1px solid var(--rule);opacity:0;
+  animation:skel-in .4s ease forwards;
+}
+.skel-glyph{width:26px;height:26px;flex-shrink:0;border:1px solid var(--line)}
+.skel-bar{height:9px;background:var(--line);position:relative;overflow:hidden}
+.skel-bar.sm{width:64px;margin-left:auto;flex-shrink:0}
+.skel-bar::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,var(--line-hot),transparent);
+  transform:translateX(-100%);animation:sweep 1.5s ease-in-out infinite;
+}
+@keyframes skel-in{to{opacity:1}}
+@keyframes sweep{100%{transform:translateX(100%)}}
+
+/* ══════════════════════════════════ empty states */
+.empty-mark{
+  width:38px;height:38px;margin:0 auto 22px;position:relative;opacity:.5;
+}
+.empty-mark::before{
+  content:'';position:absolute;inset:0;border:1px solid var(--line-hot);
+  border-radius:50%;
+}
+.empty-mark::after{
+  content:'';position:absolute;inset:15px;border-radius:50%;
+  border:1px dashed var(--faint);
+}
+.empty p{font-family:var(--mono);font-size:12.5px;color:var(--dim);letter-spacing:.08em}
+.empty p.empty-sub{margin-top:9px;color:var(--faint);font-size:11px;letter-spacing:.06em}
+
+/* ══════════════════════════════════ toasts */
+.toasts{
+  position:fixed;left:16px;bottom:calc(var(--rail) + 14px);z-index:47;
+  display:flex;flex-direction:column;gap:7px;pointer-events:none;
+}
+.toast{
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;
+  background:var(--deep);border:1px solid var(--line-hot);
+  border-left:2px solid var(--star);
+  padding:10px 14px;max-width:min(340px,70vw);
+  box-shadow:var(--shadow);
+  opacity:0;transform:translateY(6px);transition:opacity .22s,transform .22s;
+}
+.toast.in{opacity:1;transform:none}
+.toast.bad{border-left-color:var(--flare)}
+
+/* ══════════════════════════════════ keyboard cursor */
+.rows tbody tr.cursor{background:var(--star-soft);box-shadow:inset 2px 0 0 var(--star)}
+.rows tbody tr.cursor .acts{opacity:1}
+.keys{margin-bottom:22px}
+.keys-row{display:flex;align-items:center;gap:14px;padding:7px 0}
+.keys-row kbd{
+  font-family:var(--mono);font-size:10px;color:var(--dim);
+  border:1px solid var(--line);padding:3px 8px;min-width:74px;text-align:center;
+}
+.keys-row span{font-size:12.5px;color:var(--dim)}
+
+/* disk pressure */
+.meter-fill.warn{background:var(--flare)}
+.rail #railDisk.hot{color:var(--flare)}
+
 /* ══════════════════════════════════ scrollbars + mobile */
 ::-webkit-scrollbar{width:9px;height:9px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -501,7 +787,7 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   .shelf.on{border-color:var(--star)}
   .shelf em{display:none}
   .meter{display:none}
-  .search kbd,.col-shelf,.col-added{display:none}
+  .search kbd,.col-shelf,.col-added,.rail-keys{display:none}
   header{gap:10px;padding:0 12px}
   .brand span{display:none}
   .scroll,.toolbar,.spectrum{padding-left:12px;padding-right:12px}
@@ -540,6 +826,8 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
     <div class="head-right">
       <button class="ghost accent" id="btnUpload">Upload</button>
       <button class="ghost" id="btnUsers" hidden>Accounts</button>
+      <button class="ghost" id="btnShelves" hidden>Shelves</button>
+      <button class="ghost" id="btnActivity" hidden>Activity</button>
       <button class="ghost" data-theme-toggle>Light</button>
       <button class="ghost" id="btnOut">Sign out</button>
     </div>
@@ -557,6 +845,7 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
     </aside>
 
     <div class="content">
+      <div class="resume" id="resume"></div>
       <div class="spectrum">
         <div class="spectrum-bar" id="spectrum"></div>
         <div class="spectrum-legend" id="legend"></div>
@@ -573,6 +862,7 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
           <option value="small">Smallest</option>
           <option value="az">A → Z</option>
         </select>
+        <button class="ghost" id="tGroup" title="Collapse episodes into seasons">SERIES</button>
         <div class="view-tog">
           <button id="vList" class="on">LIST</button>
           <button id="vGrid">GRID</button>
@@ -586,7 +876,9 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   <div class="rail">
     <span id="railUser">—</span>
     <span id="railCount">—</span>
+    <span id="railDisk"></span>
     <span class="sp"></span>
+    <span class="rail-keys">? for keys</span>
     <span id="railState" class="live">idle</span>
   </div>
 </div>
@@ -637,9 +929,54 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   </div>
 </div>
 
+<div class="viewer" id="shelfAdmin">
+  <div class="viewer-head">
+    <b>Shelves</b>
+    <span class="sp"></span>
+    <button class="ghost" id="shClose">Close</button>
+  </div>
+  <div class="admin-body">
+    <div class="admin-inner">
+      <form class="new-acct" id="newShelf">
+        <span class="tag">Add a shelf</span>
+        <div class="new-grid new-grid-shelf">
+          <label class="field"><span>name</span><input id="shName" placeholder="Concerts" autocomplete="off"></label>
+          <label class="field"><span>types</span><input id="shExts" placeholder="mkv mp4 — optional" autocomplete="off"></label>
+          <button class="ghost accent" type="submit">Create</button>
+        </div>
+        <div class="rename-hint" style="margin:12px 0 0">
+          File types are used to sort uploads automatically. Leave blank for a shelf you file by hand.
+        </div>
+        <div class="gate-error mono" id="shErr2"></div>
+      </form>
+      <div id="shelfList"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="modal">
   <div class="sheet" id="sheet"></div>
 </div>
+
+<div class="bulk" id="bulk">
+  <span class="tag" id="bulkCount">0 selected</span>
+  <span class="sp"></span>
+  <button class="act" id="bulkMove">Move</button>
+  <button class="act kill" id="bulkDelete">Delete</button>
+  <button class="act" id="bulkClear">Clear</button>
+</div>
+
+<div class="viewer" id="activity">
+  <div class="viewer-head">
+    <b>Activity</b>
+    <span class="sp"></span>
+    <button class="ghost" id="actReload">Refresh</button>
+    <button class="ghost" id="actClose">Close</button>
+  </div>
+  <div class="admin-body"><div class="admin-inner"><div id="actList"></div></div></div>
+</div>
+
+<div class="toasts" id="toasts"></div>
 
 <input type="file" id="picker" multiple hidden>
 
@@ -647,11 +984,13 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
 'use strict';
 
 const $ = (s) => document.querySelector(s);
-const state = { files: [], disk: null, shelf: 'all', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, pendingShelf: null };
+const state = { files: [], disk: null, shelf: 'all', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, artwork: false, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
 
-const SHELF_LABEL = { movies:'Movies', series:'Series', music:'Music', photos:'Photos', docs:'Documents', archives:'Archives', misc:'Other' };
-const ALL_SHELVES = ['movies','series','music','photos','docs','archives','misc'];
-let SHELF_ORDER = ALL_SHELVES.slice();   // narrowed to what this account may see
+/* Shelves are server-defined now. These start empty and are filled by the
+   first /api/files response; nothing renders before that lands. */
+let SHELF_LABEL = {};
+let ALL_SHELVES = [];      // every shelf, for the admin panel
+let SHELF_ORDER = [];      // just the ones this account may see
 const VIDEO = ['mp4','mkv','avi','mov','webm','m4v','wmv','flv','mpg','mpeg','ts'];
 const AUDIO = ['mp3','flac','wav','aac','ogg','m4a','opus','wma','aiff'];
 const IMAGE = ['jpg','jpeg','png','gif','webp','bmp','svg','avif'];
@@ -726,6 +1065,8 @@ function enter(user, role){
   $('#app').classList.add('on');
   $('#railUser').textContent = `${user}@vault`;
   $('#btnUsers').hidden = role !== 'admin';
+  $('#btnShelves').hidden = role !== 'admin';
+  $('#btnActivity').hidden = role !== 'admin';
   load();
 }
 
@@ -735,16 +1076,85 @@ $('#btnOut').addEventListener('click', async () => {
 });
 
 /* ── data */
+let everLoaded = false;
+let spectrumDrawn = false;
+let pulseShelf = null;      // shelf to flare on the next render
+
 async function load(){
+  if(!everLoaded) $('#scroll').innerHTML = skeleton();
   const r = await fetch('/api/files');
   if(r.status === 401) return location.reload();
   const d = await r.json();
   state.files = d.files;
   state.disk = d.disk;
   state.thumbs = !!d.thumbs;
-  if(Array.isArray(d.shelves) && d.shelves.length) SHELF_ORDER = d.shelves;
+  state.artwork = !!d.artwork;
+  if(Array.isArray(d.shelves)){
+    SHELF_ORDER = d.shelves.map((x)=>x.id);
+    d.shelves.forEach((x)=>{ SHELF_LABEL[x.id] = x.label; });
+  }
   if(!SHELF_ORDER.includes(state.shelf) && state.shelf !== 'all') state.shelf = 'all';
+  everLoaded = true;
   render();
+}
+
+/* Shown for the fraction of a second before the first listing lands. Rows of
+   the right height, so nothing jumps when the real content replaces them. */
+function skeleton(){
+  return `<div class="skel">${Array.from({length:9},(_,i)=>
+    `<div class="skel-row" style="animation-delay:${i*60}ms">
+       <div class="skel-glyph"></div>
+       <div class="skel-bar" style="width:${38 + (i*13)%42}%"></div>
+       <div class="skel-bar sm"></div>
+     </div>`).join('')}</div>`;
+}
+
+/**
+ * Episode detection from filenames. Covers the common shapes — S01E02, 1x02,
+ * "Season 1 Episode 2" — and deliberately nothing more: a wrong guess that
+ * hides files is worse than showing a flat list.
+ */
+const EP_PATTERNS = [
+  /^(.*?)[\s._-]*[Ss](\d{1,2})[\s._-]*[Ee](\d{1,3})/,
+  /^(.*?)[\s._-]+(\d{1,2})x(\d{1,3})(?:\D|$)/,
+  /^(.*?)[\s._-]*[Ss]eason[\s._-]*(\d{1,2})[\s._-]*[Ee]pisode[\s._-]*(\d{1,3})/i,
+];
+
+function episodeOf(name){
+  for(const re of EP_PATTERNS){
+    const m = re.exec(name);
+    if(m && m[1] && m[1].trim().length > 1){
+      return {
+        show: m[1].replace(/[._]+/g,' ').replace(/[\s-]+$/,'').trim(),
+        season: +m[2],
+        episode: +m[3],
+      };
+    }
+  }
+  return null;
+}
+
+/** Collapse a file list into show/season groups, leaving loose files alone. */
+function groupSeries(list){
+  const groups = new Map();
+  const loose = [];
+  for(const f of list){
+    const ep = VIDEO.includes(f.ext) ? episodeOf(f.name) : null;
+    if(!ep){ loose.push(f); continue; }
+    const key = `${ep.show.toLowerCase()}|${ep.season}`;
+    if(!groups.has(key)) groups.set(key, { show: ep.show, season: ep.season, files: [] });
+    groups.get(key).files.push({ ...f, ep });
+  }
+  // A single episode isn't a season — leave it in the flat list.
+  const real = [];
+  for(const g of groups.values()){
+    if(g.files.length < 2){ loose.push(...g.files); continue; }
+    g.files.sort((a,b)=>a.ep.episode-b.ep.episode);
+    g.size = g.files.reduce((n,f)=>n+f.size,0);
+    g.modified = Math.max(...g.files.map((f)=>f.modified));
+    real.push(g);
+  }
+  return { groups: real, loose };
 }
 
 function visible(){
@@ -801,11 +1211,27 @@ function render(){
       }).join('')
     : '<div class="spec-seg" style="flex:1"></div>';
   $('#spectrum').querySelectorAll('.spec-seg').forEach((seg) => {
-    if(seg.dataset.shelf) seg.onclick = () => { state.shelf = seg.dataset.shelf; render(); };
+    if(!seg.dataset.shelf) return;
+    seg.onclick = () => { state.shelf = seg.dataset.shelf; render(); };
+    // A shelf that just received a file gets a brief flare, so you can see
+    // where an upload landed without reading the list.
+    if(pulseShelf === seg.dataset.shelf){
+      seg.classList.add('pulse');
+      seg.addEventListener('animationend', () => seg.classList.remove('pulse'), { once:true });
+    }
   });
+  if(!spectrumDrawn){
+    spectrumDrawn = true;
+    $('#spectrum').querySelectorAll('.spec-seg').forEach((seg, i) => {
+      seg.style.animation = `seg-grow .5s cubic-bezier(.2,.8,.3,1) ${i*55}ms both`;
+    });
+  }
+  pulseShelf = null;
   $('#legend').innerHTML = present.length
     ? present.map((s)=>`<span>${SHELF_LABEL[s]} <b>${bytes(sizes[s])}</b></span>`).join('')
     : '<span>Vault empty</span>';
+
+  renderResume();
 
   // header
   const list = visible();
@@ -815,33 +1241,124 @@ function render(){
     : '';
   $('#railCount').textContent = `${state.files.length} objects · ${bytes(total)}`;
 
+  // Warn once the vault is genuinely tight rather than silently filling up.
+  if(state.disk){
+    const usedPct = (state.disk.total - state.disk.free) / state.disk.total * 100;
+    $('#diskFill').classList.toggle('warn', usedPct >= 90);
+    $('#railDisk').textContent = usedPct >= 90
+      ? `disk ${usedPct.toFixed(0)}% full`
+      : `${bytes(state.disk.free)} free`;
+    $('#railDisk').classList.toggle('hot', usedPct >= 90);
+  }else{
+    $('#railDisk').textContent = '';
+  }
+
   if(!list.length){
+    const where = state.shelf === 'all' ? 'the vault' : SHELF_LABEL[state.shelf];
     $('#scroll').innerHTML = state.q
-      ? `<div class="empty"><p>No match for "${esc(state.q)}"</p><p>Try a shorter search.</p></div>`
-      : `<div class="empty"><p>Nothing on this shelf yet</p><p>Drop files anywhere on the page to upload.</p></div>`;
+      ? `<div class="empty">
+           <div class="empty-mark"></div>
+           <p>Nothing matching "${esc(state.q)}"</p>
+           <p class="empty-sub">Searching ${esc(where)} · try fewer words</p>
+         </div>`
+      : `<div class="empty">
+           <div class="empty-mark"></div>
+           <p>${state.shelf === 'all' ? 'The vault is empty' : `Nothing on ${esc(where)} yet`}</p>
+           <p class="empty-sub">Drop files anywhere on this page, or press Upload</p>
+         </div>`;
     return;
   }
   $('#scroll').innerHTML = state.view==='list' ? listView(list) : gridView(list);
   wire();
 }
 
+/* Anything started but not finished, most recent first. Only shown when there
+   is something to resume — an empty rail is just noise. */
+function renderResume(){
+  const items = state.files
+    // Far enough in to be worth resuming: 20 seconds, or 2% for short clips.
+    .filter((f) => f.watch && !f.watch.done && f.watch.dur
+                && f.watch.pos > Math.min(20, f.watch.dur * 0.02))
+    .sort((a,b) => b.watch.at - a.watch.at)
+    .slice(0, 12);
+
+  const el = $('#resume');
+  if(!items.length || state.q || state.shelf !== 'all'){ el.innerHTML = ''; el.classList.remove('on'); return; }
+  el.classList.add('on');
+  el.innerHTML = `<div class="tag">Continue watching</div>
+    <div class="resume-row">${items.map((f)=>{
+      const pct = Math.min(100, f.watch.pos/f.watch.dur*100);
+      const left = fmtTime(f.watch.dur - f.watch.pos);
+      const isVid = state.thumbs && VIDEO.includes(f.ext);
+      return `<button class="rz" data-rel="${esc(f.rel)}">
+        <div class="rz-art">${isVid?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+          <div class="rz-bar"><i style="width:${pct.toFixed(1)}%"></i></div></div>
+        <div class="rz-name" title="${esc(f.name)}">${esc(f.name)}</div>
+        <div class="rz-left">${left} left</div>
+      </button>`;
+    }).join('')}</div>`;
+
+  el.querySelectorAll('.rz').forEach((b) => {
+    b.onclick = () => {
+      const f = state.files.find((x)=>x.rel===b.dataset.rel);
+      if(f) openViewer(f);
+    };
+  });
+}
+
 function listView(list){
+  const { groups, loose } = state.group ? groupSeries(list) : { groups: [], loose: list };
+
+  // Groups first, then loose files, each sorted by the chosen order.
+  const rows = [];
+  for(const g of groups){
+    const id = `${g.show}|${g.season}`;
+    const open = state.open.has(id);
+    rows.push(`<tr class="grp ${open?'open':''}" data-grp="${esc(id)}">
+      <td>
+        <div class="f-name">
+          <div class="grp-caret">${open?'▾':'▸'}</div>
+          <div class="glyph grp-glyph">${g.files.length}</div>
+          <b title="${esc(g.show)}">${esc(g.show)}<span class="grp-sub">Season ${g.season} · ${g.files.length} episodes</span></b>
+        </div>
+      </td>
+      <td class="f-meta">${bytes(g.size)}</td>
+      <td class="f-shelf col-shelf">${esc(SHELF_LABEL[g.files[0].shelf]||'')}</td>
+      <td class="f-meta col-added">${ago(g.modified)}</td>
+      <td></td>
+    </tr>`);
+    if(open){
+      for(const f of g.files){
+        rows.push(fileRow(f, list.indexOf(list.find((x)=>x.rel===f.rel)), true));
+      }
+    }
+  }
+  for(const f of loose) rows.push(fileRow(f, list.findIndex((x)=>x.rel===f.rel), false));
+
   return `<table class="rows"><thead><tr>
+    <th class="col-pick"><input type="checkbox" id="pickAll" title="Select all"></th>
     <th>Name</th><th>Size</th><th class="col-shelf">Shelf</th><th class="col-added">Added</th><th></th>
-  </tr></thead><tbody>${list.map((f,i)=>`
-    <tr data-i="${i}">
-      <td><div class="f-name"><div class="glyph">${esc((f.ext||'?').slice(0,4).toUpperCase())}</div><b title="${esc(f.name)}">${esc(f.name)}</b></div></td>
-      <td class="f-meta">${bytes(f.size)}</td>
-      <td class="f-shelf col-shelf">${SHELF_LABEL[f.shelf]}</td>
-      <td class="f-meta col-added">${ago(f.modified)}</td>
-      <td><div class="acts">
-        ${playable(f)?`<button class="act" data-act="open" data-i="${i}">Open</button>`:''}
-        <button class="act" data-act="get" data-i="${i}">Get</button>
-        <button class="act" data-act="rename" data-i="${i}">Rename</button>
-        <button class="act" data-act="move" data-i="${i}">Move</button>
-        <button class="act kill" data-act="del" data-i="${i}">Delete</button>
-      </div></td>
-    </tr>`).join('')}</tbody></table>`;
+  </tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+function fileRow(f, i, nested){
+  const on = state.picked.has(f.rel);
+  return `<tr data-i="${i}" data-rel="${esc(f.rel)}" class="${nested?'nested':''} ${on?'picked':''}">
+    <td class="col-pick"><input type="checkbox" class="pick" data-rel="${esc(f.rel)}" ${on?'checked':''}></td>
+    <td><div class="f-name"><div class="glyph">${esc((f.ext||'?').slice(0,4).toUpperCase())}</div>
+      <b title="${esc(f.name)}">${nested && f.ep ? `<span class="ep-no">E${String(f.ep.episode).padStart(2,'0')}</span>` : ''}${esc(f.name)}</b></div></td>
+    <td class="f-meta">${bytes(f.size)}</td>
+    <td class="f-shelf col-shelf">${esc(SHELF_LABEL[f.shelf]||'')}</td>
+    <td class="f-meta col-added">${ago(f.modified)}</td>
+    <td><div class="acts">
+      ${playable(f)?`<button class="act" data-act="open" data-i="${i}">Open</button>`:''}
+      <button class="act" data-act="get" data-i="${i}">Get</button>
+      <button class="act" data-act="rename" data-i="${i}">Rename</button>
+      <button class="act" data-act="share" data-i="${i}">Share</button>
+      <button class="act" data-act="move" data-i="${i}">Move</button>
+      <button class="act kill" data-act="del" data-i="${i}">Delete</button>
+    </div></td>
+  </tr>`;
 }
 
 function gridView(list){
@@ -853,15 +1370,20 @@ function gridView(list){
     if(isImg){
       art = `<img src="${url('stream',f.rel)}" alt="" loading="lazy">`; blank = false;
     }else if(isVid){
-      // Placeholder shows until the frame arrives; if ffmpeg can't read the
-      // file the 404 just leaves the placeholder in place.
       art = `${ph}<img class="thumb" src="${url('thumb',f.rel)}" alt="" loading="lazy"
               onload="this.classList.add('ready')" onerror="this.remove()">`;
     }else{
       art = ph;
     }
-    return `<button class="tile" data-act="${playable(f)?'open':'get'}" data-i="${i}">
-      <div class="tile-art${blank?' blank':''}">${art}</div>
+    const w = f.watch;
+    const pct = w && w.dur ? Math.min(100, w.pos/w.dur*100) : 0;
+    return `<button class="tile${isVid?' scrubbable':''}${w&&w.done?' seen':''}" data-act="${playable(f)?'open':'get'}" data-i="${i}"
+              ${isVid?`data-scrub="${esc(url('scrub',f.rel))}"`:''}
+              ${state.artwork && VIDEO.includes(f.ext)?`data-meta="${esc(url('meta',f.rel))}"`:''}>
+      <div class="tile-art${blank?' blank':''}">${art}${isVid?'<div class="scrub-ticks"></div>':''}
+        ${w&&w.done?'<div class="seen-flag">Watched</div>':''}
+        ${pct>0?`<div class="watch-bar"><i style="width:${pct.toFixed(1)}%"></i></div>`:''}
+      </div>
       <div class="tile-body"><b title="${esc(f.name)}">${esc(f.name)}</b><small>${bytes(f.size)} · ${ago(f.modified)}</small></div>
     </button>`;
   }).join('')}</div>`;
@@ -871,37 +1393,362 @@ const playable = (f) => VIDEO.includes(f.ext) || AUDIO.includes(f.ext) || IMAGE.
 
 function wire(){
   const list = visible();
+
   $('#scroll').querySelectorAll('[data-act]').forEach((el) => {
     el.onclick = (e) => {
       e.stopPropagation();
       const f = list[+el.dataset.i];
+      if(!f) return;
       const act = el.dataset.act;
       if(act==='open') openViewer(f);
       if(act==='get') location.href = url('download', f.rel);
       if(act==='rename') askRename(f);
+      if(act==='share') askShare(f);
       if(act==='move') askMove(f);
       if(act==='del') askDelete(f);
     };
   });
-  $('#scroll').querySelectorAll('tr[data-i]').forEach((tr) => {
-    tr.ondblclick = () => { const f = list[+tr.dataset.i]; playable(f) ? openViewer(f) : (location.href = url('download', f.rel)); };
+
+  // expand / collapse a season
+  $('#scroll').querySelectorAll('tr.grp').forEach((tr) => {
+    tr.onclick = () => {
+      const id = tr.dataset.grp;
+      state.open.has(id) ? state.open.delete(id) : state.open.add(id);
+      render();
+    };
+  });
+
+  $('#scroll').querySelectorAll('tr[data-i]:not(.grp)').forEach((tr) => {
+    tr.ondblclick = () => {
+      const f = list[+tr.dataset.i];
+      if(f) playable(f) ? openViewer(f) : (location.href = url('download', f.rel));
+    };
+  });
+
+  // ── selection
+  $('#scroll').querySelectorAll('.pick').forEach((box) => {
+    box.onclick = (e) => {
+      e.stopPropagation();
+      const rel = box.dataset.rel;
+      box.checked ? state.picked.add(rel) : state.picked.delete(rel);
+      box.closest('tr').classList.toggle('picked', box.checked);
+      updateBulkBar();
+    };
+  });
+  const all = $('#pickAll');
+  if(all){
+    all.onclick = (e) => {
+      e.stopPropagation();
+      const boxes = [...$('#scroll').querySelectorAll('.pick')];
+      boxes.forEach((b) => {
+        b.checked = all.checked;
+        b.checked ? state.picked.add(b.dataset.rel) : state.picked.delete(b.dataset.rel);
+        b.closest('tr').classList.toggle('picked', b.checked);
+      });
+      updateBulkBar();
+    };
+  }
+  updateBulkBar();
+
+  // ── poster art, when a TMDB key is configured
+  if(state.artwork){
+    $('#scroll').querySelectorAll('.tile[data-meta]').forEach(async (tile) => {
+      try{
+        const r = await fetch(tile.dataset.meta);
+        const m = await r.json();
+        if(!m.found || !m.poster) return;
+        const art = tile.querySelector('.tile-art');
+        const img = document.createElement('img');
+        img.className = 'poster';
+        img.loading = 'lazy';
+        img.src = m.poster;
+        img.onload = () => img.classList.add('ready');
+        img.onerror = () => img.remove();
+        art.appendChild(img);
+        const body = tile.querySelector('.tile-body b');
+        if(body && m.title){
+          body.textContent = m.title + (m.year ? ` (${m.year})` : '');
+          body.title = tile.querySelector('.tile-body b').textContent;
+        }
+      }catch{ /* leave the frame grab in place */ }
+    });
+  }
+
+  // ── hover scrubbing: one strip of nine frames, positioned by cursor x
+  $('#scroll').querySelectorAll('.tile.scrubbable').forEach((tile) => {
+    const art = tile.querySelector('.tile-art');
+    const ticks = tile.querySelector('.scrub-ticks');
+    let strip = null;
+
+    tile.addEventListener('mouseenter', () => {
+      if(strip) return;
+      strip = document.createElement('div');
+      strip.className = 'scrub-strip';
+      strip.style.backgroundImage = `url("${tile.dataset.scrub}")`;
+      art.appendChild(strip);
+      if(ticks && !ticks.childElementCount){
+        ticks.innerHTML = Array.from({length:9},()=>'<i></i>').join('');
+      }
+    });
+
+    tile.addEventListener('mousemove', (e) => {
+      if(!strip) return;
+      const r = art.getBoundingClientRect();
+      const p = Math.max(0, Math.min(0.999, (e.clientX - r.left) / r.width));
+      const frame = Math.floor(p * 9);
+      strip.style.backgroundPosition = `${-frame * 100}% 0`;
+      strip.classList.add('on');
+      if(ticks) [...ticks.children].forEach((el, i) => el.classList.toggle('on', i === frame));
+    });
+
+    tile.addEventListener('mouseleave', () => {
+      if(strip){ strip.remove(); strip = null; }
+      if(ticks) [...ticks.children].forEach((el) => el.classList.remove('on'));
+    });
   });
 }
 
+/* ── bulk actions */
+function updateBulkBar(){
+  const n = state.picked.size;
+  const bar = $('#bulk');
+  bar.classList.toggle('on', n > 0);
+  if(n) $('#bulkCount').textContent = `${n} selected`;
+}
+
+function clearPicked(){ state.picked.clear(); render(); }
+
+$('#bulkClear').onclick = clearPicked;
+
+$('#bulkDelete').onclick = () => {
+  const n = state.picked.size;
+  sheet(`<span class="tag">Delete ${n} file${n===1?'':'s'}</span>
+    <p>Permanently delete the selected file${n===1?'':'s'}? This can't be undone.</p>
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Delete ${n}</button></div>`);
+  $('#no').onclick = closeSheet;
+  $('#yes').onclick = async () => {
+    const r = await fetch('/api/files/bulk', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'delete', rels:[...state.picked] }),
+    });
+    const d = await r.json().catch(()=>({}));
+    closeSheet();
+    toast(d.failed ? `Deleted ${d.done}, ${d.failed} failed` : `Deleted ${d.done}`, d.failed ? 'bad' : '');
+    state.picked.clear(); load();
+  };
+};
+
+$('#bulkMove').onclick = () => {
+  const n = state.picked.size;
+  sheet(`<span class="tag">Move ${n} file${n===1?'':'s'}</span>
+    <p>Pick a shelf.</p>
+    <div class="shelf-pick">${SHELF_ORDER.map((x)=>`<button data-s="${x}">${esc(SHELF_LABEL[x])}</button>`).join('')}</div>
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button></div>`);
+  $('#no').onclick = closeSheet;
+  $('#sheet').querySelectorAll('[data-s]').forEach((b) => {
+    b.onclick = async () => {
+      const r = await fetch('/api/files/bulk', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'move', rels:[...state.picked], shelf:b.dataset.s }),
+      });
+      const d = await r.json().catch(()=>({}));
+      closeSheet();
+      toast(d.failed ? `Moved ${d.done}, ${d.failed} failed` : `Moved ${d.done} to ${SHELF_LABEL[b.dataset.s]}`,
+            d.failed ? 'bad' : '');
+      state.picked.clear(); load();
+    };
+  });
+};
+
 /* ── viewer */
-function openViewer(f){
+async function openViewer(f){
   $('#vTitle').textContent = f.name;
   $('#vDl').onclick = () => { location.href = url('download', f.rel); };
-  const src = url('stream', f.rel);
-  let inner;
-  if(IMAGE.includes(f.ext)) inner = `<img src="${src}" alt="${esc(f.name)}">`;
-  else if(AUDIO.includes(f.ext)) inner = `<audio src="${src}" controls autoplay></audio>`;
-  else if(BROWSER_VIDEO.includes(f.ext)) inner = `<video src="${src}" controls autoplay playsinline></video>`;
-  else inner = `<div class="viewer-note"><p>Browsers can't play .${esc(f.ext)} directly. Download it, or open this link in VLC:</p><p style="color:var(--star);word-break:break-all">${location.origin}${src}</p></div>`;
-  $('#vBody').innerHTML = inner;
   $('#viewer').classList.add('on');
+  const src = url('stream', f.rel);
+
+  if(IMAGE.includes(f.ext)){
+    $('#vBody').innerHTML = `<img src="${src}" alt="${esc(f.name)}">`;
+    return;
+  }
+  if(AUDIO.includes(f.ext)){
+    $('#vBody').innerHTML = `<audio src="${src}" controls autoplay></audio>`;
+    return;
+  }
+  if(BROWSER_VIDEO.includes(f.ext)){
+    $('#vBody').innerHTML = `<div class="player"><video id="rmx" src="${src}" controls autoplay playsinline></video></div>`;
+    const v = $('#rmx');
+    // Native playback can seek properly, so just restore the position.
+    if(f.watch && f.watch.pos > 5) v.currentTime = f.watch.pos;
+    trackProgress(v, f, () => 0, 0);
+    await attachSubtitles(v, f);
+    return;
+  }
+
+  // Formats the browser won't open. Ask the server whether it can be
+  // repackaged on the fly before promising anything.
+  $('#vBody').innerHTML = `<div class="viewer-note"><p>Checking what's inside…</p></div>`;
+  let info = {};
+  try{
+    const r = await fetch(url('mediainfo', f.rel));
+    info = await r.json();
+  }catch{ /* fall through to the download note */ }
+
+  if(!info.probed || !info.remuxable){
+    $('#vBody').innerHTML = `<div class="viewer-note">
+      <p>${info.probed
+          ? `This uses ${esc(info.video || 'a codec')} video, which would need a full re-encode — too heavy to do live.`
+          : `Browsers can't play .${esc(f.ext)} directly.`}</p>
+      <p>Download it, or open this link in VLC:</p>
+      <p class="viewer-link">${location.origin}${src}</p>
+    </div>`;
+    return;
+  }
+  playRemuxed(f, info);
 }
-function closeViewer(){ $('#viewer').classList.remove('on'); $('#vBody').innerHTML = ''; }
+
+/**
+ * A live remux can't answer byte-range requests, so the browser gives us no
+ * seek bar. We know the duration from ffprobe, so the scrubber below simply
+ * restarts the stream from the chosen point — the server seeks with `-ss`,
+ * which is near-instant because nothing before it gets decoded.
+ */
+function playRemuxed(f, info){
+  const dur = info.duration || 0;
+  let base = 0;
+
+  $('#vBody').innerHTML = `
+    <div class="player">
+      <video id="rmx" controls autoplay playsinline></video>
+      <div class="rmx-bar">
+        <div class="rmx-time" id="rmxAt">0:00</div>
+        <div class="rmx-track" id="rmxTrack"><div class="rmx-fill" id="rmxFill"></div></div>
+        <div class="rmx-time">${fmtTime(dur)}</div>
+      </div>
+      <div class="rmx-note">
+        Repackaged live${info.audioOk ? '' : ', audio converted'} · drag the bar to jump
+      </div>
+    </div>`;
+
+  const video = $('#rmx');
+  const track = $('#rmxTrack');
+  attachSubtitles(video, f);
+
+  const start = (at) => {
+    base = at;
+    video.src = `${url('media', f.rel)}?t=${at.toFixed(2)}`;
+    video.play().catch(() => { /* autoplay may need a gesture */ });
+  };
+
+  video.ontimeupdate = () => {
+    // The player can be torn down mid-playback (an error, or the viewer being
+    // closed), and timeupdate keeps firing for a beat afterwards.
+    const fill = $('#rmxFill'), at = $('#rmxAt');
+    if(!fill || !at) return;
+    const now = base + (video.currentTime || 0);
+    fill.style.width = `${dur ? Math.min(100, now/dur*100) : 0}%`;
+    at.textContent = fmtTime(now);
+  };
+
+  video.onerror = () => {
+    const err = video.error;
+    // A decode failure means the browser can't handle the codec even
+    // repackaged — Chromium builds without H.264 do this. Say which it is
+    // rather than blaming the server for something it did correctly.
+    const decodeFail = err && (err.code === 3 || err.code === 4);
+    $('#vBody').innerHTML = `<div class="viewer-note">
+      <p>${decodeFail
+          ? `Your browser can't decode ${esc(info.video || 'this video')}, even repackaged.`
+          : 'The stream stopped unexpectedly — the server may be busy.'}</p>
+      <p>Download the file, or open this link in VLC:</p>
+      <p class="viewer-link">${location.origin}${url('stream', f.rel)}</p>
+    </div>`;
+  };
+
+  const seekTo = (e) => {
+    if(!dur) return;
+    const r = track.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    start(p * dur);
+  };
+  track.onclick = seekTo;
+  trackProgress(video, f, () => base, dur);
+
+  // Pick up where this account left off, if it got anywhere meaningful.
+  start(f.watch && f.watch.pos > 5 && f.watch.pos < dur - 20 ? f.watch.pos : 0);
+}
+
+/**
+ * Report position every few seconds and once on the way out. Throttled because
+ * timeupdate fires several times a second and each report is a write.
+ */
+function trackProgress(video, f, baseOf, knownDur){
+  let last = 0;
+  const send = (pos, dur) => {
+    if(!dur) return;
+    fetch('/api/progress', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ rel:f.rel, pos, dur }),
+      keepalive: true,        // survives the page or dialog going away
+    }).catch(()=>{});
+  };
+  /**
+   * A fragmented-MP4 stream doesn't carry a reliable duration — the element
+   * reports whatever it has buffered. Prefer the figure ffprobe gave us.
+   */
+  const total = () => knownDur
+    || (isFinite(video.duration) && video.duration > 0 ? video.duration : 0)
+    || (f.watch && f.watch.dur) || 0;
+
+  const report = () => send(baseOf() + (video.currentTime || 0), total());
+
+  video.addEventListener('timeupdate', () => {
+    if(Date.now() - last < 5000) return;
+    last = Date.now();
+    report();
+  });
+  video.addEventListener('pause', report);
+  video.__report = report;
+}
+
+/** Attach any subtitle tracks the server can produce for this file. */
+async function attachSubtitles(video, f){
+  try{
+    const r = await fetch(url('subs', f.rel));
+    if(!r.ok) return;
+    const { tracks } = await r.json();
+    if(!tracks || !tracks.length) return;
+    tracks.forEach((t, i) => {
+      const el = document.createElement('track');
+      el.kind = 'subtitles';
+      el.label = t.label;
+      if(t.lang) el.srclang = t.lang;
+      el.src = `${url('sub', f.rel)}?track=${encodeURIComponent(t.id)}`;
+      if(i === 0) el.default = true;
+      video.appendChild(el);
+    });
+    toast(`${tracks.length} subtitle track${tracks.length===1?'':'s'} available`);
+  }catch{ /* no subtitles, no problem */ }
+}
+
+function fmtTime(sec){
+  if(!sec || !isFinite(sec)) return '0:00';
+  const s = Math.floor(sec % 60), m = Math.floor(sec/60) % 60, h = Math.floor(sec/3600);
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+           : `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function closeViewer(){
+  // Blank the source first: leaving it set keeps the remux running server-side.
+  const v = $('#vBody').querySelector('video, audio');
+  if(v){
+    if(v.__report) v.__report();     // save the position before tearing down
+    v.pause(); v.removeAttribute('src'); v.load();
+  }
+  $('#viewer').classList.remove('on');
+  $('#vBody').innerHTML = '';
+  if(everLoaded) load();             // refresh progress bars
+}
 $('#vClose').onclick = closeViewer;
 
 /* ── dialogs */
@@ -916,7 +1763,7 @@ function askDelete(f){
   $('#no').onclick = closeSheet;
   $('#yes').onclick = async () => {
     await fetch(`/api/file?rel=${encodeURIComponent(f.rel)}`, { method:'DELETE' });
-    closeSheet(); load();
+    closeSheet(); toast(`Deleted ${f.name}`); load();
   };
 }
 
@@ -950,7 +1797,7 @@ function askRename(f){
       const d = await r.json().catch(() => ({}));
       return void ($('#rnErr').textContent = d.error || 'Could not rename that file.');
     }
-    closeSheet(); load();
+    closeSheet(); toast(`Renamed to ${name}`); load();
   };
 
   $('#no').onclick = closeSheet;
@@ -970,9 +1817,116 @@ function askMove(f){
         method:'PATCH', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ rel: f.rel, shelf: b.dataset.s }),
       });
-      closeSheet(); load();
+      closeSheet(); toast(`Moved to ${SHELF_LABEL[b.dataset.s]}`); load();
     };
   });
+}
+
+/* ── share links */
+function askShare(f){
+  sheet(`<span class="tag">Share a link</span>
+    <p>Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.</p>
+    <div class="rename-field"><input id="shLabel" placeholder="who is it for? (optional)" autocomplete="off"></div>
+    <div class="opt-row">
+      <div>
+        <div class="opt-tag">Expires</div>
+        <div class="opt-pick" id="expPick">
+          ${[[0,'Never'],[1,'1 day'],[7,'1 week'],[30,'1 month']].map(([v,l],i)=>
+            `<button data-v="${v}" class="${i===2?'on':''}">${l}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="opt-tag">Opens</div>
+        <div class="opt-pick" id="usePick">
+          ${[[0,'Unlimited'],[1,'Once'],[5,'5'],[25,'25']].map(([v,l],i)=>
+            `<button data-v="${v}" class="${i===0?'on':''}">${l}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="gate-error mono" id="shareErr" style="margin:0 0 14px"></div>
+    <div class="sheet-row">
+      <button class="ghost" id="manage">All links</button>
+      <span style="flex:1"></span>
+      <button class="ghost" id="no">Cancel</button>
+      <button class="ghost accent" id="yes">Create link</button>
+    </div>`);
+
+  const pickOne = (sel) => {
+    const box = $(sel);
+    box.querySelectorAll('button').forEach((b) => {
+      b.onclick = () => { box.querySelectorAll('button').forEach((x)=>x.classList.remove('on')); b.classList.add('on'); };
+    });
+    return () => +box.querySelector('button.on').dataset.v;
+  };
+  const days = pickOne('#expPick');
+  const uses = pickOne('#usePick');
+
+  $('#no').onclick = closeSheet;
+  $('#manage').onclick = () => manageShares();
+  $('#yes').onclick = async () => {
+    const r = await fetch('/api/shares', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ rel:f.rel, label:$('#shLabel').value.trim(), days:days(), maxUses:uses() }),
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) return void ($('#shareErr').textContent = d.error || 'Could not create the link.');
+    showShareLink(f, d.id);
+  };
+}
+
+function showShareLink(f, id){
+  const link = `${location.origin}/s/${id}`;
+  sheet(`<span class="tag">Link ready</span>
+    <p>Send this to whoever needs <b>${esc(f.name)}</b>.</p>
+    <div class="token-box mono" id="lkVal">${esc(link)}</div>
+    <div class="rename-hint">Revoke it any time from <b>All links</b>.</div>
+    <div class="sheet-row">
+      <button class="ghost" id="manage">All links</button>
+      <span style="flex:1"></span>
+      <button class="ghost" id="copy">Copy</button>
+      <button class="ghost accent" id="done">Done</button>
+    </div>`);
+  $('#copy').onclick = async () => {
+    try{ await navigator.clipboard.writeText(link); $('#copy').textContent = 'Copied'; }
+    catch{ const r=document.createRange(); r.selectNode($('#lkVal'));
+           getSelection().removeAllRanges(); getSelection().addRange(r); }
+  };
+  $('#manage').onclick = () => manageShares();
+  $('#done').onclick = closeSheet;
+}
+
+async function manageShares(){
+  const r = await fetch('/api/shares');
+  const { shares } = r.ok ? await r.json() : { shares: [] };
+  sheet(`<span class="tag">Share links</span>
+    ${shares.length ? `<div class="link-list">${shares.map((x)=>`
+      <div class="lk ${x.dead?'dead':''}">
+        <div class="lk-id">
+          <b>${esc(x.rel.split('/').pop())}</b>
+          <small>${x.label?esc(x.label)+' · ':''}${x.dead?'expired or used up'
+            :(x.expires?`until ${new Date(x.expires).toLocaleDateString()}`:'no expiry')}
+            · ${x.uses} open${x.uses===1?'':'s'}${x.maxUses?` of ${x.maxUses}`:''}</small>
+        </div>
+        <button class="act" data-copy="${esc(x.id)}">Copy</button>
+        <button class="act kill" data-kill="${esc(x.id)}">Revoke</button>
+      </div>`).join('')}</div>`
+      : '<div class="rename-hint" style="margin:0 0 18px">No links yet.</div>'}
+    <div class="sheet-row"><button class="ghost accent" id="done">Close</button></div>`);
+
+  $('#sheet').querySelectorAll('[data-copy]').forEach((b) => {
+    b.onclick = async () => {
+      try{ await navigator.clipboard.writeText(`${location.origin}/s/${b.dataset.copy}`); b.textContent='Copied'; }
+      catch{ toast('Copy failed — select the link manually','bad'); }
+    };
+  });
+  $('#sheet').querySelectorAll('[data-kill]').forEach((b) => {
+    b.onclick = async () => {
+      await fetch(`/api/shares/${b.dataset.kill}`, { method:'DELETE' });
+      toast('Link revoked');
+      manageShares();
+    };
+  });
+  $('#done').onclick = closeSheet;
 }
 
 /* ── accounts */
@@ -1014,6 +1968,10 @@ async function loadUsers(){
     </div>`;
   }).join('');
   window.__users = d.users;
+  if(Array.isArray(d.allShelves)){
+    ALL_SHELVES = d.allShelves.map((x)=>x.id);
+    d.allShelves.forEach((x)=>{ SHELF_LABEL[x.id] = x.label; });
+  }
 
   $('#userList').querySelectorAll('[data-do]').forEach((b) => {
     b.onclick = () => {
@@ -1156,6 +2114,21 @@ function showToken(name, token){
   $('#done').onclick = async () => { closeSheet(); await loadUsers(); askTokens(name); };
 }
 
+/* Small, self-dismissing, bottom-left. Used for things you want to know but
+   don't need to acknowledge. */
+function toast(msg, kind){
+  const wrap = $('#toasts');
+  const el = document.createElement('div');
+  el.className = `toast${kind ? ' ' + kind : ''}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('in'));
+  setTimeout(() => {
+    el.classList.remove('in');
+    setTimeout(() => el.remove(), 260);
+  }, 3600);
+}
+
 function notify(msg){
   sheet(`<span class="tag">Can't do that</span><p>${esc(msg)}</p>
     <div class="sheet-row"><button class="ghost" id="ok">OK</button></div>`);
@@ -1175,6 +2148,181 @@ $('#newAcct').addEventListener('submit', async (e) => {
   loadUsers();
   // New members start with every shelf; narrow it with the Shelves button.
 });
+
+/* ── shelf administration */
+$('#btnShelves').onclick = () => { $('#shelfAdmin').classList.add('on'); loadShelfAdmin(); };
+$('#shClose').onclick = () => { $('#shelfAdmin').classList.remove('on'); load(); };
+
+let shelfData = [];
+
+async function loadShelfAdmin(){
+  const r = await fetch('/api/shelves');
+  if(!r.ok) return;
+  shelfData = (await r.json()).shelves;
+  ALL_SHELVES = shelfData.map((x)=>x.id);
+  shelfData.forEach((x)=>{ SHELF_LABEL[x.id] = x.label; });
+
+  $('#shelfList').innerHTML = shelfData.map((sh, i) => `
+    <div class="sh-row" data-id="${esc(sh.id)}">
+      <div class="sh-move">
+        <button class="act" data-mv="up"   data-i="${i}" ${i===0?'disabled':''}>↑</button>
+        <button class="act" data-mv="down" data-i="${i}" ${i===shelfData.length-1?'disabled':''}>↓</button>
+      </div>
+      <div class="sh-id">
+        <b>${esc(sh.label)}</b>
+        <small>${esc(sh.id)}${sh.exts.length?` · ${sh.exts.length} file type${sh.exts.length===1?'':'s'}`:' · sorted by hand'}</small>
+      </div>
+      <div class="sh-exts">${sh.exts.length
+        ? sh.exts.slice(0,10).map((e)=>`<span class="u-chip">${esc(e)}</span>`).join('') +
+          (sh.exts.length>10?`<span class="u-chip">+${sh.exts.length-10}</span>`:'')
+        : '<span class="u-all">no auto-sort</span>'}</div>
+      <div class="u-acts">
+        <button class="act" data-sh="edit" data-id="${esc(sh.id)}">Edit</button>
+        <button class="act kill" data-sh="del" data-id="${esc(sh.id)}">Delete</button>
+      </div>
+    </div>`).join('');
+
+  $('#shelfList').querySelectorAll('[data-mv]').forEach((b) => {
+    b.onclick = () => reorder(+b.dataset.i, b.dataset.mv === 'up' ? -1 : 1);
+  });
+  $('#shelfList').querySelectorAll('[data-sh]').forEach((b) => {
+    b.onclick = () => b.dataset.sh === 'edit' ? editShelf(b.dataset.id) : deleteShelf(b.dataset.id);
+  });
+}
+
+/* Order matters: auto-sort takes the first shelf claiming an extension. */
+async function reorder(i, dir){
+  const j = i + dir;
+  if(j < 0 || j >= shelfData.length) return;
+  const ids = shelfData.map((x)=>x.id);
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  await fetch(`/api/shelves/${encodeURIComponent(shelfData[0].id)}`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ order: ids }),
+  });
+  loadShelfAdmin();
+}
+
+const extsToText = (a) => a.join(' ');
+const textToExts = (t) => t.split(/[\s,]+/).map((x)=>x.trim()).filter(Boolean);
+
+function editShelf(id){
+  const sh = shelfData.find((x)=>x.id===id);
+  if(!sh) return;
+  sheet(`<span class="tag">Edit shelf</span>
+    <div class="rename-field"><input id="edLabel" value="${esc(sh.label)}" autocomplete="off"></div>
+    <div class="rename-hint">Folder name stays <b>${esc(sh.id)}</b> — renaming the label doesn't move any files.</div>
+    <div class="rename-field"><input id="edExts" value="${esc(extsToText(sh.exts))}" placeholder="mkv mp4 avi" spellcheck="false" autocomplete="off"></div>
+    <div class="rename-hint">File types for auto-sort, separated by spaces.</div>
+    <div class="gate-error mono" id="edErr" style="margin:0 0 14px"></div>
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Save</button></div>`);
+  $('#edLabel').focus();
+  $('#no').onclick = closeSheet;
+  $('#yes').onclick = async () => {
+    const r = await fetch(`/api/shelves/${encodeURIComponent(id)}`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ label: $('#edLabel').value.trim(), exts: textToExts($('#edExts').value) }),
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) return void ($('#edErr').textContent = d.error || 'Could not save.');
+    closeSheet();
+    await loadShelfAdmin();
+    if(d.shadowed && d.shadowed.length) warnShadowed(d.shadowed);
+  };
+}
+
+/* First shelf claiming an extension wins, so a repeat further down never
+   fires. Say so rather than leaving someone wondering. */
+function warnShadowed(list){
+  sheet(`<span class="tag">Heads up</span>
+    <p>Another shelf higher in the list already claims <b>${esc(list.join(', '))}</b>,
+       and auto-sort stops at the first match — so these won't take effect here.
+       Move this shelf up, or remove those types from the other one.</p>
+    <div class="sheet-row"><button class="ghost accent" id="ok">Got it</button></div>`);
+  $('#ok').onclick = closeSheet;
+}
+
+function deleteShelf(id){
+  const sh = shelfData.find((x)=>x.id===id);
+  const others = shelfData.filter((x)=>x.id!==id);
+  if(!others.length) return notify('You need at least one shelf.');
+
+  sheet(`<span class="tag">Delete shelf</span>
+    <p>Delete <b>${esc(sh.label)}</b>? If it holds files, pick where they should go —
+       nothing is ever deleted along with the shelf.</p>
+    <div class="shelf-pick">${others.map((o)=>`<button data-to="${esc(o.id)}">${esc(o.label)}</button>`).join('')}</div>
+    <div class="rename-hint" id="delHint">No destination picked — this only works if the shelf is empty.</div>
+    <div class="gate-error mono" id="delErr" style="margin:0 0 14px"></div>
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Delete</button></div>`);
+
+  let moveTo = null;
+  $('#sheet').querySelectorAll('[data-to]').forEach((b) => {
+    b.onclick = () => {
+      $('#sheet').querySelectorAll('[data-to]').forEach((x)=>x.classList.remove('on'));
+      b.classList.add('on'); moveTo = b.dataset.to;
+      $('#delHint').textContent = `Any files move to ${b.textContent}.`;
+    };
+  });
+  $('#no').onclick = closeSheet;
+  $('#yes').onclick = async () => {
+    const r = await fetch(`/api/shelves/${encodeURIComponent(id)}`, {
+      method:'DELETE', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(moveTo ? { moveTo } : {}),
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) return void ($('#delErr').textContent = d.error || 'Could not delete.');
+    closeSheet(); loadShelfAdmin();
+  };
+}
+
+$('#newShelf').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('#shErr2').textContent = '';
+  const r = await fetch('/api/shelves', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ label: $('#shName').value.trim(), exts: textToExts($('#shExts').value) }),
+  });
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) return void ($('#shErr2').textContent = d.error || 'Could not create it.');
+  $('#shName').value = ''; $('#shExts').value = '';
+  await loadShelfAdmin();
+  if(d.shadowed && d.shadowed.length) warnShadowed(d.shadowed);
+});
+
+/* ── activity */
+$('#btnActivity').onclick = () => { $('#activity').classList.add('on'); loadActivity(); };
+$('#actClose').onclick = () => $('#activity').classList.remove('on');
+$('#actReload').onclick = () => loadActivity();
+
+const ACT_LABEL = {
+  upload:'uploaded', delete:'deleted', rename:'renamed', move:'moved',
+  'bulk-delete':'bulk deleted', 'bulk-move':'bulk moved',
+  'login-failed':'failed sign-in', 'account-create':'created account',
+  'account-delete':'deleted account', 'token-create':'created token',
+  'shelf-create':'created shelf', 'shelf-delete':'deleted shelf',
+};
+const ACT_KIND = (a) =>
+  a.includes('delete') ? 'bad' : (a === 'login-failed' ? 'warn' : '');
+
+async function loadActivity(){
+  const r = await fetch('/api/activity?limit=300');
+  if(!r.ok) return;
+  const { events } = await r.json();
+  $('#actList').innerHTML = events.length
+    ? events.map((e)=>`<div class="ev ${ACT_KIND(e.a)}">
+        <div class="ev-when">${ago(e.t)}</div>
+        <div class="ev-what"><b>${esc(e.u)}</b> ${esc(ACT_LABEL[e.a]||e.a)}
+          ${e.d?`<span>${esc(e.d)}</span>`:''}</div>
+      </div>`).join('')
+    : '<div class="rename-hint">Nothing recorded yet.</div>';
+}
+
+/* ── series grouping toggle */
+$('#tGroup').onclick = () => {
+  state.group = !state.group;
+  $('#tGroup').classList.toggle('accent', state.group);
+  render();
+};
 
 /* ── uploads */
 $('#btnUpload').onclick = () => $('#picker').click();
@@ -1280,6 +2428,7 @@ async function sendChunked(file, shelf){
     ui.row.classList.add('done');
     ui.fill.style.width = '100%';
     ui.pct.textContent = 'done';
+    if(fin.rel) pulseShelf = fin.rel.split('/')[0];
     load();
   }catch(err){
     ui.row.classList.add('fail');
@@ -1316,6 +2465,10 @@ function sendSingle(file, shelf){
     busy(-1);
     if(xhr.status >= 200 && xhr.status < 300){
       ui.row.classList.add('done'); ui.fill.style.width = '100%'; ui.pct.textContent = 'done';
+      try{
+        const out = JSON.parse(xhr.responseText);
+        if(out.uploaded && out.uploaded.length) flashShelfFor(out.uploaded[0]);
+      }catch{ /* nothing to flash */ }
       load();
     }else{
       ui.row.classList.add('fail'); ui.pct.textContent = xhr.status === 413 ? 'too large' : 'failed';
@@ -1329,6 +2482,13 @@ function sendSingle(file, shelf){
 }
 
 $('#qClose').onclick = () => $('#queue').classList.remove('on');
+
+/* The single-shot upload only tells us the filename back, so infer the shelf
+   from the freshly loaded listing rather than guessing at extension rules. */
+function flashShelfFor(name){
+  const hit = state.files.find((f) => f.name === name);
+  if(hit) pulseShelf = hit.shelf;
+}
 
 /* ── drag and drop */
 let dragDepth = 0;
@@ -1361,10 +2521,62 @@ function setView(v){
   render();
 }
 
+/* Row cursor for keyboard use: j/k or arrows to move, Enter to open,
+   Backspace to delete. Only active in list view with no dialog open. */
+function moveCursor(delta){
+  if(state.view !== 'list') return;
+  const rows = [...$('#scroll').querySelectorAll('tr[data-i]')];
+  if(!rows.length) return;
+  const at = rows.findIndex((r) => r.classList.contains('cursor'));
+  const next = Math.max(0, Math.min(rows.length - 1, at < 0 ? 0 : at + delta));
+  rows.forEach((r) => r.classList.remove('cursor'));
+  rows[next].classList.add('cursor');
+  rows[next].scrollIntoView({ block:'nearest' });
+}
+const cursorFile = () => {
+  const row = $('#scroll').querySelector('tr.cursor');
+  return row ? visible()[+row.dataset.i] : null;
+};
+
 document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape'){ closeViewer(); closeSheet(); $('#admin').classList.remove('on'); }
-  if(e.key === '/' && document.activeElement.tagName !== 'INPUT'){ e.preventDefault(); $('#q').focus(); }
+  const typing = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
+  const dialogOpen = $('#modal').classList.contains('on') || $('#viewer').classList.contains('on');
+
+  if(!typing && !dialogOpen && state.user){
+    if(e.key === 'j' || e.key === 'ArrowDown'){ e.preventDefault(); return moveCursor(1); }
+    if(e.key === 'k' || e.key === 'ArrowUp'){ e.preventDefault(); return moveCursor(-1); }
+    if(e.key === 'Enter'){
+      const f = cursorFile();
+      if(f){ e.preventDefault(); playable(f) ? openViewer(f) : (location.href = url('download', f.rel)); return; }
+    }
+    if(e.key === 'Backspace'){
+      const f = cursorFile();
+      if(f){ e.preventDefault(); askDelete(f); return; }
+    }
+  }
+  if(e.key === 'Escape'){
+    closeViewer(); closeSheet();
+    $('#admin').classList.remove('on');
+    $('#shelfAdmin').classList.remove('on');
+    $('#activity').classList.remove('on');
+    if(state.picked.size) clearPicked();
+  }
+  if(e.key === '/' && !typing){ e.preventDefault(); $('#q').focus(); }
+  if(e.key === '?' && !typing){ e.preventDefault(); showKeys(); }
 });
+
+function showKeys(){
+  const keys = [['/', 'search'], ['j / k', 'move down / up'], ['Enter', 'open'],
+                ['Backspace', 'delete'], ['Esc', 'close'], ['?', 'this list']];
+  sheet(`<span class="tag">Keyboard</span>
+    <div class="keys">${keys.map(([k,v])=>
+      `<div class="keys-row"><kbd>${esc(k)}</kbd><span>${esc(v)}</span></div>`).join('')}</div>
+    <div class="sheet-row"><button class="ghost accent" id="ok">Close</button></div>`);
+  $('#ok').onclick = closeSheet;
+}
+
+document.querySelector('.rail-keys').onclick = showKeys;
+$('#tGroup').classList.add('accent');   // grouping is on by default
 
 /* ── boot */
 (async () => {
