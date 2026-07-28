@@ -347,6 +347,10 @@ Video and audio stream with seeking. Images open inline. Tick the boxes to selec
 
 `/` focuses search, `j` and `k` move a row cursor, `Enter` opens, `Backspace` deletes, `?` lists the keys.
 
+**Navigation.** Every panel and dialog is a history entry, so the browser's Back — including a mouse's back button — closes the top layer instead of leaving the site. Clicking the dimmed area outside a dialog or panel does the same, as does Escape. All three go through one path, so they can't fall out of step.
+
+**The player** is built for this rather than being the browser's default. Space or `k` plays and pauses, arrows skip ten seconds, `j` and `l` skip thirty, `m` mutes, `f` is fullscreen, `c` opens the subtitle menu. Volume is remembered between files. On a remuxed stream, seeking restarts from the chosen second; on a native file it seeks normally. Either way the bar behaves the same.
+
 In grid view, hovering a video sweeps through nine frames from across its runtime — useful for telling two rips apart without opening either.
 
 MP4 and WebM play natively; MKV is repackaged on the fly (see above). If your browser lacks the codec even so — some Chromium builds ship without H.264 — Vault says which codec it is and offers a VLC link rather than blaming itself.

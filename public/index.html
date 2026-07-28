@@ -661,28 +661,83 @@ tr.picked{background:var(--star-soft)!important}
 .scrub-ticks i.on{background:var(--star)}
 html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 
-/* ══════════════════════════════════ remux player */
-.player{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:12px}
-.player video{width:100%;max-height:70vh;background:#000;display:block}
-.rmx-bar{display:flex;align-items:center;gap:12px}
-.rmx-time{
+/* ══════════════════════════════════ player */
+.player{width:100%;max-width:1180px;display:flex;flex-direction:column;gap:10px;position:relative}
+.pl-stage{position:relative;background:#000;line-height:0}
+.player video{width:100%;max-height:72vh;display:block;background:#000;cursor:pointer}
+.player:fullscreen{max-width:none;justify-content:center;background:#000;padding:0}
+.player:fullscreen .pl-stage{flex:1;display:grid;place-items:center}
+.player:fullscreen video{max-height:100vh;height:100%}
+.player:fullscreen .pl-bar{position:absolute;left:0;right:0;bottom:0;padding:14px 18px;
+  background:linear-gradient(transparent,rgba(0,0,0,.85));opacity:0;transition:opacity .2s}
+.player:fullscreen:hover .pl-bar,.player:fullscreen:not(.playing) .pl-bar{opacity:1}
+
+/* centre affordance — only while paused */
+.pl-veil{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.pl-big{
+  width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(7,8,9,.62);border:1px solid var(--star-edge);color:var(--star);
+  font-size:20px;line-height:1;pointer-events:auto;cursor:pointer;
+  transition:opacity .18s,transform .18s;backdrop-filter:blur(3px);
+}
+.pl-big:hover{transform:scale(1.06)}
+.player.playing .pl-big{opacity:0;transform:scale(.85);pointer-events:none}
+
+.pl-bar{display:flex;align-items:center;gap:11px}
+.pl-btn{
+  font-family:var(--mono);font-size:12px;color:var(--dim);
+  padding:5px 7px;border:1px solid transparent;transition:all .12s;line-height:1;
+}
+.pl-btn:hover{color:var(--star);border-color:var(--star-edge)}
+.pl-btn.on{color:var(--star);border-color:var(--star-edge)}
+.pl-time{
   font-family:var(--mono);font-size:10.5px;color:var(--dim);
-  font-variant-numeric:tabular-nums;min-width:48px;
+  font-variant-numeric:tabular-nums;min-width:46px;
 }
-.rmx-time:last-child{text-align:right}
-.rmx-track{
-  flex:1;height:3px;background:var(--line);cursor:pointer;position:relative;
+.pl-time:nth-of-type(2){text-align:right}
+
+.pl-track{flex:1;height:3px;background:var(--line);position:relative;cursor:pointer}
+.pl-track::before{content:'';position:absolute;inset:-9px 0}
+.pl-track:hover{background:var(--line-hot)}
+.pl-buf{position:absolute;left:0;top:0;bottom:0;background:var(--line-hot);width:0}
+.pl-fill{position:absolute;left:0;top:0;bottom:0;background:var(--star);width:0}
+.pl-knob{
+  position:absolute;top:50%;left:0;width:9px;height:9px;border-radius:50%;
+  background:var(--star);transform:translate(-50%,-50%) scale(0);
+  transition:transform .15s;pointer-events:none;
 }
-.rmx-track::before{content:'';position:absolute;inset:-8px 0;cursor:pointer}
-.rmx-track:hover{background:var(--line-hot)}
-.rmx-fill{height:100%;background:var(--star);width:0;transition:width .25s linear}
-.rmx-note{
-  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--faint);text-align:center;
+.pl-track:hover .pl-knob{transform:translate(-50%,-50%) scale(1)}
+
+.pl-vol{width:56px;height:3px;background:var(--line);cursor:pointer;position:relative}
+.pl-vol::before{content:'';position:absolute;inset:-9px 0}
+.pl-vol-fill{height:100%;background:var(--dim);width:100%}
+.pl-vol:hover .pl-vol-fill{background:var(--star)}
+
+.pl-note{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);text-align:center;min-height:12px;
 }
+.pl-cc{
+  position:absolute;right:0;bottom:52px;z-index:5;
+  background:var(--deep);border:1px solid var(--line-hot);
+  display:flex;flex-direction:column;min-width:150px;box-shadow:var(--shadow);
+}
+.pl-cc button{
+  text-align:left;padding:9px 13px;font-family:var(--mono);font-size:11px;
+  color:var(--dim);border-bottom:1px solid var(--rule);transition:all .12s;
+}
+.pl-cc button:last-child{border-bottom:0}
+.pl-cc button:hover{color:var(--text);background:var(--hover)}
+.pl-cc button.on{color:var(--star);background:var(--star-soft)}
+
 .viewer-link{color:var(--star);word-break:break-all}
 
-/* ══════════════════════════════════ activity */
+@media (max-width:760px){
+  .pl-vol,.pl-time:nth-of-type(2){display:none}
+  .pl-bar{gap:8px}
+}
+
+/* ══════════════════════════════════ activity *//* ══════════════════════════════════ activity */
 .ev{
   display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:baseline;
   padding:9px 4px;border-bottom:1px solid var(--rule);
@@ -1037,6 +1092,55 @@ function ago(ms){
 }
 const esc = (s) => s.replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const url = (kind, rel) => `/api/${kind}/${rel.split('/').map(encodeURIComponent).join('/')}`;
+
+/* ══════════════════════════════════ overlay history
+ * Every panel and dialog is a layer. Opening one pushes a history entry, so
+ * the browser's Back — including a mouse's back button — closes the layer
+ * instead of leaving the site. Escape and clicking the backdrop go through the
+ * same path, so all three behave identically.
+ */
+const layers = [];          // [{ name, close }]
+let poppingHistory = false;
+
+function openLayer(name, close){
+  // Re-opening a layer that's already on top shouldn't stack a second entry.
+  if(layers.length && layers[layers.length-1].name === name) return;
+  layers.push({ name, close });
+  history.pushState({ vaultLayer: name, depth: layers.length }, '');
+}
+
+/** Close the top layer by going back, so history and the UI stay in step. */
+function closeLayer(){
+  if(!layers.length) return false;
+  history.back();
+  return true;
+}
+
+function closeAllLayers(){
+  if(!layers.length) return;
+  const n = layers.length;
+  history.go(-n);
+}
+
+window.addEventListener('popstate', () => {
+  poppingHistory = true;
+  // Unwind to whatever depth the new history entry represents.
+  const depth = (history.state && history.state.vaultLayer) ? history.state.depth : 0;
+  while(layers.length > depth){
+    const layer = layers.pop();
+    try{ layer.close(); }catch{ /* already gone */ }
+  }
+  poppingHistory = false;
+});
+
+/** Called by a layer that closed itself (a button, a completed action). */
+function layerClosed(name){
+  if(poppingHistory) return;
+  const i = layers.map((l)=>l.name).lastIndexOf(name);
+  if(i < 0) return;
+  const above = layers.length - i;
+  history.go(-above);
+}
 
 /* ── gate */
 $('#gateForm').addEventListener('submit', async (e) => {
@@ -1565,6 +1669,7 @@ async function openViewer(f){
   $('#vTitle').textContent = f.name;
   $('#vDl').onclick = () => { location.href = url('download', f.rel); };
   $('#viewer').classList.add('on');
+  openLayer('viewer', teardownViewer);
   const src = url('stream', f.rel);
 
   if(IMAGE.includes(f.ext)){
@@ -1576,12 +1681,7 @@ async function openViewer(f){
     return;
   }
   if(BROWSER_VIDEO.includes(f.ext)){
-    $('#vBody').innerHTML = `<div class="player"><video id="rmx" src="${src}" controls autoplay playsinline></video></div>`;
-    const v = $('#rmx');
-    // Native playback can seek properly, so just restore the position.
-    if(f.watch && f.watch.pos > 5) v.currentTime = f.watch.pos;
-    trackProgress(v, f, () => 0, 0);
-    await attachSubtitles(v, f);
+    mountPlayer(f, { src, native: true });
     return;
   }
 
@@ -1614,68 +1714,198 @@ async function openViewer(f){
  * which is near-instant because nothing before it gets decoded.
  */
 function playRemuxed(f, info){
-  const dur = info.duration || 0;
+  mountPlayer(f, { native: false, info });
+}
+
+/**
+ * One player for both paths. Native files can seek normally; a remuxed stream
+ * can't, so seeking restarts the stream from the chosen second and the control
+ * bar tracks an offset. Everything above that difference is shared.
+ */
+function mountPlayer(f, { src, native, info }){
+  const dur = native ? 0 : (info.duration || 0);
   let base = 0;
 
   $('#vBody').innerHTML = `
-    <div class="player">
-      <video id="rmx" controls autoplay playsinline></video>
-      <div class="rmx-bar">
-        <div class="rmx-time" id="rmxAt">0:00</div>
-        <div class="rmx-track" id="rmxTrack"><div class="rmx-fill" id="rmxFill"></div></div>
-        <div class="rmx-time">${fmtTime(dur)}</div>
+    <div class="player" id="pl">
+      <div class="pl-stage">
+        <video id="rmx" playsinline ${native ? `src="${src}"` : ''}></video>
+        <div class="pl-veil" id="plVeil"><div class="pl-big" id="plBig">▶</div></div>
       </div>
-      <div class="rmx-note">
-        Repackaged live${info.audioOk ? '' : ', audio converted'} · drag the bar to jump
+      <div class="pl-bar">
+        <button class="pl-btn" id="plPlay" title="Play / pause (space)">▶</button>
+        <div class="pl-time" id="plAt">0:00</div>
+        <div class="pl-track" id="plTrack">
+          <div class="pl-buf" id="plBuf"></div>
+          <div class="pl-fill" id="plFill"></div>
+          <div class="pl-knob" id="plKnob"></div>
+        </div>
+        <div class="pl-time" id="plDur">${native ? '0:00' : fmtTime(dur)}</div>
+        <button class="pl-btn" id="plMute" title="Mute (m)">◂))</button>
+        <div class="pl-vol"><div class="pl-vol-fill" id="plVolFill"></div></div>
+        <button class="pl-btn" id="plCC" title="Subtitles (c)" hidden>CC</button>
+        <button class="pl-btn" id="plFull" title="Fullscreen (f)">⛶</button>
       </div>
+      <div class="pl-note" id="plNote">${native ? '' :
+        `Repackaged live${info.audioOk ? '' : ', audio converted'}`}</div>
+      <div class="pl-cc" id="plMenu" hidden></div>
     </div>`;
 
-  const video = $('#rmx');
-  const track = $('#rmxTrack');
-  attachSubtitles(video, f);
+  const v = $('#rmx');
+  const now = () => base + (v.currentTime || 0);
+  const total = () => dur || (isFinite(v.duration) ? v.duration : 0);
 
   const start = (at) => {
+    if(native){ v.currentTime = at; v.play().catch(()=>{}); return; }
     base = at;
-    video.src = `${url('media', f.rel)}?t=${at.toFixed(2)}`;
-    video.play().catch(() => { /* autoplay may need a gesture */ });
+    v.src = `${url('media', f.rel)}?t=${at.toFixed(2)}`;
+    v.play().catch(()=>{});
   };
 
-  video.ontimeupdate = () => {
-    // The player can be torn down mid-playback (an error, or the viewer being
-    // closed), and timeupdate keeps firing for a beat afterwards.
-    const fill = $('#rmxFill'), at = $('#rmxAt');
-    if(!fill || !at) return;
-    const now = base + (video.currentTime || 0);
-    fill.style.width = `${dur ? Math.min(100, now/dur*100) : 0}%`;
-    at.textContent = fmtTime(now);
+  /**
+   * Every handler below can outlive the DOM it points at: a media element
+   * fires pause/timeupdate for a beat after the player is torn down. Each one
+   * checks the player is still mounted first — one unguarded lookup throws,
+   * and the exception aborts whatever mounts next.
+   */
+  const alive = () => document.getElementById('pl') === $('#pl') && !!$('#plPlay');
+
+  // ── transport
+  const setPlaying = (on) => {
+    if(!alive()) return;
+    $('#plPlay').textContent = on ? '❚❚' : '▶';
+    $('#pl').classList.toggle('playing', on);
+  };
+  const toggle = () => v.paused ? v.play().catch(()=>{}) : v.pause();
+  v.onplay = () => setPlaying(true);
+  v.onpause = () => setPlaying(false);
+  $('#plPlay').onclick = toggle;
+  $('#plBig').onclick = toggle;
+  v.onclick = toggle;
+  v.ondblclick = () => goFull();
+
+  // ── progress
+  v.ontimeupdate = () => {
+    if(!alive()) return;
+    const t = total();
+    const p = t ? Math.min(100, now()/t*100) : 0;
+    const fill = $('#plFill'), knob = $('#plKnob'), at = $('#plAt');
+    if(!fill) return;
+    fill.style.width = `${p}%`;
+    knob.style.left = `${p}%`;
+    at.textContent = fmtTime(now());
+    if(native && $('#plDur')) $('#plDur').textContent = fmtTime(t);
+  };
+  v.onprogress = () => {
+    if(!alive()) return;
+    const t = total();
+    if(!t || !v.buffered.length || !$('#plBuf')) return;
+    $('#plBuf').style.width = `${Math.min(100, (base + v.buffered.end(v.buffered.length-1))/t*100)}%`;
   };
 
-  video.onerror = () => {
-    const err = video.error;
-    // A decode failure means the browser can't handle the codec even
-    // repackaged — Chromium builds without H.264 do this. Say which it is
-    // rather than blaming the server for something it did correctly.
+  const track = $('#plTrack');
+  const seekFromEvent = (e) => {
+    const t = total();
+    if(!t) return;
+    const r = track.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, ((e.touches ? e.touches[0].clientX : e.clientX) - r.left) / r.width));
+    start(p * t);
+  };
+  track.onclick = seekFromEvent;
+
+  // ── sound, remembered between files
+  const savedVol = (() => { try{ return parseFloat(localStorage.getItem('vault-vol')); }catch{ return NaN; } })();
+  v.volume = isFinite(savedVol) ? savedVol : 1;
+  const drawVol = () => {
+    if(!alive() || !$('#plVolFill')) return;
+    $('#plVolFill').style.width = `${(v.muted ? 0 : v.volume) * 100}%`;
+    $('#plMute').textContent = (v.muted || !v.volume) ? '◂' : '◂))';
+  };
+  $('#plMute').onclick = () => { v.muted = !v.muted; drawVol(); };
+  document.querySelector('.pl-vol').onclick = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    v.volume = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    v.muted = false;
+    try{ localStorage.setItem('vault-vol', String(v.volume)); }catch{ /* private mode */ }
+    drawVol();
+  };
+  drawVol();
+
+  // ── fullscreen
+  const goFull = () => {
+    const el = $('#pl');
+    if(document.fullscreenElement) document.exitFullscreen();
+    else el.requestFullscreen && el.requestFullscreen().catch(()=>{});
+  };
+  $('#plFull').onclick = goFull;
+
+  // ── errors
+  v.onerror = () => {
+    if(!alive()) return;
+    const err = v.error;
     const decodeFail = err && (err.code === 3 || err.code === 4);
     $('#vBody').innerHTML = `<div class="viewer-note">
       <p>${decodeFail
-          ? `Your browser can't decode ${esc(info.video || 'this video')}, even repackaged.`
+          ? `Your browser can't decode ${esc((info && info.video) || 'this video')}${native ? '' : ', even repackaged'}.`
           : 'The stream stopped unexpectedly — the server may be busy.'}</p>
       <p>Download the file, or open this link in VLC:</p>
       <p class="viewer-link">${location.origin}${url('stream', f.rel)}</p>
     </div>`;
   };
 
-  const seekTo = (e) => {
-    if(!dur) return;
-    const r = track.getBoundingClientRect();
-    const p = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-    start(p * dur);
+  // ── keyboard, scoped to the open player
+  const keys = (e) => {
+    if(!$('#pl')) return document.removeEventListener('keydown', keys, true);
+    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+    const t = total();
+    const jump = (d) => { const to = Math.max(0, Math.min(t || 1e9, now() + d)); start(to); };
+    switch(e.key){
+      case ' ': case 'k': e.preventDefault(); e.stopPropagation(); toggle(); break;
+      case 'ArrowRight': e.preventDefault(); e.stopPropagation(); jump(10); break;
+      case 'ArrowLeft':  e.preventDefault(); e.stopPropagation(); jump(-10); break;
+      case 'l': e.preventDefault(); e.stopPropagation(); jump(30); break;
+      case 'j': e.preventDefault(); e.stopPropagation(); jump(-30); break;
+      case 'm': e.preventDefault(); e.stopPropagation(); v.muted = !v.muted; drawVol(); break;
+      case 'f': e.preventDefault(); e.stopPropagation(); goFull(); break;
+      case 'c': e.preventDefault(); e.stopPropagation(); if(!$('#plCC').hidden) $('#plCC').click(); break;
+      default: return;
+    }
   };
-  track.onclick = seekTo;
-  trackProgress(video, f, () => base, dur);
+  document.addEventListener('keydown', keys, true);
 
-  // Pick up where this account left off, if it got anywhere meaningful.
-  start(f.watch && f.watch.pos > 5 && f.watch.pos < dur - 20 ? f.watch.pos : 0);
+  trackProgress(v, f, () => base, dur);
+  attachSubtitles(v, f).then(() => buildCCMenu(v));
+
+  const from = f.watch && f.watch.pos > 5 && (!total() || f.watch.pos < total() - 20) ? f.watch.pos : 0;
+  if(native){ v.src = src; v.oncanplay = () => { v.oncanplay = null; if(from) v.currentTime = from; }; }
+  start(from);
+  v.play().catch(()=>{});
+}
+
+/** Track menu, built once the subtitle tracks have been attached. */
+function buildCCMenu(v){
+  const btn = $('#plCC'), menu = $('#plMenu');
+  // Subtitles arrive asynchronously — the viewer may already be gone.
+  if(!btn || !menu || !document.contains(v)) return;
+  const tracks = [...v.textTracks];
+  if(!tracks.length) return;
+  btn.hidden = false;
+  tracks.forEach((t) => { t.mode = 'disabled'; });
+
+  const draw = () => {
+    const active = tracks.findIndex((t) => t.mode === 'showing');
+    menu.innerHTML = `<button data-i="-1" class="${active<0?'on':''}">Off</button>` +
+      tracks.map((t,i)=>`<button data-i="${i}" class="${active===i?'on':''}">${esc(t.label||('Track '+(i+1)))}</button>`).join('');
+    menu.querySelectorAll('button').forEach((b) => {
+      b.onclick = () => {
+        const pick = +b.dataset.i;
+        tracks.forEach((t,i)=>{ t.mode = i === pick ? 'showing' : 'disabled'; });
+        btn.classList.toggle('on', pick >= 0);
+        draw(); menu.hidden = true;
+      };
+    });
+  };
+  btn.onclick = () => { draw(); menu.hidden = !menu.hidden; };
 }
 
 /**
@@ -1738,11 +1968,15 @@ function fmtTime(sec){
            : `${m}:${String(s).padStart(2,'0')}`;
 }
 
-function closeViewer(){
+function closeViewer(){ closeLayer() || teardownViewer(); }
+
+function teardownViewer(){
   // Blank the source first: leaving it set keeps the remux running server-side.
   const v = $('#vBody').querySelector('video, audio');
   if(v){
     if(v.__report) v.__report();     // save the position before tearing down
+    v.onplay = v.onpause = v.ontimeupdate = v.onprogress = v.onerror = null;
+    v.onclick = v.ondblclick = v.oncanplay = null;
     v.pause(); v.removeAttribute('src'); v.load();
   }
   $('#viewer').classList.remove('on');
@@ -1752,9 +1986,33 @@ function closeViewer(){
 $('#vClose').onclick = closeViewer;
 
 /* ── dialogs */
-function sheet(html){ $('#sheet').innerHTML = html; $('#modal').classList.add('on'); }
-function closeSheet(){ $('#modal').classList.remove('on'); }
-$('#modal').addEventListener('click', (e) => { if(e.target.id==='modal') closeSheet(); });
+function sheet(html){
+  $('#sheet').innerHTML = html;
+  $('#modal').classList.add('on');
+  openLayer('modal', () => { $('#modal').classList.remove('on'); $('#sheet').innerHTML = ''; });
+}
+function closeSheet(){ closeLayer() || $('#modal').classList.remove('on'); }
+
+// Clicking the dimmed area outside a dialog dismisses it.
+$('#modal').addEventListener('click', (e) => { if(e.target.id === 'modal') closeSheet(); });
+
+/**
+ * Full-screen panels dismiss on a click that lands on empty space. The panel
+ * element itself is almost never the target — its scrolling body stretches to
+ * fill it — so the body and the margin either side of the content column count
+ * as backdrop too. Anything inside the content column, or the head bar, does
+ * not.
+ */
+['viewer', 'admin', 'shelfAdmin', 'activity'].forEach((id) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('click', (e) => {
+    const backdrop = e.target === el
+      || e.target.classList.contains('admin-body')
+      || e.target.classList.contains('viewer-body');
+    if (backdrop) closeLayer();
+  });
+});
 
 function askDelete(f){
   sheet(`<span class="tag">Delete file</span>
@@ -1930,8 +2188,11 @@ async function manageShares(){
 }
 
 /* ── accounts */
-$('#btnUsers').onclick = () => { $('#admin').classList.add('on'); loadUsers(); };
-$('#aClose').onclick = () => $('#admin').classList.remove('on');
+$('#btnUsers').onclick = () => {
+  $('#admin').classList.add('on'); loadUsers();
+  openLayer('admin', () => $('#admin').classList.remove('on'));
+};
+$('#aClose').onclick = () => closeLayer();
 
 async function loadUsers(){
   const r = await fetch('/api/users');
@@ -2150,8 +2411,11 @@ $('#newAcct').addEventListener('submit', async (e) => {
 });
 
 /* ── shelf administration */
-$('#btnShelves').onclick = () => { $('#shelfAdmin').classList.add('on'); loadShelfAdmin(); };
-$('#shClose').onclick = () => { $('#shelfAdmin').classList.remove('on'); load(); };
+$('#btnShelves').onclick = () => {
+  $('#shelfAdmin').classList.add('on'); loadShelfAdmin();
+  openLayer('shelfAdmin', () => { $('#shelfAdmin').classList.remove('on'); load(); });
+};
+$('#shClose').onclick = () => closeLayer();
 
 let shelfData = [];
 
@@ -2290,8 +2554,11 @@ $('#newShelf').addEventListener('submit', async (e) => {
 });
 
 /* ── activity */
-$('#btnActivity').onclick = () => { $('#activity').classList.add('on'); loadActivity(); };
-$('#actClose').onclick = () => $('#activity').classList.remove('on');
+$('#btnActivity').onclick = () => {
+  $('#activity').classList.add('on'); loadActivity();
+  openLayer('activity', () => $('#activity').classList.remove('on'));
+};
+$('#actClose').onclick = () => closeLayer();
 $('#actReload').onclick = () => loadActivity();
 
 const ACT_LABEL = {
@@ -2555,10 +2822,7 @@ document.addEventListener('keydown', (e) => {
     }
   }
   if(e.key === 'Escape'){
-    closeViewer(); closeSheet();
-    $('#admin').classList.remove('on');
-    $('#shelfAdmin').classList.remove('on');
-    $('#activity').classList.remove('on');
+    if(layers.length) return void closeLayer();
     if(state.picked.size) clearPicked();
   }
   if(e.key === '/' && !typing){ e.preventDefault(); $('#q').focus(); }
