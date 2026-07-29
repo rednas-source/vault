@@ -666,10 +666,24 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 /* ══════════════════════════════════ player */
 /* Sized to fill the viewer rather than sit politely inside it — the stage
    takes whatever height is left after the header and control bar. */
-.viewer.playing .viewer-body{padding:0;min-height:0;overflow:hidden}
+/* A window rather than a takeover: wide enough to be comfortable, short
+   enough that the control bar is always on screen. Fullscreen is still there
+   for the full-bleed version. */
+.viewer.playing .viewer-body{padding:20px;min-height:0;overflow:auto}
 .player{
-  width:100%;height:100%;max-width:none;min-height:0;overflow:hidden;
-  display:flex;flex-direction:column;position:relative;background:var(--void);
+  width:min(1240px, 92vw);
+  max-width:none;height:auto;min-height:0;
+  display:flex;flex-direction:column;position:relative;
+  background:var(--deep);border:1px solid var(--line);
+}
+/* The stage keeps its aspect ratio but never pushes the controls off-screen. */
+.pl-stage{
+  width:100%;max-height:calc(100vh - 250px);
+  position:relative;background:#000;display:grid;place-items:center;flex:0 0 auto;
+}
+.player video{
+  width:100%;height:100%;max-height:calc(100vh - 250px);
+  object-fit:contain;display:block;cursor:pointer;background:#000;
 }
 .pl-head{
   display:flex;align-items:flex-start;gap:14px;
@@ -690,9 +704,6 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
   transition:all .12s;border-radius:3px;
 }
 .pl-x:hover{color:var(--text);border-color:var(--line-hot);background:var(--hover)}
-
-.pl-stage{flex:1;min-height:0;position:relative;background:#000;display:grid;place-items:center}
-.player video{width:100%;height:100%;object-fit:contain;display:block;cursor:pointer;background:#000}
 
 .pl-veil{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .pl-big{
@@ -791,7 +802,11 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 .player:fullscreen.playing .pl-bar{opacity:0}
 .player:fullscreen:hover .pl-head,
 .player:fullscreen:hover .pl-bar{opacity:1}
-.player:fullscreen .pl-stage{position:absolute;inset:0}
+.player:fullscreen{width:100vw;height:100vh;border:0;background:#000}
+.player:fullscreen .pl-stage{
+  position:absolute;inset:0;aspect-ratio:auto!important;max-height:none;
+}
+.player:fullscreen video{max-height:none;height:100%}
 
 .viewer-link{color:var(--star);word-break:break-all}
 
@@ -1856,6 +1871,24 @@ function mountPlayer(f, { src, native, info }){
       <div class="pl-note" id="plNote">${native ? '' :
         `Repackaged live${info.audioOk ? '' : ', audio converted'}`}</div>
     </div>`;
+
+  /**
+   * ffprobe already told us the frame size, so the stage can hold its shape
+   * from the first paint. Without this the box starts at the video element's
+   * default 300×150, then snaps once metadata loads — which is the "small
+   * preview then the whole thing" flash.
+   */
+  const stage = $('#plStage');
+  if(info && info.width && info.height){
+    stage.style.aspectRatio = `${info.width} / ${info.height}`;
+  }else{
+    stage.style.aspectRatio = '16 / 9';
+    // Native files carry no probe, so take the real ratio the moment it's known.
+    $('#rmx').addEventListener('loadedmetadata', function once(){
+      if(this.videoWidth) stage.style.aspectRatio = `${this.videoWidth} / ${this.videoHeight}`;
+      this.removeEventListener('loadedmetadata', once);
+    });
+  }
 
   const v = $('#rmx');
   const now = () => base + (v.currentTime || 0);
