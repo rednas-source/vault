@@ -24,9 +24,6 @@
   --dim:#6a7280;
   --faint:#3d444f;
   --star:#7fd9ff;
-  --pl-accent:#4a9eff;
-  --pl-tile:rgba(255,255,255,.09);
-  --pl-tile-hot:rgba(255,255,255,.15);
   --star-soft:rgba(127,217,255,.10);
   --star-edge:rgba(127,217,255,.30);
   --flare:#ff6a58;
@@ -63,9 +60,6 @@ html[data-theme="light"]{
   --faint:#78838f;   /* darker than the dark-theme equivalent — 9.5px uppercase
                         labels need the contrast far more on a pale ground */
   --star:#0a6a8c;
-  --pl-accent:#185FA5;
-  --pl-tile:rgba(0,0,0,.07);
-  --pl-tile-hot:rgba(0,0,0,.12);
   --star-soft:rgba(10,106,140,.09);
   --star-edge:rgba(10,106,140,.38);
   --flare:#c0392b;
@@ -400,7 +394,8 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
 .viewer-head b{font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .viewer-head .sp{flex:1}
 .viewer-body{display:grid;place-items:center;padding:22px;min-height:0;overflow:auto}
-.viewer-body:has(.player){padding:10px}
+.viewer.playing .viewer-body{padding:0;align-items:stretch;justify-items:stretch}
+.viewer.playing > .viewer-head{display:none}
 .viewer-body video,.viewer-body img,.viewer-body audio{max-width:100%;max-height:100%;display:block}
 .viewer-body audio{width:min(560px,100%)}
 .viewer-note{text-align:center;max-width:420px}
@@ -669,92 +664,146 @@ tr.picked{background:var(--star-soft)!important}
 html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 
 /* ══════════════════════════════════ player */
-.player{width:100%;max-width:min(92vw,calc(92vh * 16 / 9));display:flex;flex-direction:column;gap:8px;position:relative}
-.pl-stage{position:relative;background:#000;line-height:0}
-.player video{width:100%;max-height:min(78vh,calc(92vw * 9 / 16));display:block;background:#000;cursor:pointer}
-.player:fullscreen{max-width:none;justify-content:center;background:#000;padding:0}
-.player:fullscreen .pl-stage{flex:1;display:grid;place-items:center}
-.player:fullscreen video{max-height:100vh;height:100%}
-.player:fullscreen .pl-bar{position:absolute;left:0;right:0;bottom:0;padding:14px 18px;
-  background:linear-gradient(transparent,rgba(0,0,0,.85));opacity:0;transition:opacity .2s}
-.player:fullscreen:hover .pl-bar,.player:fullscreen:not(.playing) .pl-bar{opacity:1}
+/* Sized to fill the viewer rather than sit politely inside it — the stage
+   takes whatever height is left after the header and control bar. */
+.viewer.playing .viewer-body{padding:0;min-height:0;overflow:hidden}
+.player{
+  width:100%;height:100%;max-width:none;min-height:0;overflow:hidden;
+  display:flex;flex-direction:column;position:relative;background:var(--void);
+}
+.pl-head{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 18px 12px;flex-shrink:0;
+}
+.pl-titles{min-width:0;flex:1}
+.pl-titles b{
+  display:block;font-size:15.5px;font-weight:600;letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pl-titles small{
+  display:block;margin-top:3px;font-size:12px;color:var(--dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pl-x{
+  flex-shrink:0;width:30px;height:30px;display:grid;place-items:center;
+  border:1px solid var(--line);color:var(--dim);font-size:13px;
+  transition:all .12s;border-radius:3px;
+}
+.pl-x:hover{color:var(--text);border-color:var(--line-hot);background:var(--hover)}
 
-/* centre affordance — only while paused */
+.pl-stage{flex:1;min-height:0;position:relative;background:#000;display:grid;place-items:center}
+.player video{width:100%;height:100%;object-fit:contain;display:block;cursor:pointer;background:#000}
+
 .pl-veil{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .pl-big{
-  width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
-  background:rgba(7,8,9,.62);border:1px solid var(--star-edge);color:var(--star);
-  font-size:20px;line-height:1;pointer-events:auto;cursor:pointer;
-  transition:opacity .18s,transform .18s;backdrop-filter:blur(3px);
+  width:68px;height:68px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(28,32,38,.82);color:#fff;font-size:22px;line-height:1;
+  pointer-events:auto;cursor:pointer;border:0;
+  transition:opacity .18s,transform .18s,background .18s;backdrop-filter:blur(4px);
 }
-.pl-big:hover{transform:scale(1.06)}
-.player.playing .pl-big{opacity:0;transform:scale(.85);pointer-events:none}
+.pl-big:hover{transform:scale(1.06);background:rgba(45,50,58,.9)}
+.player.playing .pl-big{opacity:0;transform:scale(.8);pointer-events:none}
 
-.pl-bar{display:flex;flex-direction:column;gap:8px}
-.pl-scrub{display:flex;align-items:center;gap:12px}
-.pl-row{display:flex;align-items:center;justify-content:space-between}
-.pl-group{display:flex;align-items:center;gap:4px}
-.pl-divider{width:1px;height:18px;background:var(--line-hot);margin:0 8px;flex:none}
-.pl-btn{
-  font-family:var(--mono);font-size:12px;color:var(--dim);
-  min-width:32px;height:32px;padding:0 8px;border:0;border-radius:8px;
-  display:inline-flex;align-items:center;justify-content:center;
-  background:transparent;transition:background .12s,color .12s;line-height:1;
-}
-.pl-btn:hover{color:var(--text);background:var(--pl-tile-hot)}
-.pl-btn:focus-visible{outline:2px solid var(--pl-accent);outline-offset:2px}
-.pl-btn.on{color:var(--text);background:var(--pl-tile)}
-.player.playing #plPlay{color:var(--text);background:var(--pl-tile)}
+.pl-bar{padding:12px 18px 14px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.pl-scrub{display:flex;align-items:center;gap:13px}
 .pl-time{
-  font-family:var(--mono);font-size:10.5px;color:var(--dim);
-  font-variant-numeric:tabular-nums;min-width:46px;
+  font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums;
+  min-width:44px;flex-shrink:0;
 }
-#plDur{text-align:right}
+.pl-rem{text-align:right}
 
-.pl-track{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;cursor:pointer;transition:height .12s}
-.pl-track::before{content:'';position:absolute;inset:-9px 0}
-.pl-track:hover{background:var(--line-hot);height:6px}
-.pl-buf{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--line-hot);width:0}
-.pl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--pl-accent);width:0}
+.pl-track{flex:1;height:4px;background:var(--line);position:relative;cursor:pointer;border-radius:2px;touch-action:none}
+.pl-track::before{content:'';position:absolute;inset:-10px 0}
+.pl-buf{position:absolute;left:0;top:0;bottom:0;background:var(--line-hot);width:0;border-radius:2px}
+.pl-fill{position:absolute;left:0;top:0;bottom:0;background:var(--star);width:0;border-radius:2px}
 .pl-knob{
   position:absolute;top:50%;left:0;width:12px;height:12px;border-radius:50%;
-  background:var(--pl-accent);transform:translate(-50%,-50%) scale(0);
-  transition:transform .15s;pointer-events:none;
+  background:var(--star);transform:translate(-50%,-50%);pointer-events:none;
+  transition:opacity .15s;
 }
-.pl-track:hover .pl-knob{transform:translate(-50%,-50%) scale(1)}
 
-.pl-vol{width:62px;height:4px;border-radius:2px;background:var(--line);cursor:pointer;position:relative;margin-left:2px}
-.pl-vol::before{content:'';position:absolute;inset:-9px 0}
-.pl-vol-fill{height:100%;border-radius:2px;background:var(--dim);width:100%;position:relative}
-.pl-vol-fill::after{content:'';position:absolute;right:-5px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--dim)}
-.pl-vol:hover .pl-vol-fill::after{background:var(--text)}
-.pl-vol:hover .pl-vol-fill{background:var(--text)}
+.pl-row{display:flex;align-items:center;gap:6px}
+.pl-btn{
+  height:32px;min-width:32px;padding:0 8px;display:inline-flex;align-items:center;
+  justify-content:center;gap:6px;color:var(--dim);font-size:14px;line-height:1;
+  border:1px solid transparent;border-radius:3px;transition:all .12s;
+}
+.pl-btn:hover{color:var(--text);background:var(--hover)}
+.pl-btn.on{color:var(--star)}
+.pl-play{font-size:15px}
+.pl-skip{position:relative;display:inline-block;font-size:15px;line-height:1}
+.pl-skip i{
+  position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  font-style:normal;font-size:7.5px;font-family:var(--mono);font-weight:700;
+}
+.pl-sep{width:1px;height:20px;background:var(--line);margin:0 6px}
+.pl-gap{flex:1}
+
+.pl-vol{width:78px;height:16px;display:flex;align-items:center;position:relative;cursor:pointer;touch-action:none}
+.pl-vol-track{position:absolute;left:0;right:0;height:4px;background:var(--line);border-radius:2px}
+.pl-vol-fill{position:absolute;left:0;height:4px;background:var(--dim);width:100%;border-radius:2px}
+.pl-vol:hover .pl-vol-fill{background:var(--star)}
+.pl-vol-knob{
+  position:absolute;top:50%;width:11px;height:11px;border-radius:50%;
+  background:var(--text);transform:translate(-50%,-50%);pointer-events:none;
+}
+
+.pl-cc-btn{font-size:12px;padding:0 10px}
+.cc-mark{
+  font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.06em;
+  border:1px solid currentColor;border-radius:2px;padding:1px 3px;line-height:1.2;
+}
+
+.pl-menu[hidden]{display:none}
+.pl-menu{
+  position:absolute;right:18px;bottom:76px;z-index:6;
+  background:var(--deep);border:1px solid var(--line-hot);border-radius:3px;
+  display:flex;flex-direction:column;min-width:158px;box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.pl-menu button{
+  text-align:left;padding:10px 14px;font-size:12px;color:var(--dim);
+  border-bottom:1px solid var(--rule);transition:all .12s;
+}
+.pl-menu button:last-child{border-bottom:0}
+.pl-menu button:hover{color:var(--text);background:var(--hover)}
+.pl-menu button.on{color:var(--star);background:var(--star-soft)}
 
 .pl-note{
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--faint);text-align:center;min-height:12px;
+  position:absolute;left:18px;bottom:calc(100% - 100%);bottom:2px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);pointer-events:none;
 }
-.pl-cc{
-  position:absolute;right:0;bottom:74px;z-index:5;border-radius:10px;overflow:hidden;
-  background:var(--deep);border:1px solid var(--line-hot);
-  display:flex;flex-direction:column;min-width:150px;box-shadow:var(--shadow);
+
+/* fullscreen: controls float over the video and fade out while playing */
+.player:fullscreen{background:#000}
+.player:fullscreen .pl-head,
+.player:fullscreen .pl-bar{
+  position:absolute;left:0;right:0;z-index:4;
+  background:linear-gradient(rgba(0,0,0,.8),transparent);
+  opacity:1;transition:opacity .25s;
 }
-.pl-cc button{
-  text-align:left;padding:9px 13px;font-family:var(--mono);font-size:11px;
-  color:var(--dim);border-bottom:1px solid var(--rule);transition:all .12s;
+.player:fullscreen .pl-head{top:0}
+.player:fullscreen .pl-bar{
+  bottom:0;top:auto;background:linear-gradient(transparent,rgba(0,0,0,.85));
 }
-.pl-cc button:last-child{border-bottom:0}
-.pl-cc button:hover{color:var(--text);background:var(--hover)}
-.pl-cc button.on{color:var(--star);background:var(--star-soft)}
+.player:fullscreen.playing .pl-head,
+.player:fullscreen.playing .pl-bar{opacity:0}
+.player:fullscreen:hover .pl-head,
+.player:fullscreen:hover .pl-bar{opacity:1}
+.player:fullscreen .pl-stage{position:absolute;inset:0}
 
 .viewer-link{color:var(--star);word-break:break-all}
 
 @media (max-width:760px){
-  .pl-vol{display:none}
-  .pl-bar{gap:8px}
+  .pl-vol,.pl-sep{display:none}
+  .pl-head{padding:11px 12px 9px}
+  .pl-bar{padding:10px 12px 12px}
+  .pl-btn{padding:0 5px}
+  #plCCName{display:none}
 }
 
-/* ══════════════════════════════════ activity *//* ══════════════════════════════════ activity */
+/* ══════════════════════════════════ activity *//* ══════════════════════════════════ activity *//* ══════════════════════════════════ activity */
 .ev{
   display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:baseline;
   padding:9px 4px;border-bottom:1px solid var(--rule);
@@ -1687,6 +1736,7 @@ async function openViewer(f){
   $('#vDl').onclick = () => { location.href = url('download', f.rel); };
   $('#viewer').classList.add('on');
   openLayer('viewer', teardownViewer);
+  $('#viewer').classList.remove('playing');
   const src = url('stream', f.rel);
 
   if(IMAGE.includes(f.ext)){
@@ -1740,15 +1790,32 @@ function playRemuxed(f, info){
  * bar tracks an offset. Everything above that difference is shared.
  */
 function mountPlayer(f, { src, native, info }){
+  $('#viewer').classList.add('playing');   // full-bleed: the player draws its own chrome
   const dur = native ? 0 : (info.duration || 0);
   let base = 0;
 
+  // Show/season/episode when the filename gives it, otherwise just the name.
+  const ep = episodeOf(f.name);
+  const heading = ep ? ep.show : f.name;
+  const subheading = ep
+    ? `Season ${ep.season} · Episode ${ep.episode}${epTitle(f.name) ? ' · ' + epTitle(f.name) : ''}`
+    : (info && info.width ? `${info.width}×${info.height}` : bytes(f.size));
+
   $('#vBody').innerHTML = `
     <div class="player" id="pl">
-      <div class="pl-stage">
-        <video id="rmx" playsinline ${native ? `src="${src}"` : ''}></video>
-        <div class="pl-veil" id="plVeil"><div class="pl-big" id="plBig">▶</div></div>
+      <div class="pl-head">
+        <div class="pl-titles">
+          <b>${esc(heading)}</b>
+          <small>${esc(subheading)}</small>
+        </div>
+        <button class="pl-x" id="plClose" title="Close (Esc)">✕</button>
       </div>
+
+      <div class="pl-stage" id="plStage">
+        <video id="rmx" playsinline ${native ? `src="${src}"` : ''}></video>
+        <div class="pl-veil"><button class="pl-big" id="plBig">▶</button></div>
+      </div>
+
       <div class="pl-bar">
         <div class="pl-scrub">
           <div class="pl-time" id="plAt">0:00</div>
@@ -1757,29 +1824,50 @@ function mountPlayer(f, { src, native, info }){
             <div class="pl-fill" id="plFill"></div>
             <div class="pl-knob" id="plKnob"></div>
           </div>
-          <div class="pl-time" id="plDur">${native ? '0:00' : fmtTime(dur)}</div>
+          <div class="pl-time pl-rem" id="plRem">-0:00</div>
         </div>
+
         <div class="pl-row">
-          <div class="pl-group">
-            <button class="pl-btn" id="plPlay" title="Play / pause (space)">▶</button>
-            <span class="pl-divider"></span>
-            <button class="pl-btn" id="plMute" title="Mute (m)">◂))</button>
-            <div class="pl-vol"><div class="pl-vol-fill" id="plVolFill"></div></div>
-          </div>
-          <div class="pl-group">
-            <button class="pl-btn" id="plCC" title="Subtitles (c)" hidden>CC</button>
-            <button class="pl-btn" id="plFull" title="Fullscreen (f)">⛶</button>
-          </div>
+          <button class="pl-btn pl-play" id="plPlay" title="Play / pause (space)">▶</button>
+          <button class="pl-btn" id="plBack" title="Back 10s (←)">
+            <span class="pl-skip">↺<i>10</i></span></button>
+          <button class="pl-btn" id="plFwd" title="Forward 10s (→)">
+            <span class="pl-skip">↻<i>10</i></span></button>
+
+          <div class="pl-sep"></div>
+
+          <button class="pl-btn" id="plMute" title="Mute (m)">🔊</button>
+          <div class="pl-vol" id="plVol"><div class="pl-vol-track"></div>
+            <div class="pl-vol-fill" id="plVolFill"></div>
+            <div class="pl-vol-knob" id="plVolKnob"></div></div>
+
+          <div class="pl-gap"></div>
+
+          <button class="pl-btn pl-cc-btn" id="plCC" title="Subtitles (c)" hidden>
+            <span class="cc-mark">CC</span><span id="plCCName">Off</span></button>
+          <button class="pl-btn" id="plGear" title="Playback speed">⚙</button>
+          <button class="pl-btn" id="plPip" title="Picture in picture">⧉</button>
+          <button class="pl-btn" id="plFull" title="Fullscreen (f)">⛶</button>
         </div>
       </div>
+
+      <div class="pl-menu" id="plMenu" hidden></div>
+      <div class="pl-menu" id="plSpeed" hidden></div>
       <div class="pl-note" id="plNote">${native ? '' :
         `Repackaged live${info.audioOk ? '' : ', audio converted'}`}</div>
-      <div class="pl-cc" id="plMenu" hidden></div>
     </div>`;
 
   const v = $('#rmx');
   const now = () => base + (v.currentTime || 0);
-  const total = () => dur || (isFinite(v.duration) ? v.duration : 0);
+  /**
+   * A fragmented stream reports only what it has buffered, so its duration
+   * grows as it plays. Trust ffprobe first, then anything already recorded,
+   * and only fall back to the element for native files.
+   */
+  const total = () => dur
+    || (f.watch && f.watch.dur)
+    || (native && isFinite(v.duration) ? v.duration : 0);
+  const alive = () => !!document.getElementById('pl') && !!$('#plPlay');
 
   const start = (at) => {
     if(native){ v.currentTime = at; v.play().catch(()=>{}); return; }
@@ -1787,14 +1875,6 @@ function mountPlayer(f, { src, native, info }){
     v.src = `${url('media', f.rel)}?t=${at.toFixed(2)}`;
     v.play().catch(()=>{});
   };
-
-  /**
-   * Every handler below can outlive the DOM it points at: a media element
-   * fires pause/timeupdate for a beat after the player is torn down. Each one
-   * checks the player is still mounted first — one unguarded lookup throws,
-   * and the exception aborts whatever mounts next.
-   */
-  const alive = () => document.getElementById('pl') === $('#pl') && !!$('#plPlay');
 
   // ── transport
   const setPlaying = (on) => {
@@ -1809,61 +1889,107 @@ function mountPlayer(f, { src, native, info }){
   $('#plBig').onclick = toggle;
   v.onclick = toggle;
   v.ondblclick = () => goFull();
+  $('#plClose').onclick = () => closeViewer();
+
+  const jump = (d) => {
+    const t = total();
+    start(Math.max(0, Math.min(t ? t - 1 : 1e9, now() + d)));
+  };
+  $('#plBack').onclick = () => jump(-10);
+  $('#plFwd').onclick  = () => jump(10);
 
   // ── progress
   v.ontimeupdate = () => {
     if(!alive()) return;
     const t = total();
     const p = t ? Math.min(100, now()/t*100) : 0;
-    const fill = $('#plFill'), knob = $('#plKnob'), at = $('#plAt');
-    if(!fill) return;
-    fill.style.width = `${p}%`;
-    knob.style.left = `${p}%`;
-    at.textContent = fmtTime(now());
-    if(native && $('#plDur')) $('#plDur').textContent = fmtTime(t);
+    $('#plFill').style.width = `${p}%`;
+    $('#plKnob').style.left = `${p}%`;
+    $('#plAt').textContent = fmtTime(now());
+    $('#plRem').textContent = t ? `-${fmtTime(Math.max(0, t - now()))}` : '';
   };
   v.onprogress = () => {
-    if(!alive()) return;
+    if(!alive() || !$('#plBuf')) return;
     const t = total();
-    if(!t || !v.buffered.length || !$('#plBuf')) return;
+    if(!t || !v.buffered.length) return;
     $('#plBuf').style.width = `${Math.min(100, (base + v.buffered.end(v.buffered.length-1))/t*100)}%`;
   };
 
+  // ── scrubbing: drag as well as click
   const track = $('#plTrack');
-  const seekFromEvent = (e) => {
-    const t = total();
-    if(!t) return;
+  const posFromEvent = (e) => {
     const r = track.getBoundingClientRect();
-    const p = Math.max(0, Math.min(1, ((e.touches ? e.touches[0].clientX : e.clientX) - r.left) / r.width));
-    start(p * t);
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    return Math.max(0, Math.min(1, x / r.width));
   };
-  track.onclick = seekFromEvent;
+  let dragging = false;
+  const previewAt = (p) => {
+    $('#plFill').style.width = `${p*100}%`;
+    $('#plKnob').style.left = `${p*100}%`;
+    const t = total();
+    if(t){ $('#plAt').textContent = fmtTime(p*t); $('#plRem').textContent = `-${fmtTime(t - p*t)}`; }
+  };
+  track.addEventListener('pointerdown', (e) => {
+    if(!total()) return;
+    dragging = true; track.setPointerCapture(e.pointerId); previewAt(posFromEvent(e));
+  });
+  track.addEventListener('pointermove', (e) => { if(dragging) previewAt(posFromEvent(e)); });
+  track.addEventListener('pointerup', (e) => {
+    if(!dragging) return;
+    dragging = false;
+    start(posFromEvent(e) * total());
+  });
 
-  // ── sound, remembered between files
+  // ── volume
   const savedVol = (() => { try{ return parseFloat(localStorage.getItem('vault-vol')); }catch{ return NaN; } })();
   v.volume = isFinite(savedVol) ? savedVol : 1;
   const drawVol = () => {
     if(!alive() || !$('#plVolFill')) return;
-    $('#plVolFill').style.width = `${(v.muted ? 0 : v.volume) * 100}%`;
-    $('#plMute').textContent = (v.muted || !v.volume) ? '◂' : '◂))';
+    const lvl = v.muted ? 0 : v.volume;
+    $('#plVolFill').style.width = `${lvl*100}%`;
+    $('#plVolKnob').style.left = `${lvl*100}%`;
+    $('#plMute').textContent = lvl === 0 ? '🔇' : (lvl < 0.5 ? '🔉' : '🔊');
   };
   $('#plMute').onclick = () => { v.muted = !v.muted; drawVol(); };
-  document.querySelector('.pl-vol').onclick = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
+  const volEl = $('#plVol');
+  const setVolFrom = (e) => {
+    const r = volEl.getBoundingClientRect();
     v.volume = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
     v.muted = false;
     try{ localStorage.setItem('vault-vol', String(v.volume)); }catch{ /* private mode */ }
     drawVol();
   };
+  let volDrag = false;
+  volEl.addEventListener('pointerdown', (e) => { volDrag = true; volEl.setPointerCapture(e.pointerId); setVolFrom(e); });
+  volEl.addEventListener('pointermove', (e) => { if(volDrag) setVolFrom(e); });
+  volEl.addEventListener('pointerup', () => { volDrag = false; });
   drawVol();
 
-  // ── fullscreen
+  // ── fullscreen + picture in picture
   const goFull = () => {
-    const el = $('#pl');
     if(document.fullscreenElement) document.exitFullscreen();
-    else el.requestFullscreen && el.requestFullscreen().catch(()=>{});
+    else $('#pl').requestFullscreen && $('#pl').requestFullscreen().catch(()=>{});
   };
   $('#plFull').onclick = goFull;
+  $('#plPip').onclick = () => {
+    if(!document.pictureInPictureEnabled) return toast('This browser has no picture-in-picture', 'bad');
+    document.pictureInPictureElement
+      ? document.exitPictureInPicture().catch(()=>{})
+      : v.requestPictureInPicture().catch(()=>toast('Picture-in-picture unavailable for this stream','bad'));
+  };
+
+  // ── playback speed
+  $('#plGear').onclick = () => {
+    const menu = $('#plSpeed');
+    $('#plMenu').hidden = true;
+    menu.innerHTML = [0.5,0.75,1,1.25,1.5,2].map((r)=>
+      `<button data-r="${r}" class="${v.playbackRate===r?'on':''}">${r === 1 ? 'Normal' : r + '×'}</button>`).join('');
+    menu.querySelectorAll('button').forEach((btn) => {
+      btn.onclick = () => { v.playbackRate = +btn.dataset.r; menu.hidden = true;
+        $('#plGear').classList.toggle('on', v.playbackRate !== 1); };
+    });
+    menu.hidden = !menu.hidden;
+  };
 
   // ── errors
   v.onerror = () => {
@@ -1881,19 +2007,20 @@ function mountPlayer(f, { src, native, info }){
 
   // ── keyboard, scoped to the open player
   const keys = (e) => {
-    if(!$('#pl')) return document.removeEventListener('keydown', keys, true);
+    if(!alive()) return document.removeEventListener('keydown', keys, true);
     if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
-    const t = total();
-    const jump = (d) => { const to = Math.max(0, Math.min(t || 1e9, now() + d)); start(to); };
+    const stop = () => { e.preventDefault(); e.stopPropagation(); };
     switch(e.key){
-      case ' ': case 'k': e.preventDefault(); e.stopPropagation(); toggle(); break;
-      case 'ArrowRight': e.preventDefault(); e.stopPropagation(); jump(10); break;
-      case 'ArrowLeft':  e.preventDefault(); e.stopPropagation(); jump(-10); break;
-      case 'l': e.preventDefault(); e.stopPropagation(); jump(30); break;
-      case 'j': e.preventDefault(); e.stopPropagation(); jump(-30); break;
-      case 'm': e.preventDefault(); e.stopPropagation(); v.muted = !v.muted; drawVol(); break;
-      case 'f': e.preventDefault(); e.stopPropagation(); goFull(); break;
-      case 'c': e.preventDefault(); e.stopPropagation(); if(!$('#plCC').hidden) $('#plCC').click(); break;
+      case ' ': case 'k': stop(); toggle(); break;
+      case 'ArrowRight': stop(); jump(10); break;
+      case 'ArrowLeft':  stop(); jump(-10); break;
+      case 'l': stop(); jump(30); break;
+      case 'j': stop(); jump(-30); break;
+      case 'ArrowUp': stop(); v.volume = Math.min(1, v.volume + 0.1); v.muted = false; drawVol(); break;
+      case 'ArrowDown': stop(); v.volume = Math.max(0, v.volume - 0.1); drawVol(); break;
+      case 'm': stop(); v.muted = !v.muted; drawVol(); break;
+      case 'f': stop(); goFull(); break;
+      case 'c': stop(); if(!$('#plCC').hidden) $('#plCC').click(); break;
       default: return;
     }
   };
@@ -1908,6 +2035,12 @@ function mountPlayer(f, { src, native, info }){
   v.play().catch(()=>{});
 }
 
+/** The part of an episode filename after the SxxExx marker, if there is one. */
+function epTitle(name){
+  const m = /[Ss]\d{1,2}[\s._-]*[Ee]\d{1,3}[\s._-]*(.+)$/.exec(name.replace(/\.[^.]+$/, ''));
+  return m ? m[1].replace(/[._]+/g, ' ').replace(/^[\s-]+/, '').trim() : '';
+}
+
 /** Track menu, built once the subtitle tracks have been attached. */
 function buildCCMenu(v){
   const btn = $('#plCC'), menu = $('#plMenu');
@@ -1920,6 +2053,8 @@ function buildCCMenu(v){
 
   const draw = () => {
     const active = tracks.findIndex((t) => t.mode === 'showing');
+    const name = $('#plCCName');
+    if(name) name.textContent = active < 0 ? 'Off' : (tracks[active].label || 'On');
     menu.innerHTML = `<button data-i="-1" class="${active<0?'on':''}">Off</button>` +
       tracks.map((t,i)=>`<button data-i="${i}" class="${active===i?'on':''}">${esc(t.label||('Track '+(i+1)))}</button>`).join('');
     menu.querySelectorAll('button').forEach((b) => {
@@ -1931,7 +2066,8 @@ function buildCCMenu(v){
       };
     });
   };
-  btn.onclick = () => { draw(); menu.hidden = !menu.hidden; };
+  btn.onclick = () => { const sp = $('#plSpeed'); if(sp) sp.hidden = true; draw(); menu.hidden = !menu.hidden; };
+  draw();
 }
 
 /**
@@ -1997,6 +2133,7 @@ function fmtTime(sec){
 function closeViewer(){ closeLayer() || teardownViewer(); }
 
 function teardownViewer(){
+  $('#viewer').classList.remove('playing');
   // Blank the source first: leaving it set keeps the remux running server-side.
   const v = $('#vBody').querySelector('video, audio');
   if(v){
