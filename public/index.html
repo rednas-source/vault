@@ -24,6 +24,9 @@
   --dim:#6a7280;
   --faint:#3d444f;
   --star:#7fd9ff;
+  --pl-accent:#4a9eff;
+  --pl-tile:rgba(255,255,255,.09);
+  --pl-tile-hot:rgba(255,255,255,.15);
   --star-soft:rgba(127,217,255,.10);
   --star-edge:rgba(127,217,255,.30);
   --flare:#ff6a58;
@@ -60,6 +63,9 @@ html[data-theme="light"]{
   --faint:#78838f;   /* darker than the dark-theme equivalent — 9.5px uppercase
                         labels need the contrast far more on a pale ground */
   --star:#0a6a8c;
+  --pl-accent:#185FA5;
+  --pl-tile:rgba(0,0,0,.07);
+  --pl-tile-hot:rgba(0,0,0,.12);
   --star-soft:rgba(10,106,140,.09);
   --star-edge:rgba(10,106,140,.38);
   --flare:#c0392b;
@@ -394,6 +400,7 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
 .viewer-head b{font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .viewer-head .sp{flex:1}
 .viewer-body{display:grid;place-items:center;padding:22px;min-height:0;overflow:auto}
+.viewer-body:has(.player){padding:10px}
 .viewer-body video,.viewer-body img,.viewer-body audio{max-width:100%;max-height:100%;display:block}
 .viewer-body audio{width:min(560px,100%)}
 .viewer-note{text-align:center;max-width:420px}
@@ -662,9 +669,9 @@ tr.picked{background:var(--star-soft)!important}
 html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 
 /* ══════════════════════════════════ player */
-.player{width:100%;max-width:1180px;display:flex;flex-direction:column;gap:10px;position:relative}
+.player{width:100%;max-width:min(92vw,calc(92vh * 16 / 9));display:flex;flex-direction:column;gap:8px;position:relative}
 .pl-stage{position:relative;background:#000;line-height:0}
-.player video{width:100%;max-height:72vh;display:block;background:#000;cursor:pointer}
+.player video{width:100%;max-height:min(78vh,calc(92vw * 9 / 16));display:block;background:#000;cursor:pointer}
 .player:fullscreen{max-width:none;justify-content:center;background:#000;padding:0}
 .player:fullscreen .pl-stage{flex:1;display:grid;place-items:center}
 .player:fullscreen video{max-height:100vh;height:100%}
@@ -683,42 +690,52 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 .pl-big:hover{transform:scale(1.06)}
 .player.playing .pl-big{opacity:0;transform:scale(.85);pointer-events:none}
 
-.pl-bar{display:flex;align-items:center;gap:11px}
+.pl-bar{display:flex;flex-direction:column;gap:8px}
+.pl-scrub{display:flex;align-items:center;gap:12px}
+.pl-row{display:flex;align-items:center;justify-content:space-between}
+.pl-group{display:flex;align-items:center;gap:4px}
+.pl-divider{width:1px;height:18px;background:var(--line-hot);margin:0 8px;flex:none}
 .pl-btn{
   font-family:var(--mono);font-size:12px;color:var(--dim);
-  padding:5px 7px;border:1px solid transparent;transition:all .12s;line-height:1;
+  min-width:32px;height:32px;padding:0 8px;border:0;border-radius:8px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:transparent;transition:background .12s,color .12s;line-height:1;
 }
-.pl-btn:hover{color:var(--star);border-color:var(--star-edge)}
-.pl-btn.on{color:var(--star);border-color:var(--star-edge)}
+.pl-btn:hover{color:var(--text);background:var(--pl-tile-hot)}
+.pl-btn:focus-visible{outline:2px solid var(--pl-accent);outline-offset:2px}
+.pl-btn.on{color:var(--text);background:var(--pl-tile)}
+.player.playing #plPlay{color:var(--text);background:var(--pl-tile)}
 .pl-time{
   font-family:var(--mono);font-size:10.5px;color:var(--dim);
   font-variant-numeric:tabular-nums;min-width:46px;
 }
-.pl-time:nth-of-type(2){text-align:right}
+#plDur{text-align:right}
 
-.pl-track{flex:1;height:3px;background:var(--line);position:relative;cursor:pointer}
+.pl-track{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;cursor:pointer;transition:height .12s}
 .pl-track::before{content:'';position:absolute;inset:-9px 0}
-.pl-track:hover{background:var(--line-hot)}
-.pl-buf{position:absolute;left:0;top:0;bottom:0;background:var(--line-hot);width:0}
-.pl-fill{position:absolute;left:0;top:0;bottom:0;background:var(--star);width:0}
+.pl-track:hover{background:var(--line-hot);height:6px}
+.pl-buf{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--line-hot);width:0}
+.pl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--pl-accent);width:0}
 .pl-knob{
-  position:absolute;top:50%;left:0;width:9px;height:9px;border-radius:50%;
-  background:var(--star);transform:translate(-50%,-50%) scale(0);
+  position:absolute;top:50%;left:0;width:12px;height:12px;border-radius:50%;
+  background:var(--pl-accent);transform:translate(-50%,-50%) scale(0);
   transition:transform .15s;pointer-events:none;
 }
 .pl-track:hover .pl-knob{transform:translate(-50%,-50%) scale(1)}
 
-.pl-vol{width:56px;height:3px;background:var(--line);cursor:pointer;position:relative}
+.pl-vol{width:62px;height:4px;border-radius:2px;background:var(--line);cursor:pointer;position:relative;margin-left:2px}
 .pl-vol::before{content:'';position:absolute;inset:-9px 0}
-.pl-vol-fill{height:100%;background:var(--dim);width:100%}
-.pl-vol:hover .pl-vol-fill{background:var(--star)}
+.pl-vol-fill{height:100%;border-radius:2px;background:var(--dim);width:100%;position:relative}
+.pl-vol-fill::after{content:'';position:absolute;right:-5px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--dim)}
+.pl-vol:hover .pl-vol-fill::after{background:var(--text)}
+.pl-vol:hover .pl-vol-fill{background:var(--text)}
 
 .pl-note{
   font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--faint);text-align:center;min-height:12px;
 }
 .pl-cc{
-  position:absolute;right:0;bottom:52px;z-index:5;
+  position:absolute;right:0;bottom:74px;z-index:5;border-radius:10px;overflow:hidden;
   background:var(--deep);border:1px solid var(--line-hot);
   display:flex;flex-direction:column;min-width:150px;box-shadow:var(--shadow);
 }
@@ -733,7 +750,7 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 .viewer-link{color:var(--star);word-break:break-all}
 
 @media (max-width:760px){
-  .pl-vol,.pl-time:nth-of-type(2){display:none}
+  .pl-vol{display:none}
   .pl-bar{gap:8px}
 }
 
@@ -1733,18 +1750,27 @@ function mountPlayer(f, { src, native, info }){
         <div class="pl-veil" id="plVeil"><div class="pl-big" id="plBig">▶</div></div>
       </div>
       <div class="pl-bar">
-        <button class="pl-btn" id="plPlay" title="Play / pause (space)">▶</button>
-        <div class="pl-time" id="plAt">0:00</div>
-        <div class="pl-track" id="plTrack">
-          <div class="pl-buf" id="plBuf"></div>
-          <div class="pl-fill" id="plFill"></div>
-          <div class="pl-knob" id="plKnob"></div>
+        <div class="pl-scrub">
+          <div class="pl-time" id="plAt">0:00</div>
+          <div class="pl-track" id="plTrack">
+            <div class="pl-buf" id="plBuf"></div>
+            <div class="pl-fill" id="plFill"></div>
+            <div class="pl-knob" id="plKnob"></div>
+          </div>
+          <div class="pl-time" id="plDur">${native ? '0:00' : fmtTime(dur)}</div>
         </div>
-        <div class="pl-time" id="plDur">${native ? '0:00' : fmtTime(dur)}</div>
-        <button class="pl-btn" id="plMute" title="Mute (m)">◂))</button>
-        <div class="pl-vol"><div class="pl-vol-fill" id="plVolFill"></div></div>
-        <button class="pl-btn" id="plCC" title="Subtitles (c)" hidden>CC</button>
-        <button class="pl-btn" id="plFull" title="Fullscreen (f)">⛶</button>
+        <div class="pl-row">
+          <div class="pl-group">
+            <button class="pl-btn" id="plPlay" title="Play / pause (space)">▶</button>
+            <span class="pl-divider"></span>
+            <button class="pl-btn" id="plMute" title="Mute (m)">◂))</button>
+            <div class="pl-vol"><div class="pl-vol-fill" id="plVolFill"></div></div>
+          </div>
+          <div class="pl-group">
+            <button class="pl-btn" id="plCC" title="Subtitles (c)" hidden>CC</button>
+            <button class="pl-btn" id="plFull" title="Fullscreen (f)">⛶</button>
+          </div>
+        </div>
       </div>
       <div class="pl-note" id="plNote">${native ? '' :
         `Repackaged live${info.audioOk ? '' : ', audio converted'}`}</div>
