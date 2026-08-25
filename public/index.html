@@ -18,11 +18,11 @@
   --void:#070809;
   --deep:#0a0c10;
   --raise:#101319;
-  --line:#191d25;
-  --line-hot:#262d38;
-  --text:#d2d7df;
-  --dim:#6a7280;
-  --faint:#3d444f;
+  --line:#2a313c;
+  --line-hot:#3b4655;
+  --text:#eef3f8;
+  --dim:#aab5c3;
+  --faint:#7d8999;
   --star:#7fd9ff;
   --star-soft:rgba(127,217,255,.10);
   --star-edge:rgba(127,217,255,.30);
@@ -46,18 +46,18 @@
 
   --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  --rail:34px;
+  --rail:44px;
 }
 
 html[data-theme="light"]{
   --void:#f6f7f9;
   --deep:#ffffff;
   --raise:#eef1f5;
-  --line:#dde2e9;
-  --line-hot:#bcc5d1;
+  --line:#cbd2dc;
+  --line-hot:#9ba7b6;
   --text:#141920;
-  --dim:#5b6472;
-  --faint:#78838f;   /* darker than the dark-theme equivalent — 9.5px uppercase
+  --dim:#495463;
+  --faint:#657180;   /* darker than the dark-theme equivalent — compact uppercase
                         labels need the contrast far more on a pale ground */
   --star:#0a6a8c;
   --star-soft:rgba(10,106,140,.09);
@@ -87,7 +87,8 @@ body{
   background:var(--void);
   color:var(--text);
   font-family:var(--sans);
-  font-size:14px;
+  font-size:16px;
+  line-height:1.5;
   -webkit-font-smoothing:antialiased;
   overflow:hidden;
 }
@@ -488,6 +489,8 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
 .sheet p{font-size:13px;line-height:1.6;color:var(--dim);margin-bottom:20px;word-break:break-word}
 .sheet p b{color:var(--text);font-weight:500}
 .sheet-row{display:flex;gap:8px;justify-content:flex-end}
+.upload-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 22px}
+.upload-choices .ghost{width:100%;min-height:48px}
 .sheet .danger{color:var(--flare);border-color:var(--flare-edge)}
 .shelf-pick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
 .shelf-pick button{
@@ -913,6 +916,114 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 .meter-fill.warn{background:var(--flare)}
 .rail #railDisk.hot{color:var(--flare)}
 
+/* ══════════════════════════════════ legibility + folders
+   Keep the restrained visual language, but make the interface readable at a
+   normal viewing distance. No essential label is smaller than 11px and all
+   primary controls have a comfortable click/touch target. */
+.tag{font-size:11.5px;line-height:1.4}
+.gate-box{width:min(430px,90vw)}
+.gate-title{font-size:27px}
+.gate-sub{font-size:15px;color:var(--dim)}
+.field{
+  min-height:48px;padding:11px 13px;border:1px solid var(--line);
+  background:var(--deep);transition:border-color .15s,box-shadow .15s;
+}
+.field:focus-within{border-color:var(--star-edge);box-shadow:0 0 0 3px var(--star-soft)}
+.field span{font-size:13px;color:var(--dim)}
+.field input{font-size:15px;min-width:0}
+.gate-box form>.field+.field{margin-top:10px}
+.btn-primary{min-height:46px;font-size:13px}
+.gate-error{font-size:13px}
+
+header{height:64px;padding:0 24px;gap:20px}
+.brand{font-size:14px}
+.search{max-width:520px;padding:9px 13px;min-height:42px}
+.search input{font-size:14px}
+.search kbd{font-size:11px}
+.ghost{font-size:12px;padding:9px 13px;min-height:40px}
+.head-right{gap:9px}
+main{grid-template-columns:238px 1fr}
+aside{padding-top:22px}
+aside .tag{padding-left:22px;padding-right:22px}
+.shelf{font-size:14px;padding:11px 22px;min-height:43px}
+.shelf em{font-size:12px}
+.meter{padding:22px}
+.meter-txt,.spectrum-legend{font-size:11.5px;line-height:1.5}
+.spectrum{padding-left:26px;padding-right:26px}
+.toolbar{padding:19px 26px 14px;gap:12px;min-height:62px}
+.toolbar h1{font-size:17px;letter-spacing:.12em;min-width:0}
+.toolbar .count{font-size:12.5px}
+select.sort,.view-tog button{font-size:12px;min-height:38px}
+.scroll{padding-left:26px;padding-right:26px}
+.rows thead th{font-size:11px;padding:11px 13px}
+.rows td{padding:13px}
+.f-name b{font-size:15px;line-height:1.4}
+.glyph{width:32px;height:32px;font-size:9.5px}
+.f-meta{font-size:12.5px}
+.f-shelf{font-size:11px}
+.act{font-size:11px;padding:7px 9px;min-height:32px}
+.tiles{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.tile-body{padding:12px 13px 14px}
+.tile-body b{font-size:14.5px}
+.tile-body small{font-size:12px;color:var(--dim)}
+.empty p{font-size:14px}
+.empty p.empty-sub{font-size:12.5px;color:var(--dim)}
+.rail{font-size:11px;padding:0 22px}
+.queue{width:min(390px,calc(100vw - 32px))}
+.queue-head,.q-item{padding:12px 14px}
+.q-top b{font-size:13.5px}
+.q-top em{font-size:11.5px}
+.q-bar{height:3px}
+.viewer-head{padding:16px 22px}
+.viewer-head b{font-size:15px}
+.viewer-note{max-width:560px}
+.viewer-note p{font-size:13.5px;line-height:1.8}
+.sheet{width:min(480px,92vw);padding:26px}
+.sheet p{font-size:15px;color:var(--dim)}
+.shelf-pick button,.opt-pick button{font-size:11.5px;padding:9px 12px;min-height:38px}
+.rename-field{padding:12px 14px;min-height:48px}
+.rename-field input{font-size:14.5px}
+.rename-hint{font-size:12px;line-height:1.55;color:var(--dim)}
+.u-id b,.sh-id b{font-size:15px}
+.u-id small,.sh-id small,.tok-id small{font-size:11.5px}
+.u-chip,.u-all,.u-none,.u-badge{font-size:10.5px}
+.ev-when{font-size:11.5px}
+.ev-what{font-size:14px}
+.ev-what span{font-size:12px}
+.toast{font-size:12.5px;padding:12px 15px}
+.keys-row kbd{font-size:11.5px}
+.keys-row span{font-size:14px}
+.pl-titles b{font-size:17px}
+.pl-titles small{font-size:13.5px}
+.pl-time{font-size:12.5px}
+.pl-btn{min-width:38px;height:38px;font-size:15px}
+.pl-note{font-size:10.5px}
+
+.breadcrumbs{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden}
+.crumb{
+  font-family:var(--mono);font-size:17px;font-weight:500;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:260px;
+}
+.crumb:hover{color:var(--star)}
+.crumb-sep{font-family:var(--mono);font-size:13px;color:var(--faint);flex-shrink:0}
+.path-sub,.folder-sub{
+  display:block;margin-top:2px;font-family:var(--mono);font-size:11px;
+  font-weight:400;color:var(--faint);letter-spacing:.02em;
+}
+.folder-glyph{color:var(--star);border-color:var(--star-edge);font-size:15px}
+.folder-row{cursor:pointer}
+.folder-row .f-name b{color:var(--text)}
+.folder-tile .tile-art{aspect-ratio:16/8}
+.folder-tile .ph{font-size:28px;letter-spacing:0;text-indent:0;color:var(--star-edge)}
+
+@media (max-width:980px){
+  .head-right .ghost:not(.accent):not([data-theme-toggle]):not(#btnOut){display:none}
+  .toolbar{flex-wrap:wrap}
+  .toolbar .sp{display:none}
+  .breadcrumbs{flex:1 1 100%}
+}
+
 /* ══════════════════════════════════ scrollbars + mobile */
 ::-webkit-scrollbar{width:9px;height:9px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -924,15 +1035,25 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
   aside{border-right:0;border-bottom:1px solid var(--line);padding:10px 0 0;flex-direction:column}
   aside>.tag{display:none}
   .shelves{display:flex;overflow-x:auto;flex:0 0 auto;padding:0 12px 10px;gap:4px}
-  .shelf{padding:6px 11px;border:1px solid var(--line);white-space:nowrap;width:auto}
+  .shelf{padding:8px 12px;border:1px solid var(--line);white-space:nowrap;width:auto;min-height:40px}
   .shelf.on::before{display:none}
   .shelf.on{border-color:var(--star)}
   .shelf em{display:none}
   .meter{display:none}
   .search kbd,.col-shelf,.col-added,.rail-keys{display:none}
-  header{gap:10px;padding:0 12px}
+  header{gap:10px;padding:0 12px;height:60px}
   .brand span{display:none}
   .scroll,.toolbar,.spectrum{padding-left:12px;padding-right:12px}
+  .head-right [data-theme-toggle],.head-right #btnOut{display:none}
+  .search{min-width:0}
+  .toolbar{padding-top:13px}
+  .toolbar .count{margin-right:auto}
+  .crumb{font-size:15px;max-width:170px}
+  .tiles{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+  .rows td{padding:11px 8px}
+  .acts{opacity:1}
+  .act{padding:6px}
+  .upload-choices{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
@@ -997,6 +1118,7 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
         <h1 id="viewTitle">All</h1>
         <span class="count" id="viewCount"></span>
         <span class="sp"></span>
+        <button class="ghost" id="btnNewFolder">New folder</button>
         <select class="sort" id="sort">
           <option value="new">Newest</option>
           <option value="old">Oldest</option>
@@ -1027,7 +1149,7 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 
 <!-- ─────────────────────────── overlays -->
 <div class="drop" id="drop">
-  <div class="reticle"><i></i><i></i><i></i><i></i><p>Release to upload</p></div>
+  <div class="reticle"><i></i><i></i><i></i><i></i><p>Release files or folders</p></div>
 </div>
 
 <div class="queue" id="queue">
@@ -1121,12 +1243,14 @@ html[data-theme="light"] .scrub-ticks i{background:rgba(10,106,140,.25)}
 <div class="toasts" id="toasts"></div>
 
 <input type="file" id="picker" multiple hidden>
+<input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script>
 'use strict';
 
 const $ = (s) => document.querySelector(s);
-const state = { files: [], disk: null, shelf: 'all', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, artwork: false, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, artwork: false, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
+const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
    first /api/files response; nothing renders before that lands. */
@@ -1277,6 +1401,7 @@ async function load(){
   if(r.status === 401) return location.reload();
   const d = await r.json();
   state.files = d.files;
+  state.folders = Array.isArray(d.folders) ? d.folders : [];
   state.disk = d.disk;
   state.thumbs = !!d.thumbs;
   state.artwork = !!d.artwork;
@@ -1284,7 +1409,9 @@ async function load(){
     SHELF_ORDER = d.shelves.map((x)=>x.id);
     d.shelves.forEach((x)=>{ SHELF_LABEL[x.id] = x.label; });
   }
-  if(!SHELF_ORDER.includes(state.shelf) && state.shelf !== 'all') state.shelf = 'all';
+  if(!SHELF_ORDER.includes(state.shelf) && state.shelf !== 'all'){
+    state.shelf = 'all'; state.folder = '';
+  }
   everLoaded = true;
   render();
 }
@@ -1349,18 +1476,55 @@ function groupSeries(list){
 }
 
 function visible(){
-  let list = state.files;
-  if(state.shelf !== 'all') list = list.filter((f) => f.shelf === state.shelf);
+  let list;
   if(state.q){
     const q = state.q.toLowerCase();
-    list = list.filter((f) => f.name.toLowerCase().includes(q));
+    list = state.files.filter((f) =>
+      (state.shelf === 'all' || f.shelf === state.shelf)
+      && `${f.dir || ''}/${f.name}`.toLowerCase().includes(q));
+  }else if(state.shelf === 'all'){
+    list = state.files;
+  }else{
+    const hereFiles = state.files.filter((f) => f.shelf === state.shelf && (f.dir || '') === state.folder);
+    const hereFolders = state.folders.filter((f) => f.shelf === state.shelf && (f.dir || '') === state.folder);
+    list = [...hereFolders, ...hereFiles];
   }
   const by = {
     new:(a,b)=>b.modified-a.modified, old:(a,b)=>a.modified-b.modified,
     big:(a,b)=>b.size-a.size, small:(a,b)=>a.size-b.size,
     az:(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}),
   };
-  return [...list].sort(by[state.sort]);
+  return [...list].sort((a,b) => {
+    if(a.kind === 'folder' && b.kind !== 'folder') return -1;
+    if(b.kind === 'folder' && a.kind !== 'folder') return 1;
+    return by[state.sort](a,b);
+  });
+}
+
+function openFolder(folder){
+  state.shelf = folder.shelf;
+  state.folder = folder.rel.split('/').slice(1).join('/');
+  state.q = ''; $('#q').value = '';
+  state.picked.clear();
+  render(); $('#scroll').scrollTop = 0;
+}
+
+function renderBreadcrumbs(){
+  const title = $('#viewTitle');
+  title.className = 'breadcrumbs';
+  if(state.shelf === 'all'){
+    title.innerHTML = '<span class="crumb">All files</span>';
+    return;
+  }
+  const parts = state.folder ? state.folder.split('/') : [];
+  title.innerHTML = `<button class="crumb" data-depth="0">${esc(SHELF_LABEL[state.shelf] || state.shelf)}</button>`
+    + parts.map((part, i) => `<span class="crumb-sep">/</span><button class="crumb" data-depth="${i+1}">${esc(part)}</button>`).join('');
+  title.querySelectorAll('[data-depth]').forEach((button) => {
+    button.onclick = () => {
+      state.folder = parts.slice(0, +button.dataset.depth).join('/');
+      state.picked.clear(); render(); $('#scroll').scrollTop = 0;
+    };
+  });
 }
 
 /* ── render */
@@ -1381,7 +1545,7 @@ function render(){
   }
   $('#shelves').innerHTML = rows.join('');
   $('#shelves').querySelectorAll('.shelf').forEach((b) => {
-    b.onclick = () => { state.shelf = b.dataset.shelf; render(); $('#scroll').scrollTop = 0; };
+    b.onclick = () => { state.shelf = b.dataset.shelf; state.folder = ''; state.picked.clear(); render(); $('#scroll').scrollTop = 0; };
   });
 
   // disk
@@ -1403,7 +1567,7 @@ function render(){
     : '<div class="spec-seg" style="flex:1"></div>';
   $('#spectrum').querySelectorAll('.spec-seg').forEach((seg) => {
     if(!seg.dataset.shelf) return;
-    seg.onclick = () => { state.shelf = seg.dataset.shelf; render(); };
+    seg.onclick = () => { state.shelf = seg.dataset.shelf; state.folder = ''; state.picked.clear(); render(); };
     // A shelf that just received a file gets a brief flare, so you can see
     // where an upload landed without reading the list.
     if(pulseShelf === seg.dataset.shelf){
@@ -1426,11 +1590,11 @@ function render(){
 
   // header
   const list = visible();
-  $('#viewTitle').textContent = state.shelf==='all' ? 'All files' : SHELF_LABEL[state.shelf];
+  renderBreadcrumbs();
   $('#viewCount').textContent = list.length
-    ? `${list.length} ${list.length===1?'item':'items'} · ${bytes(list.reduce((a,f)=>a+f.size,0))}`
+    ? `${list.length} ${list.length===1?'item':'items'} · ${bytes(list.reduce((a,f)=>a+(f.size||0),0))}`
     : '';
-  $('#railCount').textContent = `${state.files.length} objects · ${bytes(total)}`;
+  $('#railCount').textContent = `${state.files.length} files · ${bytes(total)}`;
 
   // Warn once the vault is genuinely tight rather than silently filling up.
   if(state.disk){
@@ -1445,7 +1609,8 @@ function render(){
   }
 
   if(!list.length){
-    const where = state.shelf === 'all' ? 'the vault' : SHELF_LABEL[state.shelf];
+    const where = state.shelf === 'all' ? 'the vault'
+      : [SHELF_LABEL[state.shelf], state.folder].filter(Boolean).join(' / ');
     $('#scroll').innerHTML = state.q
       ? `<div class="empty">
            <div class="empty-mark"></div>
@@ -1455,7 +1620,7 @@ function render(){
       : `<div class="empty">
            <div class="empty-mark"></div>
            <p>${state.shelf === 'all' ? 'The vault is empty' : `Nothing on ${esc(where)} yet`}</p>
-           <p class="empty-sub">Drop files anywhere on this page, or press Upload</p>
+           <p class="empty-sub">Drop files or folders here, press Upload, or create a folder</p>
          </div>`;
     return;
   }
@@ -1498,10 +1663,12 @@ function renderResume(){
 }
 
 function listView(list){
-  const { groups, loose } = state.group ? groupSeries(list) : { groups: [], loose: list };
+  const folders = list.filter((item) => item.kind === 'folder');
+  const files = list.filter((item) => item.kind !== 'folder');
+  const { groups, loose } = state.group ? groupSeries(files) : { groups: [], loose: files };
 
   // Groups first, then loose files, each sorted by the chosen order.
-  const rows = [];
+  const rows = folders.map((folder) => folderRow(folder, list.findIndex((x)=>x.rel===folder.rel)));
   for(const g of groups){
     const id = `${g.show}|${g.season}`;
     const open = state.open.has(id);
@@ -1532,12 +1699,25 @@ function listView(list){
   </tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
+function folderRow(folder, i){
+  return `<tr data-i="${i}" data-rel="${esc(folder.rel)}" class="folder-row">
+    <td class="col-pick"></td>
+    <td><div class="f-name"><div class="glyph folder-glyph">▰</div>
+      <b title="${esc(folder.name)}">${esc(folder.name)}<span class="folder-sub">Folder</span></b></div></td>
+    <td class="f-meta">—</td>
+    <td class="f-shelf col-shelf">${esc(SHELF_LABEL[folder.shelf]||'')}</td>
+    <td class="f-meta col-added">${ago(folder.modified)}</td>
+    <td><div class="acts"><button class="act" data-act="folder" data-i="${i}">Open</button></div></td>
+  </tr>`;
+}
+
 function fileRow(f, i, nested){
   const on = state.picked.has(f.rel);
+  const showPath = !nested && f.dir && (state.shelf === 'all' || state.q);
   return `<tr data-i="${i}" data-rel="${esc(f.rel)}" class="${nested?'nested':''} ${on?'picked':''}">
     <td class="col-pick"><input type="checkbox" class="pick" data-rel="${esc(f.rel)}" ${on?'checked':''}></td>
     <td><div class="f-name"><div class="glyph">${esc((f.ext||'?').slice(0,4).toUpperCase())}</div>
-      <b title="${esc(f.name)}">${nested && f.ep ? `<span class="ep-no">E${String(f.ep.episode).padStart(2,'0')}</span>` : ''}${esc(f.name)}</b></div></td>
+      <b title="${esc(f.rel)}">${nested && f.ep ? `<span class="ep-no">E${String(f.ep.episode).padStart(2,'0')}</span>` : ''}${esc(f.name)}${showPath?`<span class="path-sub">${esc(SHELF_LABEL[f.shelf]||f.shelf)} / ${esc(f.dir)}</span>`:''}</b></div></td>
     <td class="f-meta">${bytes(f.size)}</td>
     <td class="f-shelf col-shelf">${esc(SHELF_LABEL[f.shelf]||'')}</td>
     <td class="f-meta col-added">${ago(f.modified)}</td>
@@ -1554,6 +1734,10 @@ function fileRow(f, i, nested){
 
 function gridView(list){
   return `<div class="tiles">${list.map((f,i)=>{
+    if(f.kind === 'folder') return `<button class="tile folder-tile" data-act="folder" data-i="${i}">
+      <div class="tile-art blank"><span class="ph">▰</span></div>
+      <div class="tile-body"><b title="${esc(f.name)}">${esc(f.name)}</b><small>Folder · ${ago(f.modified)}</small></div>
+    </button>`;
     const isImg = IMAGE.includes(f.ext);
     const isVid = state.thumbs && VIDEO.includes(f.ext);
     const ph = `<span class="ph">${esc((f.ext||'FILE').toUpperCase())}</span>`;
@@ -1575,12 +1759,12 @@ function gridView(list){
         ${w&&w.done?'<div class="seen-flag">Watched</div>':''}
         ${pct>0?`<div class="watch-bar"><i style="width:${pct.toFixed(1)}%"></i></div>`:''}
       </div>
-      <div class="tile-body"><b title="${esc(f.name)}">${esc(f.name)}</b><small>${bytes(f.size)} · ${ago(f.modified)}</small></div>
+      <div class="tile-body"><b title="${esc(f.rel)}">${esc(f.name)}</b><small>${f.dir && (state.shelf==='all'||state.q)?`${esc(SHELF_LABEL[f.shelf]||f.shelf)} / ${esc(f.dir)} · `:''}${bytes(f.size)} · ${ago(f.modified)}</small></div>
     </button>`;
   }).join('')}</div>`;
 }
 
-const playable = (f) => VIDEO.includes(f.ext) || AUDIO.includes(f.ext) || IMAGE.includes(f.ext);
+const playable = (f) => f.kind !== 'folder' && (VIDEO.includes(f.ext) || AUDIO.includes(f.ext) || IMAGE.includes(f.ext));
 
 function wire(){
   const list = visible();
@@ -1591,6 +1775,7 @@ function wire(){
       const f = list[+el.dataset.i];
       if(!f) return;
       const act = el.dataset.act;
+      if(act==='folder'){ openFolder(f); return; }
       if(act==='open') openViewer(f);
       if(act==='get') location.href = url('download', f.rel);
       if(act==='rename') askRename(f);
@@ -1612,7 +1797,8 @@ function wire(){
   $('#scroll').querySelectorAll('tr[data-i]:not(.grp)').forEach((tr) => {
     tr.ondblclick = () => {
       const f = list[+tr.dataset.i];
-      if(f) playable(f) ? openViewer(f) : (location.href = url('download', f.rel));
+      if(f) f.kind === 'folder' ? openFolder(f)
+        : playable(f) ? openViewer(f) : (location.href = url('download', f.rel));
     };
   });
 
@@ -1773,8 +1959,8 @@ async function openViewer(f){
     return;
   }
 
-  // Formats the browser won't open. Ask the server whether it can be
-  // repackaged on the fly before promising anything.
+  // Formats the browser won't open. Ask the server whether it can prepare a
+  // browser-compatible stream before promising anything.
   $('#vBody').innerHTML = `<div class="viewer-note"><p>Checking what's inside…</p></div>`;
   let info = {};
   try{
@@ -1785,8 +1971,10 @@ async function openViewer(f){
   if(!info.probed || !info.remuxable){
     $('#vBody').innerHTML = `<div class="viewer-note">
       <p>${info.probed
-          ? `This uses ${esc(info.video || 'a codec')} video, which would need a full re-encode — too heavy to do live.`
-          : `Browsers can't play .${esc(f.ext)} directly.`}</p>
+          ? (info.video && info.transcodeAvailable === false
+              ? 'This video needs conversion, but the server\'s ffmpeg build has no libx264 encoder.'
+              : 'No playable video stream was found in this file.')
+          : `Vault could not inspect this .${esc(f.ext)} file. Make sure ffmpeg and ffprobe are installed on the server.`}</p>
       <p>Download it, or open this link in VLC:</p>
       <p class="viewer-link">${location.origin}${src}</p>
     </div>`;
@@ -1796,7 +1984,7 @@ async function openViewer(f){
 }
 
 /**
- * A live remux can't answer byte-range requests, so the browser gives us no
+ * A live conversion can't answer byte-range requests, so the browser gives us no
  * seek bar. We know the duration from ffprobe, so the scrubber below simply
  * restarts the stream from the chosen point — the server seeks with `-ss`,
  * which is near-instant because nothing before it gets decoded.
@@ -1875,7 +2063,8 @@ function mountPlayer(f, { src, native, info }){
       <div class="pl-menu" id="plMenu" hidden></div>
       <div class="pl-menu" id="plSpeed" hidden></div>
       <div class="pl-note" id="plNote">${native ? '' :
-        `Repackaged live${info.audioOk ? '' : ', audio converted'}`}</div>
+        (info.transcoding ? 'Converted live to browser-compatible H.264 / AAC'
+          : `Repackaged live${info.audioOk ? '' : ', audio converted to AAC'}`)}</div>
     </div>`;
 
   /**
@@ -2037,7 +2226,7 @@ function mountPlayer(f, { src, native, info }){
     const decodeFail = err && (err.code === 3 || err.code === 4);
     $('#vBody').innerHTML = `<div class="viewer-note">
       <p>${decodeFail
-          ? `Your browser can't decode ${esc((info && info.video) || 'this video')}${native ? '' : ', even repackaged'}.`
+          ? `Your browser can't decode ${esc((info && info.video) || 'this video')}${native ? '' : ', even after conversion'}.`
           : 'The stream stopped unexpectedly — the server may be busy.'}</p>
       <p>Download the file, or open this link in VLC:</p>
       <p class="viewer-link">${location.origin}${url('stream', f.rel)}</p>
@@ -2173,7 +2362,7 @@ function closeViewer(){ closeLayer() || teardownViewer(); }
 
 function teardownViewer(){
   $('#viewer').classList.remove('playing');
-  // Blank the source first: leaving it set keeps the remux running server-side.
+  // Blank the source first: leaving it set keeps the live ffmpeg job running.
   const v = $('#vBody').querySelector('video, audio');
   if(v){
     if(v.__report) v.__report();     // save the position before tearing down
@@ -2769,6 +2958,7 @@ const ACT_LABEL = {
   'login-failed':'failed sign-in', 'account-create':'created account',
   'account-delete':'deleted account', 'token-create':'created token',
   'shelf-create':'created shelf', 'shelf-delete':'deleted shelf',
+  'folder-create':'created folder',
 };
 const ACT_KIND = (a) =>
   a.includes('delete') ? 'bad' : (a === 'login-failed' ? 'warn' : '');
@@ -2794,18 +2984,86 @@ $('#tGroup').onclick = () => {
 };
 
 /* ── uploads */
-$('#btnUpload').onclick = () => $('#picker').click();
-$('#picker').onchange = () => { if($('#picker').files.length) chooseShelf([...$('#picker').files]); $('#picker').value = ''; };
+$('#btnUpload').onclick = () => {
+  sheet(`<span class="tag">Add to Vault</span>
+    <p>Choose individual files or a whole folder. Folder structure is kept.</p>
+    <div class="upload-choices">
+      <button class="ghost accent" id="pickFiles">Choose files</button>
+      <button class="ghost" id="pickFolder">Choose folder</button>
+    </div>
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button></div>`);
+  $('#pickFiles').onclick = () => { $('#picker').click(); closeSheet(); };
+  $('#pickFolder').onclick = () => { $('#folderPicker').click(); closeSheet(); };
+  $('#no').onclick = closeSheet;
+};
+$('#picker').onchange = () => {
+  if($('#picker').files.length) chooseShelf([...$('#picker').files]);
+  $('#picker').value = '';
+};
+$('#folderPicker').onchange = () => {
+  if($('#folderPicker').files.length) chooseShelf([...$('#folderPicker').files]);
+  $('#folderPicker').value = '';
+};
+
+$('#btnNewFolder').onclick = () => {
+  if(!SHELF_ORDER.length) return toast('No writable shelves available', 'bad');
+  const current = state.shelf !== 'all' ? state.shelf : SHELF_ORDER[0];
+  sheet(`<span class="tag">New folder</span>
+    <p>${state.shelf === 'all' ? 'Choose a shelf and name the folder.'
+      : `Create it in ${esc([SHELF_LABEL[state.shelf], state.folder].filter(Boolean).join(' / '))}.`}</p>
+    ${state.shelf === 'all' ? `<div class="shelf-pick">${SHELF_ORDER.map((s,i)=>
+      `<button data-folder-shelf="${esc(s)}" class="${i===0?'on':''}">${esc(SHELF_LABEL[s])}</button>`).join('')}</div>` : ''}
+    <div class="rename-field"><input id="folderName" placeholder="Folder name" autocomplete="off"></div>
+    <div class="gate-error mono" id="folderErr" style="margin:0 0 14px"></div>
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Create folder</button></div>`);
+  let shelf = current;
+  $('#sheet').querySelectorAll('[data-folder-shelf]').forEach((b) => {
+    b.onclick = () => {
+      $('#sheet').querySelectorAll('[data-folder-shelf]').forEach((x)=>x.classList.remove('on'));
+      b.classList.add('on'); shelf = b.dataset.folderShelf;
+    };
+  });
+  const input = $('#folderName'); input.focus();
+  $('#no').onclick = closeSheet;
+  const create = async () => {
+    const name = input.value.trim();
+    if(!name) return void ($('#folderErr').textContent = 'Give the folder a name.');
+    const r = await fetch('/api/folders', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ shelf, directory: shelf===state.shelf ? state.folder : '', name }),
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) return void ($('#folderErr').textContent = d.error || 'Could not create the folder.');
+    closeSheet();
+    if(state.shelf === 'all'){ state.shelf = shelf; state.folder = ''; }
+    toast(`Created ${name}`); load();
+  };
+  $('#yes').onclick = create;
+  input.onkeydown = (e) => { if(e.key === 'Enter') create(); };
+};
+
+function relativePathOf(file){
+  return String(droppedPaths.get(file) || file.webkitRelativePath || '').replace(/\\/g,'/');
+}
+
+function directoryForUpload(file, shelf){
+  const parts = relativePathOf(file).split('/').filter(Boolean);
+  if(parts.length) parts.pop();
+  const base = shelf === state.shelf ? state.folder : '';
+  return [base, ...parts].filter(Boolean).join('/');
+}
 
 function chooseShelf(files){
+  const hasFolders = files.some((f) => relativePathOf(f).includes('/'));
+  const initial = state.shelf !== 'all' ? state.shelf : 'auto';
   sheet(`<span class="tag">Upload ${files.length} ${files.length===1?'file':'files'}</span>
-    <p>Pick a shelf, or let Vault sort by file type.</p>
+    <p>${hasFolders ? 'Folder structure will be preserved. ' : ''}Pick a shelf, or let Vault sort by file type.</p>
     <div class="shelf-pick">
-      <button data-s="auto" class="on">Auto-sort</button>
-      ${SHELF_ORDER.map((s)=>`<button data-s="${s}">${SHELF_LABEL[s]}</button>`).join('')}
+      <button data-s="auto" class="${initial==='auto'?'on':''}">Auto-sort</button>
+      ${SHELF_ORDER.map((s)=>`<button data-s="${s}" class="${initial===s?'on':''}">${SHELF_LABEL[s]}</button>`).join('')}
     </div>
     <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="go">Start upload</button></div>`);
-  let pick = 'auto';
+  let pick = initial;
   $('#sheet').querySelectorAll('[data-s]').forEach((b) => {
     b.onclick = () => {
       $('#sheet').querySelectorAll('[data-s]').forEach((x)=>x.classList.remove('on'));
@@ -2813,7 +3071,10 @@ function chooseShelf(files){
     };
   });
   $('#no').onclick = closeSheet;
-  $('#go').onclick = () => { closeSheet(); files.forEach((f) => send(f, pick)); };
+  $('#go').onclick = () => {
+    closeSheet();
+    files.forEach((f) => send(f, pick, directoryForUpload(f, pick)));
+  };
 }
 
 /* Cloudflare's free plan rejects any request body over 100 MB and a tunnel
@@ -2839,8 +3100,9 @@ function busy(n){
   $('#railState').textContent = active ? `uploading ${active}` : 'idle';
 }
 
-async function sendChunked(file, shelf){
-  const ui = queueRow(file.name);
+async function sendChunked(file, shelf, directory){
+  const displayName = relativePathOf(file) || file.name;
+  const ui = queueRow(displayName);
   busy(1);
   let cancelled = false;
   ui.row.addEventListener('click', () => { cancelled = true; });
@@ -2848,7 +3110,7 @@ async function sendChunked(file, shelf){
   try{
     const initRes = await fetch('/api/upload/init', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name:file.name, size:file.size, shelf: shelf==='auto'?undefined:shelf }),
+      body: JSON.stringify({ name:file.name, size:file.size, directory, shelf: shelf==='auto'?undefined:shelf }),
     });
     const init = await initRes.json();
     if(!initRes.ok) throw new Error(init.error || 'Could not start upload');
@@ -2908,16 +3170,18 @@ async function sendChunked(file, shelf){
   }
 }
 
-function send(file, shelf){
-  if(file.size > CHUNK_OVER) return sendChunked(file, shelf);
-  return sendSingle(file, shelf);
+function send(file, shelf, directory = ''){
+  if(file.size > CHUNK_OVER) return sendChunked(file, shelf, directory);
+  return sendSingle(file, shelf, directory);
 }
 
-function sendSingle(file, shelf){
-  const ui = queueRow(file.name);
+function sendSingle(file, shelf, directory){
+  const displayName = relativePathOf(file) || file.name;
+  const ui = queueRow(displayName);
 
   const fd = new FormData();
   if(shelf !== 'auto') fd.append('shelf', shelf);  // must precede the file
+  if(directory) fd.append('directory', directory);
   fd.append('files', file);
 
   busy(1);
@@ -2954,12 +3218,63 @@ $('#qClose').onclick = () => $('#queue').classList.remove('on');
 
 /* The single-shot upload only tells us the filename back, so infer the shelf
    from the freshly loaded listing rather than guessing at extension rules. */
-function flashShelfFor(name){
-  const hit = state.files.find((f) => f.name === name);
-  if(hit) pulseShelf = hit.shelf;
+function flashShelfFor(rel){
+  if(rel) pulseShelf = rel.split('/')[0];
 }
 
 /* ── drag and drop */
+function tagDroppedFile(file, relative){
+  droppedPaths.set(file, relative);
+  return file;
+}
+
+async function readEntry(entry, prefix, out){
+  if(entry.isFile){
+    await new Promise((resolve) => entry.file((file) => {
+      out.push(tagDroppedFile(file, `${prefix}${file.name}`)); resolve();
+    }, resolve));
+    return;
+  }
+  if(!entry.isDirectory) return;
+  const reader = entry.createReader();
+  const children = [];
+  while(true){
+    const batch = await new Promise((resolve) => reader.readEntries(resolve, () => resolve([])));
+    if(!batch.length) break;
+    children.push(...batch);
+  }
+  for(const child of children) await readEntry(child, `${prefix}${entry.name}/`, out);
+}
+
+async function readHandle(handle, prefix, out){
+  if(handle.kind === 'file'){
+    const file = await handle.getFile();
+    out.push(tagDroppedFile(file, `${prefix}${file.name}`));
+    return;
+  }
+  if(handle.kind !== 'directory') return;
+  for await (const child of handle.values()) await readHandle(child, `${prefix}${handle.name}/`, out);
+}
+
+async function filesFromDrop(dataTransfer){
+  const out = [];
+  const items = [...(dataTransfer.items || [])].filter((item)=>item.kind === 'file');
+  for(const item of items){
+    try{
+      if(item.getAsFileSystemHandle){
+        const handle = await item.getAsFileSystemHandle();
+        if(handle){ await readHandle(handle, '', out); continue; }
+      }
+      const entry = (item.getAsEntry && item.getAsEntry())
+        || (item.webkitGetAsEntry && item.webkitGetAsEntry());
+      if(entry){ await readEntry(entry, '', out); continue; }
+      const file = item.getAsFile();
+      if(file) out.push(file);
+    }catch{ /* use the FileList fallback below */ }
+  }
+  return out.length ? out : [...(dataTransfer.files || [])];
+}
+
 let dragDepth = 0;
 window.addEventListener('dragenter', (e) => {
   if(!state.user || !e.dataTransfer?.types.includes('Files')) return;
@@ -2967,10 +3282,10 @@ window.addEventListener('dragenter', (e) => {
 });
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('dragleave', () => { if(--dragDepth <= 0){ dragDepth = 0; $('#drop').classList.remove('on'); } });
-window.addEventListener('drop', (e) => {
+window.addEventListener('drop', async (e) => {
   e.preventDefault();
   dragDepth = 0; $('#drop').classList.remove('on');
-  const files = [...(e.dataTransfer?.files || [])];
+  const files = await filesFromDrop(e.dataTransfer || {});
   if(state.user && files.length) chooseShelf(files);
 });
 
@@ -3016,11 +3331,12 @@ document.addEventListener('keydown', (e) => {
     if(e.key === 'k' || e.key === 'ArrowUp'){ e.preventDefault(); return moveCursor(-1); }
     if(e.key === 'Enter'){
       const f = cursorFile();
-      if(f){ e.preventDefault(); playable(f) ? openViewer(f) : (location.href = url('download', f.rel)); return; }
+      if(f){ e.preventDefault(); f.kind === 'folder' ? openFolder(f)
+        : playable(f) ? openViewer(f) : (location.href = url('download', f.rel)); return; }
     }
     if(e.key === 'Backspace'){
       const f = cursorFile();
-      if(f){ e.preventDefault(); askDelete(f); return; }
+      if(f && f.kind !== 'folder'){ e.preventDefault(); askDelete(f); return; }
     }
   }
   if(e.key === 'Escape'){

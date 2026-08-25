@@ -92,7 +92,7 @@ resolve() {
   local want="$1"
   case "$want" in */*) printf '%s' "$want"; return;; esac
   local hits
-  hits=$(api "$VAULT_URL/api/list" | awk -F'\t' -v n="$want" '$4==n {print $1"/"$4}')
+  hits=$(api "$VAULT_URL/api/list" | awk -F'\t' -v n="$want" '{c=split($4,p,"/"); if(p[c]==n) print $1"/"$4}')
   local count
   count=$(printf '%s' "$hits" | grep -c . || true)
   [ "$count" -eq 0 ] && die "no file named '$want'"

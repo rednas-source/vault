@@ -12,9 +12,10 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Streams video and audio** with range requests, so seeking works and nothing has to download in full before it plays.
 - **Video thumbnails** in grid view, including for formats browsers can't play.
 - **Chunked, resumable uploads.** Large files go up in slices, so an interrupted transfer continues instead of restarting.
+- **Real folders.** Create folders in a shelf, choose a whole folder, or drag one onto the page; nested paths are preserved.
 - **Accounts with per-shelf access.** Each member sees only the shelves you give them.
 - **API tokens and a CLI**, for moving files in and out from a terminal or a script.
-- **Plays MKV in the browser** by repackaging on the fly, without re-encoding.
+- **Plays MKV in the browser.** Compatible H.264 is repackaged without quality loss; incompatible video is converted live.
 - **Hover a video tile** to scrub through nine frames from across its runtime.
 - **Episodes collapse into seasons** automatically, from the filename.
 - **Bulk select**, move, and delete.
@@ -83,7 +84,7 @@ Create `config.json`:
 | `https` | `true` adds the `Secure` flag to the session cookie. Set `false` only for plain-HTTP testing on localhost. |
 | `thumbJobs` | Optional. Parallel ffmpeg processes, default 2. |
 | `partTtlHours` | Optional. How long an abandoned partial upload is kept, default 24. |
-| `remuxStreams` | Optional. Simultaneous live remuxes, default 3. |
+| `remuxStreams` | Optional. Simultaneous live video preparations (remux or transcode), default 3. |
 | `activityMax` | Optional. Activity entries retained, default 4000. |
 | `tmdbKey` | Optional. Enables poster art. Leave out to keep it off. |
 
@@ -95,13 +96,13 @@ Create `config.json`:
 
 Start the app once. It hashes that password into `users.json`, makes the account an admin, and tells you so. Then delete the `users` block — it's never read again, and there's no reason to leave a password sitting in a file.
 
-**For thumbnails**, install ffmpeg:
+**For thumbnails and MKV playback**, install an ffmpeg build with ffprobe and the `libx264` encoder:
 
 ```bash
 apt install -y ffmpeg
 ```
 
-Without it the app logs `Thumbnails: off` and everything else works normally.
+Without it the app logs `Thumbnails: off` and `MKV fallback: off`; regular uploads, downloads, and browser-native media still work.
 
 ```bash
 npm start
@@ -235,7 +236,7 @@ On a machine inside your network, point `VAULT_URL` at the LAN address instead a
 
 ## Share links
 
-**Share** on any file row. Pick an expiry and a maximum number of opens, and you get a URL anyone can use without an account. Video plays in place — including MKV, which is repackaged the same way it is inside the app.
+**Share** on any file row. Pick an expiry and a maximum number of opens, and you get a URL anyone can use without an account. Video plays in place — including MKV, which is prepared the same way it is inside the app.
 
 The page a recipient sees is deliberately self-contained: one file, its name and size, a player, a download button. No listing, no navigation, nothing about the rest of the vault.
 
@@ -290,11 +291,11 @@ This is the one feature I could not test against the live API, since it needs yo
 
 ## Playing MKV
 
-Browsers never shipped Matroska support, but what's usually inside an MKV — H.264 video, AAC audio — they handle fine. Vault repackages the streams into fragmented MP4 as you watch. Nothing is decoded, so the picture is bit-identical and the CPU cost is near zero.
+Browsers never shipped Matroska support, but what's usually inside an MKV — H.264 video, AAC audio — they handle fine. Vault repackages compatible streams into fragmented MP4 as you watch. The picture is bit-identical and the CPU cost is near zero.
 
-Audio is the common holdout: DTS and TrueHD have no browser support, so those get converted to AAC, which is cheap. Video codecs browsers can't take at all (AV1, MPEG-2) would need a real transcode; Vault deliberately doesn't attempt that and says so rather than melting a home server.
+Audio such as DTS, TrueHD, FLAC, or Opus is converted to AAC for dependable MP4 playback. HEVC, AV1, MPEG-2, high-bit-depth H.264, and other video that browsers cannot reliably decode is converted live to H.264. That fallback uses more CPU than repackaging—especially for 4K video—but means an MKV is no longer rejected merely because of its codecs.
 
-A live remux can't answer byte-range requests, so the browser's own seek bar won't work. Vault draws its own underneath: click it and the stream restarts from that point, which is near-instant because ffmpeg skips ahead without decoding what came before.
+A live ffmpeg stream can't answer byte-range requests, so the browser's own seek bar won't work. Vault draws its own underneath: click it and the stream restarts from that point, and ffmpeg seeks to the requested time before it starts sending video.
 
 Three streams run at once by default (`remuxStreams` in config). A fourth viewer gets a clear "try again in a moment" rather than a stalled player.
 
@@ -341,7 +342,7 @@ That `detached` case is the one worth having. If an NFS mount drops, the path re
 
 ## Day to day
 
-Drop files anywhere on the page, or press **Upload**. Files over 80 MB automatically use the chunked path.
+Drop files or whole folders anywhere on the page, or press **Upload** and choose **files** or **folder**. Folder structure is preserved. Use **New folder** inside a shelf to create an empty folder directly. Files over 80 MB automatically use the chunked path.
 
 Video and audio stream with seeking. Images open inline. Tick the boxes to select several files, then move or delete them together. **Share** hands out a link for one file.
 
@@ -349,11 +350,11 @@ Video and audio stream with seeking. Images open inline. Tick the boxes to selec
 
 **Navigation.** Every panel and dialog is a history entry, so the browser's Back — including a mouse's back button — closes the top layer instead of leaving the site. Clicking the dimmed area outside a dialog or panel does the same, as does Escape. All three go through one path, so they can't fall out of step.
 
-**The player** is built for this rather than being the browser's default. Space or `k` plays and pauses, arrows skip ten seconds, `j` and `l` skip thirty, `m` mutes, `f` is fullscreen, `c` opens the subtitle menu. Volume is remembered between files. On a remuxed stream, seeking restarts from the chosen second; on a native file it seeks normally. Either way the bar behaves the same.
+**The player** is built for this rather than being the browser's default. Space or `k` plays and pauses, arrows skip ten seconds, `j` and `l` skip thirty, `m` mutes, `f` is fullscreen, `c` opens the subtitle menu. Volume is remembered between files. On a prepared MKV stream, seeking restarts from the chosen second; on a native file it seeks normally. Either way the bar behaves the same.
 
 In grid view, hovering a video sweeps through nine frames from across its runtime — useful for telling two rips apart without opening either.
 
-MP4 and WebM play natively; MKV is repackaged on the fly (see above). If your browser lacks the codec even so — some Chromium builds ship without H.264 — Vault says which codec it is and offers a VLC link rather than blaming itself.
+MP4 and WebM play natively. MKV is either repackaged or converted to browser-compatible H.264/AAC on the fly (see above). If ffmpeg is unavailable or a file has no video stream, Vault gives a clear explanation and offers a VLC link.
 
 ---
 
@@ -363,11 +364,11 @@ MP4 and WebM play natively; MKV is repackaged on the fly (see above). If your br
 - Session cookie is HMAC-signed, `HttpOnly`, and `Secure`. Sessions carry a version, so a password reset or suspension invalidates them immediately.
 - API tokens are random 32-byte secrets stored as SHA-256 digests, compared in constant time.
 - Every client-supplied path is resolved and checked against the vault root before anything touches disk. Shelf permissions are enforced on listing, streaming, download, thumbnails, upload, rename, move, and delete — and move checks both ends.
-- Uploaded filenames are stripped of path separators and control characters. Collisions get `(1)` appended rather than overwriting.
+- Uploaded filenames and folder segments are stripped of unsafe characters, and traversal paths are rejected. Collisions get `(1)` appended rather than overwriting.
 - ffmpeg is invoked with an argument array, never a shell string, so a filename can't inject a command.
 - Chunked uploads verify the final byte count before the file is moved into place. A short upload is refused rather than silently saved truncated.
 - Bulk actions check every file individually, so a selection spanning shelves can't let a permitted file carry a forbidden one along with it.
-- Live remuxes are killed when the viewer disconnects, and bounded by a maximum lifetime so a client that vanishes without closing its connection can't leak a process.
+- Live ffmpeg jobs are killed when the viewer disconnects, and bounded by a maximum lifetime so a client that vanishes without closing its connection can't leak a process.
 - Share links are 24 random bytes, resolve to exactly one file, and take no path parameter. Public playback obeys the same stream cap as signed-in playback, so a link can't be used to spawn unlimited encoders.
 - Subtitle sidecar names are resolved through the same path check as everything else, so a track id can't reach outside the file's own folder.
 

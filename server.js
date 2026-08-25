@@ -516,6 +516,34 @@ function safeName(name) {
   return path.basename(name).replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 200) || 'untitled';
 }
 
+/**
+ * Clean a relative directory supplied by an uploader. Unlike safePath(), this
+ * rejects traversal outright: silently turning "../x" into "x" would put an
+ * upload somewhere the person did not choose. Each segment is sanitised with
+ * the same rules as a filename and the result is still resolved below ROOT.
+ */
+function safeRelativeDir(value) {
+  const raw = String(value || '').replace(/\\/g, '/').trim();
+  if (!raw) return '';
+  if (raw.includes('\0') || raw.startsWith('/') || /^[a-z]:\//i.test(raw)) return null;
+
+  const parts = raw.split('/').filter(Boolean);
+  if (!parts.length || parts.length > 32 || parts.some((p) => p === '.' || p === '..')) return null;
+  const clean = parts.map((p) => safeName(p));
+  if (clean.some((p) => !p || p === '.' || p === '..' || p.startsWith('.'))) return null;
+
+  const joined = clean.join(path.sep);
+  return joined.length <= 1000 ? joined : null;
+}
+
+function uploadDir(req, shelf) {
+  const relative = safeRelativeDir(req.body && req.body.directory);
+  if (relative === null) return null;
+  const dir = path.resolve(ROOT, shelf, relative);
+  const shelfRoot = path.resolve(ROOT, shelf);
+  return dir === shelfRoot || dir.startsWith(shelfRoot + path.sep) ? dir : null;
+}
+
 async function uniqueName(dir, name) {
   const base = path.parse(name).name;
   const e = path.extname(name);
@@ -527,6 +555,62 @@ async function uniqueName(dir, name) {
       candidate = `${base} (${i++})${e}`;
     } catch { return candidate; }
   }
+}
+
+/**
+ * Walk one shelf without following symlinks. Folder uploads can be nested, so
+ * the browser and CLI need the same complete view rather than only the shelf's
+ * first level. Dot-directories remain private bookkeeping and are skipped.
+ */
+async function scanShelf(shelf) {
+  const files = [];
+  const folders = [];
+  const shelfRoot = path.join(ROOT, shelf);
+
+  async function visit(dir, relative = '', depth = 0) {
+    if (depth > 32) return;
+    let entries;
+    try { entries = await fsp.readdir(dir, { withFileTypes: true }); } catch { return; }
+
+    const videoStems = new Set(
+      entries.filter((e) => e.isFile() && THUMBABLE.includes(ext(e.name)))
+             .map((e) => path.parse(e.name).name.toLowerCase())
+    );
+    const isAttachedSubtitle = (name) => {
+      if (!SIDECAR_EXT.includes(ext(name))) return false;
+      const base = path.parse(name).name.toLowerCase();
+      for (const stem of videoStems) {
+        if (base === stem || base.startsWith(stem + '.')) return true;
+      }
+      return false;
+    };
+
+    for (const entry of entries) {
+      if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue;
+      const full = path.join(dir, entry.name);
+      const childRelative = relative ? `${relative}/${entry.name}` : entry.name;
+      try {
+        const st = await fsp.stat(full);
+        if (entry.isDirectory()) {
+          folders.push({
+            kind: 'folder', name: entry.name, shelf,
+            rel: `${shelf}/${childRelative}`, dir: relative,
+            size: 0, modified: st.mtimeMs, ext: '',
+          });
+          await visit(full, childRelative, depth + 1);
+        } else if (entry.isFile() && !isAttachedSubtitle(entry.name)) {
+          files.push({
+            kind: 'file', name: entry.name, shelf,
+            rel: `${shelf}/${childRelative}`, dir: relative,
+            size: st.size, modified: st.mtimeMs, ext: ext(entry.name),
+          });
+        }
+      } catch { /* vanished mid-scan */ }
+    }
+  }
+
+  await visit(shelfRoot);
+  return { files, folders };
 }
 
 // ---------------------------------------------------------------- uploads (single-shot)
@@ -548,17 +632,24 @@ function targetShelf(req, originalName) {
 
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
-    const shelf = targetShelf(req, file.originalname);
-    if (!shelf) return cb(new Error('No permission for that shelf'));
-    const dir = path.join(ROOT, shelf);
-    await fsp.mkdir(dir, { recursive: true });
-    cb(null, dir);
+    try {
+      const shelf = targetShelf(req, file.originalname);
+      if (!shelf) return cb(new Error('No permission for that shelf'));
+      const dir = uploadDir(req, shelf);
+      if (!dir) return cb(new Error('Bad folder path'));
+      await fsp.mkdir(dir, { recursive: true });
+      cb(null, dir);
+    } catch (e) { cb(e); }
   },
   filename: async (req, file, cb) => {
-    const shelf = targetShelf(req, file.originalname);
-    if (!shelf) return cb(new Error('No permission for that shelf'));
-    const clean = safeName(Buffer.from(file.originalname, 'latin1').toString('utf8'));
-    cb(null, await uniqueName(path.join(ROOT, shelf), clean));
+    try {
+      const shelf = targetShelf(req, file.originalname);
+      if (!shelf) return cb(new Error('No permission for that shelf'));
+      const dir = uploadDir(req, shelf);
+      if (!dir) return cb(new Error('Bad folder path'));
+      const clean = safeName(Buffer.from(file.originalname, 'latin1').toString('utf8'));
+      cb(null, await uniqueName(dir, clean));
+    } catch (e) { cb(e); }
   },
 });
 
@@ -576,9 +667,9 @@ const upload = multer({ storage, limits: { fileSize: MAX_BYTES } });
  * same part-file instead of starting a second one.
  */
 
-const uploadIdFor = (user, name, size, shelf) =>
+const uploadIdFor = (user, name, size, shelf, directory = '') =>
   crypto.createHmac('sha256', SECRET)
-    .update(`${user}\u0000${name}\u0000${size}\u0000${shelf}`)
+    .update(`${user}\u0000${name}\u0000${size}\u0000${shelf}\u0000${directory}`)
     .digest('hex').slice(0, 32);
 
 const HEX32 = /^[a-f0-9]{32}$/;
@@ -627,6 +718,14 @@ const HAS_FFMPEG = (() => {
   try {
     return spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status === 0
         && spawnSync('ffprobe', ['-version'], { stdio: 'ignore' }).status === 0;
+  } catch { return false; }
+})();
+
+const HAS_LIBX264 = (() => {
+  if (!HAS_FFMPEG) return false;
+  try {
+    const check = spawnSync('ffmpeg', ['-hide_banner', '-encoders'], { encoding: 'utf8' });
+    return check.status === 0 && /\blibx264\b/.test(`${check.stdout || ''}\n${check.stderr || ''}`);
   } catch { return false; }
 })();
 
@@ -702,19 +801,18 @@ async function makeThumb(src, dest) {
 
 // ---------------------------------------------------------------- media
 /**
- * Browsers never shipped Matroska support, so .mkv files can't play natively
- * even though what's inside them usually can. Remuxing repackages the streams
- * into fragmented MP4 without re-encoding — near-zero CPU, and the picture is
- * bit-identical because nothing is decoded.
- *
- * Audio is the usual holdout: DTS and TrueHD have no browser support, so those
- * get encoded to AAC, which is cheap. Video codecs browsers can't handle (AV1,
- * older MPEG-2) would need a real transcode, and this deliberately doesn't:
- * it reports the file as unplayable rather than melting a home server.
+ * Browsers never shipped Matroska support, so .mkv files can't play natively.
+ * Compatible H.264/AAC streams are repackaged into fragmented MP4 without
+ * quality loss. Unsupported audio is converted to AAC and unsupported video
+ * is converted to H.264, giving every probed MKV a browser-safe fallback.
  */
 
-const COPYABLE_VIDEO = ['h264', 'avc1', 'vp8', 'vp9'];   // hevc handled below
-const COPYABLE_AUDIO = ['aac', 'mp3', 'opus', 'vorbis', 'flac'];
+// These codecs are dependable inside an MP4 in current browsers. Other MKV
+// video is transcoded to H.264 and other audio to AAC. The old implementation
+// copied HEVC/VP8/VP9/FLAC into MP4 and left the browser to decide; in practice
+// that produced an MP4 response which many browsers still could not decode.
+const COPYABLE_VIDEO = ['h264', 'avc1'];
+const COPYABLE_AUDIO = ['aac'];
 
 const probeCache = new Map();      // rel -> { at, info }
 const PROBE_TTL = 10 * 60 * 1000;
@@ -743,21 +841,27 @@ async function probe(file) {
     audio: a ? a.codec_name : null,
     width: v ? v.width : null,
     height: v ? v.height : null,
+    pixelFormat: v ? v.pix_fmt : null,
     subtitles: subs,
   };
-  info.videoOk = !!info.video && COPYABLE_VIDEO.includes(info.video);
+  // High-10/4:2:2 H.264 is legal in MKV but not broadly decodable in a browser.
+  const browserPixelFormat = !info.pixelFormat || ['yuv420p', 'yuvj420p', 'nv12'].includes(info.pixelFormat);
+  info.videoOk = !!info.video && COPYABLE_VIDEO.includes(info.video) && browserPixelFormat;
   info.audioOk = !info.audio || COPYABLE_AUDIO.includes(info.audio);
-  // hevc plays in Safari and recent Edge but not Chrome or Firefox; treat it
-  // as remuxable and let the browser decide rather than guessing from the UA.
-  if (info.video === 'hevc') info.videoOk = true;
-  info.remuxable = info.videoOk;
+  info.videoMode = info.videoOk ? 'copy' : 'h264';
+  info.audioMode = info.audioOk ? 'copy' : 'aac';
+  info.transcodeAvailable = HAS_LIBX264;
+  // Any probed video can use the media endpoint. Compatible streams are only
+  // repackaged; everything else gets the smallest browser-safe conversion.
+  info.remuxable = !!info.video && (info.videoOk || HAS_LIBX264);
+  info.transcoding = !info.videoOk;
 
   probeCache.set(file, { at: Date.now(), info });
   return info;
 }
 
-// Remuxing is cheap but not free, and each one holds a process open for as
-// long as someone is watching.
+// Each live preparation holds a process open while someone is watching, and a
+// video conversion can be CPU-heavy, so keep a firm shared cap.
 const MAX_STREAMS = config.remuxStreams || 3;
 let streaming = 0;
 
@@ -961,7 +1065,6 @@ app.delete('/api/shelves/:id', auth, adminOnly, async (req, res) => {
   let contents = [];
   try {
     contents = (await fsp.readdir(dir, { withFileTypes: true }))
-      .filter((e) => e.isFile() && !e.name.startsWith('.'))
       .map((e) => e.name);
   } catch { /* folder never created */ }
 
@@ -971,7 +1074,7 @@ app.delete('/api/shelves/:id', auth, adminOnly, async (req, res) => {
     // caller nominates somewhere for them to go, or nothing happens.
     if (!moveTo) {
       return res.status(409).json({
-        error: `That shelf holds ${contents.length} file${contents.length === 1 ? '' : 's'}. Choose where they should go.`,
+        error: `That shelf holds ${contents.length} item${contents.length === 1 ? '' : 's'}. Choose where they should go.`,
         count: contents.length,
       });
     }
@@ -980,6 +1083,7 @@ app.delete('/api/shelves/:id', auth, adminOnly, async (req, res) => {
 
     const targetDir = path.join(ROOT, target.id);
     await fsp.mkdir(targetDir, { recursive: true });
+    // Moving each top-level item preserves any uploaded directory tree.
     for (const name of contents) {
       const dest = path.join(targetDir, await uniqueName(targetDir, name));
       try { await fsp.rename(path.join(dir, name), dest); }
@@ -1040,14 +1144,10 @@ app.get('/api/list', auth, async (req, res) => {
   const shelves = wanted ? mine.filter((s) => s === wanted) : mine;
   const lines = [];
   for (const shelf of shelves) {
-    let entries;
-    try { entries = await fsp.readdir(path.join(ROOT, shelf), { withFileTypes: true }); } catch { continue; }
-    for (const e of entries) {
-      if (!e.isFile() || e.name.startsWith('.')) continue;
-      try {
-        const st = await fsp.stat(path.join(ROOT, shelf, e.name));
-        lines.push(`${shelf}\t${st.size}\t${Math.round(st.mtimeMs)}\t${e.name}`);
-      } catch { /* vanished */ }
+    const scanned = await scanShelf(shelf);
+    for (const file of scanned.files) {
+      const withinShelf = file.rel.split('/').slice(1).join('/');
+      lines.push(`${shelf}\t${file.size}\t${Math.round(file.modified)}\t${withinShelf}`);
     }
   }
   res.type('text/plain; charset=utf-8').send(lines.join('\n') + (lines.length ? '\n' : ''));
@@ -1059,46 +1159,12 @@ app.get('/api/whoami', auth, (req, res) => {
 
 app.get('/api/files', auth, async (req, res) => {
   const out = [];
+  const folders = [];
   const mine = allowedShelves(req.user);
   for (const shelf of mine) {
-    const dir = path.join(ROOT, shelf);
-    let entries;
-    try { entries = await fsp.readdir(dir, { withFileTypes: true }); } catch { continue; }
-
-    /**
-     * A subtitle file belonging to a video isn't really a library item — it's
-     * part of one, and it's offered inside the player. Listing it separately
-     * just clutters the shelf. Orphans with no matching video are still shown,
-     * since those are files someone may want to find.
-     */
-    const videoStems = new Set(
-      entries.filter((e) => e.isFile() && THUMBABLE.includes(ext(e.name)))
-             .map((e) => path.parse(e.name).name.toLowerCase())
-    );
-    const isAttachedSubtitle = (name) => {
-      if (!SIDECAR_EXT.includes(ext(name))) return false;
-      const base = path.parse(name).name.toLowerCase();
-      for (const stem of videoStems) {
-        if (base === stem || base.startsWith(stem + '.')) return true;
-      }
-      return false;
-    };
-
-    for (const entry of entries) {
-      if (!entry.isFile() || entry.name.startsWith('.')) continue;
-      if (isAttachedSubtitle(entry.name)) continue;
-      try {
-        const st = await fsp.stat(path.join(dir, entry.name));
-        out.push({
-          name: entry.name,
-          shelf,
-          rel: `${shelf}/${entry.name}`,
-          size: st.size,
-          modified: st.mtimeMs,
-          ext: ext(entry.name),
-        });
-      } catch { /* file vanished mid-scan */ }
-    }
+    const scanned = await scanShelf(shelf);
+    out.push(...scanned.files);
+    folders.push(...scanned.folders);
   }
 
   let disk = null;
@@ -1114,17 +1180,51 @@ app.get('/api/files', auth, async (req, res) => {
   }
 
   res.json({
-    files: out, disk, thumbs: HAS_FFMPEG, role: req.user.role, artwork: !!TMDB_KEY,
+    files: out, folders, disk, thumbs: HAS_FFMPEG, role: req.user.role, artwork: !!TMDB_KEY,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
 });
 
+app.post('/api/folders', auth, async (req, res) => {
+  const shelf = String(req.body.shelf || '');
+  if (!shelfById(shelf)) return res.status(400).json({ error: 'Unknown shelf' });
+  if (!canUse(req.user, shelf)) return res.status(403).json({ error: 'No permission for that shelf' });
+
+  const parent = safeRelativeDir(req.body.directory);
+  const rawName = String(req.body.name || '').trim();
+  const name = safeName(rawName);
+  if (parent === null) return res.status(400).json({ error: 'Bad folder path' });
+  if (!rawName || name !== rawName || name === '.' || name === '..' || name.startsWith('.')) {
+    return res.status(400).json({ error: 'Use a folder name without path or special characters.' });
+  }
+
+  const parentDir = path.resolve(ROOT, shelf, parent);
+  const shelfRoot = path.resolve(ROOT, shelf);
+  if (parentDir !== shelfRoot && !parentDir.startsWith(shelfRoot + path.sep)) {
+    return res.status(400).json({ error: 'Bad folder path' });
+  }
+  try {
+    const st = await fsp.stat(parentDir);
+    if (!st.isDirectory()) throw new Error('not a directory');
+  } catch { return res.status(404).json({ error: 'The parent folder no longer exists.' }); }
+
+  const full = path.join(parentDir, name);
+  try { await fsp.mkdir(full); }
+  catch (e) {
+    if (e && e.code === 'EEXIST') return res.status(409).json({ error: 'A folder with that name already exists.' });
+    return res.status(500).json({ error: 'Could not create the folder.' });
+  }
+  const relative = path.relative(ROOT, full).split(path.sep).join('/');
+  note(req.user.name, 'folder-create', relative);
+  res.json({ name, rel: relative, shelf });
+});
+
 app.post('/api/upload', auth, (req, res) => {
   upload.array('files')(req, res, (err) => {
-    if (err) return res.status(403).json({ error: 'No permission for that shelf' });
-    const names = (req.files || []).map((f) => f.filename);
-    if (names.length) note(req.user.name, 'upload', names.join(', ').slice(0, 200));
-    res.json({ uploaded: names });
+    if (err) return res.status(400).json({ error: err.message || 'Could not upload that file' });
+    const uploaded = (req.files || []).map((f) => path.relative(ROOT, f.path).split(path.sep).join('/'));
+    if (uploaded.length) note(req.user.name, 'upload', uploaded.join(', ').slice(0, 200));
+    res.json({ uploaded });
   });
 });
 
@@ -1134,8 +1234,10 @@ app.post('/api/upload/init', auth, async (req, res) => {
   const rawName = typeof req.body.name === 'string' ? req.body.name : '';
   const size = Number(req.body.size);
   const name = safeName(rawName);
+  const directory = safeRelativeDir(req.body.directory);
 
   if (!rawName) return res.status(400).json({ error: 'Missing file name' });
+  if (directory === null) return res.status(400).json({ error: 'Bad folder path' });
   if (!Number.isSafeInteger(size) || size <= 0) return res.status(400).json({ error: 'Bad file size' });
   if (size > MAX_BYTES) {
     return res.status(413).json({ error: `That file is over the ${config.maxFileGB || 64} GB limit.` });
@@ -1143,17 +1245,17 @@ app.post('/api/upload/init', auth, async (req, res) => {
 
   const shelf = targetShelf(req, name);
   if (!shelf) return res.status(403).json({ error: 'No permission for that shelf' });
-  const id = uploadIdFor(req.user.name, name, size, shelf);
+  const id = uploadIdFor(req.user.name, name, size, shelf, directory);
 
   await fsp.mkdir(PARTS_DIR, { recursive: true });
   const existing = await readMeta(id);
   if (!existing) {
     await fsp.writeFile(metaPath(id), JSON.stringify({
-      name, shelf, size, user: req.user.name, started: Date.now(),
+      name, shelf, directory, size, user: req.user.name, started: Date.now(),
     }));
   }
 
-  res.json({ id, received: await partSize(id), size, shelf, name });
+  res.json({ id, received: await partSize(id), size, shelf, name, directory });
 });
 
 app.get('/api/upload/status/:id', auth, async (req, res) => {
@@ -1228,7 +1330,13 @@ app.post('/api/upload/finish/:id', auth, async (req, res) => {
     return res.status(403).json({ error: 'No permission for that shelf' });
   }
 
-  const dir = path.join(ROOT, meta.shelf);
+  const directory = safeRelativeDir(meta.directory);
+  if (directory === null) return res.status(400).json({ error: 'Bad folder path' });
+  const dir = path.resolve(ROOT, meta.shelf, directory);
+  const shelfRoot = path.resolve(ROOT, meta.shelf);
+  if (dir !== shelfRoot && !dir.startsWith(shelfRoot + path.sep)) {
+    return res.status(400).json({ error: 'Bad folder path' });
+  }
   await fsp.mkdir(dir, { recursive: true });
   const finalName = await uniqueName(dir, meta.name);
   const dest = path.join(dir, finalName);
@@ -1246,8 +1354,9 @@ app.post('/api/upload/finish/:id', auth, async (req, res) => {
   }
   await fsp.rm(metaPath(id), { force: true }).catch(() => {});
 
-  note(req.user.name, 'upload', `${meta.shelf}/${finalName}`);
-  res.json({ name: finalName, rel: `${meta.shelf}/${finalName}` });
+  const rel = path.relative(ROOT, dest).split(path.sep).join('/');
+  note(req.user.name, 'upload', rel);
+  res.json({ name: finalName, rel });
 });
 
 app.delete('/api/upload/:id', auth, async (req, res) => {
@@ -1286,7 +1395,9 @@ app.patch('/api/file', auth, async (req, res) => {
     return res.status(403).json({ error: 'No permission for that shelf' });
   }
 
-  const targetDir = path.join(ROOT, shelf || path.basename(path.dirname(from)));
+  // A rename stays beside the original, including inside nested folders. A
+  // move to another shelf intentionally lands at that shelf's root.
+  const targetDir = shelf ? path.join(ROOT, shelf) : path.dirname(from);
   await fsp.mkdir(targetDir, { recursive: true });
   const target = path.join(targetDir, await uniqueName(targetDir, newName || path.basename(from)));
   try {
@@ -1439,6 +1550,7 @@ app.get('/api/health', async (req, res) => {
     storage,
     freeMB: free,
     thumbnails: HAS_FFMPEG,
+    mkvTranscode: HAS_LIBX264,
     uptimeSec: Math.round(process.uptime()),
   });
 });
@@ -1455,7 +1567,7 @@ app.get('/api/mediainfo/*', auth, shelfGate, async (req, res) => {
 });
 
 /**
- * Fragmented MP4, streamed. A live remux can't answer byte-range requests, so
+ * Fragmented MP4, streamed. A live conversion can't answer byte-range requests, so
  * the browser gets no seek bar — instead the client re-requests from a
  * timestamp, and `-ss` before `-i` makes ffmpeg jump there without decoding
  * everything in between.
@@ -1466,10 +1578,24 @@ function pipeRemux(req, res, full, info, t) {
   if (t > 0) args.push('-ss', t.toFixed(2));
   args.push('-i', full, '-map', '0:v:0');
   if (info.audio) args.push('-map', '0:a:0?');
-  args.push('-c:v', 'copy');
-  // Only the audio is ever re-encoded, and only when it has to be.
-  args.push('-c:a', info.audioOk ? 'copy' : 'aac', ...(info.audioOk ? [] : ['-b:a', '192k', '-ac', '2']));
-  args.push('-movflags', 'frag_keyframe+empty_moov+default_base_moof', '-f', 'mp4', 'pipe:1');
+
+  if (info.videoOk) {
+    args.push('-c:v', 'copy');
+  } else {
+    // A fast software conversion is the universal fallback for HEVC, AV1,
+    // MPEG-2 and high-bit-depth H.264 MKVs. Compatible H.264 is still copied,
+    // so the common path remains virtually free.
+    args.push('-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22',
+      '-pix_fmt', 'yuv420p', '-profile:v', 'high');
+  }
+
+  if (info.audio) {
+    args.push('-c:a', info.audioOk ? 'copy' : 'aac',
+      ...(info.audioOk ? [] : ['-b:a', '192k', '-ac', '2']));
+  }
+  args.push('-sn', '-dn', '-map_metadata', '-1', '-max_muxing_queue_size', '4096',
+    '-movflags', 'frag_keyframe+empty_moov+default_base_moof+negative_cts_offsets',
+    '-f', 'mp4', 'pipe:1');
 
   streaming++;
   const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'ignore'] });
@@ -1495,7 +1621,9 @@ function pipeRemux(req, res, full, info, t) {
 
   res.setHeader('Content-Type', 'video/mp4');
   res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Vault-Remux', info.audioOk ? 'copy' : 'audio-aac');
+  res.setHeader('X-Vault-Remux', info.videoOk
+    ? (info.audioOk ? 'copy' : 'audio-aac')
+    : 'video-h264');
 
   child.stdout.pipe(res);
   child.on('error', () => { cleanup(); res.destroy(); });
@@ -1512,7 +1640,7 @@ app.get('/api/media/*', auth, shelfGate, async (req, res) => {
   try { await fsp.stat(full); } catch { return res.status(404).end(); }
 
   const info = await probe(full);
-  if (!info || !info.remuxable) return res.status(415).json({ error: 'Not playable without re-encoding' });
+  if (!info || !info.remuxable) return res.status(415).json({ error: 'No video stream found' });
   if (streaming >= MAX_STREAMS) {
     return res.status(503).json({ error: 'Too many streams running. Try again in a moment.' });
   }
@@ -1924,7 +2052,7 @@ function sharePage({ name, id, kind, error, size }) {
       <div class="meta">${esc(size)}</div>
       ${kind === 'video' ? `<video src="/api/share/${id}/file" controls playsinline preload="metadata"></video>` : ''}
       ${kind === 'remux' ? `<video src="/api/share/${id}/media" controls playsinline autoplay muted onloadeddata="this.muted=false"></video>
-         <div class="meta" style="margin:10px 0 0">Repackaged for your browser · seeking unavailable on this link</div>` : ''}
+         <div class="meta" style="margin:10px 0 0">Prepared for your browser · seeking unavailable on this link</div>` : ''}
       ${kind === 'audio' ? `<audio src="/api/share/${id}/file" controls preload="metadata"></audio>` : ''}
       ${kind === 'image' ? `<img src="/api/share/${id}/file" alt="${esc(name)}">` : ''}
       <a class="dl" href="/api/share/${id}/file?dl=1">Download</a>`;
@@ -1934,7 +2062,7 @@ function sharePage({ name, id, kind, error, size }) {
 <meta name="robots" content="noindex,nofollow">
 <title>${error ? 'Link unavailable' : esc(name)}</title>
 <style>
-:root{--bg:#070809;--fg:#d2d7df;--dim:#6a7280;--line:#191d25;--star:#7fd9ff;--flare:#ff6a58;
+:root{--bg:#070809;--fg:#eef3f8;--dim:#aab5c3;--line:#2a313c;--star:#7fd9ff;--flare:#ff6a58;
 --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);min-height:100vh;display:grid;place-items:center;
@@ -1945,15 +2073,15 @@ background-image:radial-gradient(900px 420px at 50% -12%,rgba(127,217,255,.06),t
 .mark::before{content:'';position:absolute;inset:0;border:1px solid rgba(127,217,255,.3);border-radius:50%}
 .mark::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--star);
 box-shadow:0 0 18px 3px rgba(127,217,255,.45)}
-.name{font-size:16px;font-weight:500;margin-bottom:6px;word-break:break-word}
-.meta{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em;margin-bottom:22px}
+.name{font-size:19px;font-weight:500;margin-bottom:8px;word-break:break-word}
+.meta{font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:.06em;margin-bottom:24px}
 video,img{width:100%;max-height:70vh;background:#000;display:block;border:1px solid var(--line)}
 audio{width:100%}
 .dl{display:inline-block;margin-top:22px;padding:11px 22px;background:var(--star);color:#04080c;
-text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.22em}
+text-decoration:none;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.16em}
 .dl:hover{filter:brightness(1.12)}
-.err{font-family:var(--mono);font-size:13px;color:var(--flare);letter-spacing:.04em}
-.foot{margin-top:34px;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;
+.err{font-family:var(--mono);font-size:15px;color:var(--flare);letter-spacing:.04em}
+.foot{margin-top:34px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;
 text-transform:uppercase;color:#3d444f}
 </style></head><body><div class="card"><div class="mark"></div>${body}
 <div class="foot">Shared from a private vault</div></div></body></html>`;
@@ -1980,7 +2108,7 @@ app.get('/s/:id', async (req, res) => {
     : ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'].includes(e) ? 'image' : 'file';
 
   // A shared MKV that only offers a download is a poor gift. If it can be
-  // repackaged, let the recipient watch it in place.
+  // prepared for a browser, let the recipient watch it in place.
   if (kind === 'file' && HAS_FFMPEG && THUMBABLE.includes(e)) {
     const info = await probe(full);
     if (info && info.remuxable) kind = 'remux';
@@ -2101,5 +2229,6 @@ app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }))
     console.log(`VAULT listening on ${config.bind || '0.0.0.0'}:${PORT}`);
     console.log(`Vault: ${ROOT}`);
     console.log(`Thumbnails: ${HAS_FFMPEG ? 'on' : 'off (ffmpeg not found)'}`);
+    console.log(`MKV fallback: ${HAS_LIBX264 ? 'on' : 'off (ffmpeg needs libx264)'}`);
   });
 })();
