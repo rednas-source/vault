@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-lock-key-20260825';
+const BUILD_ID = 'vault-mkv-fallback-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -752,14 +752,24 @@ function releaseSlot() {
 }
 
 /** Arguments go as an array, never a shell string — the path is user data. */
-function run(cmd, args, timeoutMs = 25000, maxOutputBytes = 64 * 1024) {
+function runDetailed(cmd, args, timeoutMs = 25000, maxOutputBytes = 64 * 1024) {
   return new Promise((resolve) => {
     let done = false;
-    const child = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'ignore'] });
+    const child = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
+    let err = '';
     let outputBytes = 0;
     let overflow = false;
-    const timer = setTimeout(() => { if (!done) { done = true; child.kill('SIGKILL'); resolve(null); } }, timeoutMs);
+    const finish = (result) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve({ stdout: out, stderr: err.trim(), ...result });
+    };
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL');
+      finish({ ok: false, reason: 'timeout' });
+    }, timeoutMs);
     child.stdout.on('data', (d) => {
       outputBytes += d.length;
       if (outputBytes > maxOutputBytes) {
@@ -769,13 +779,25 @@ function run(cmd, args, timeoutMs = 25000, maxOutputBytes = 64 * 1024) {
       }
       out += d;
     });
-    child.on('error', () => { if (!done) { done = true; clearTimeout(timer); resolve(null); } });
+    // Keep enough stderr to diagnose a bad container without allowing a noisy
+    // child process to grow memory indefinitely.
+    child.stderr.on('data', (d) => {
+      const remaining = 16 * 1024 - Buffer.byteLength(err);
+      if (remaining > 0) err += d.subarray(0, remaining).toString('utf8');
+    });
+    child.on('error', (e) => finish({ ok: false, reason: 'spawn-error', error: e.message }));
     child.on('close', (code) => {
-      if (done) return;
-      done = true; clearTimeout(timer);
-      resolve(code === 0 && !overflow ? out.trim() : null);
+      finish({
+        ok: code === 0 && !overflow,
+        reason: overflow ? 'output-limit' : (code === 0 ? null : `exit-${code}`),
+      });
     });
   });
+}
+
+async function run(cmd, args, timeoutMs = 25000, maxOutputBytes = 64 * 1024) {
+  const result = await runDetailed(cmd, args, timeoutMs, maxOutputBytes);
+  return result.ok ? result.stdout.trim() : null;
 }
 
 async function durationOf(file) {
@@ -830,19 +852,60 @@ const COPYABLE_AUDIO = ['aac'];
 const probeCache = new Map();      // rel -> { at, info }
 const PROBE_TTL = 10 * 60 * 1000;
 
+function inferredVideoInfo(file, reason, detail) {
+  const rel = path.relative(ROOT, file).replace(/[\r\n\t]/g, '?');
+  const why = String(detail || reason || 'unknown error').replace(/\s+/g, ' ').trim().slice(0, 800);
+  console.warn(`[media] ffprobe ${reason} for ${rel}${why ? `: ${why}` : ''}`);
+
+  // ffprobe is useful for choosing a cheap stream-copy path, but it should not
+  // be a single point of failure. ffmpeg performs its own input detection, so
+  // an unknown video can still take the universal H.264/AAC conversion path.
+  return {
+    duration: null,
+    video: 'unknown',
+    audio: 'unknown',
+    width: null,
+    height: null,
+    pixelFormat: null,
+    subtitles: 0,
+    videoOk: false,
+    audioOk: false,
+    videoMode: 'h264',
+    audioMode: 'aac',
+    transcodeAvailable: HAS_LIBX264,
+    remuxable: HAS_LIBX264 && THUMBABLE.includes(ext(file)),
+    transcoding: true,
+    inferred: true,
+    probeFailure: reason,
+  };
+}
+
 async function probe(file) {
   const hit = probeCache.get(file);
   if (hit && Date.now() - hit.at < PROBE_TTL) return hit.info;
 
-  const out = await run('ffprobe', [
-    '-v', 'error', '-print_format', 'json',
+  const result = await runDetailed('ffprobe', [
+    '-v', 'error',
+    // Large/high-bitrate Matroska files on network storage sometimes need more
+    // than ffprobe's small default analysis window.
+    '-probesize', '52428800', '-analyzeduration', '30000000',
     '-show_entries', 'format=duration:stream=codec_type,codec_name,width,height,pix_fmt',
-    '-show_format', '-show_streams', file,
-  ], 20000);
-  if (!out) return null;
+    '-of', 'json', file,
+  ], 60000, 256 * 1024);
+  if (!result.ok) {
+    const info = inferredVideoInfo(file, result.reason, result.stderr || result.error);
+    probeCache.set(file, { at: Date.now(), info });
+    return info;
+  }
 
   let parsed;
-  try { parsed = JSON.parse(out); } catch { return null; }
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch {
+    const info = inferredVideoInfo(file, 'invalid-json', result.stdout.slice(0, 300));
+    probeCache.set(file, { at: Date.now(), info });
+    return info;
+  }
 
   const streams = parsed.streams || [];
   const v = streams.find((x) => x.codec_type === 'video');
@@ -1580,7 +1643,9 @@ app.get('/api/mediainfo/*', auth, shelfGate, async (req, res) => {
   if (!HAS_FFMPEG) return res.json({ probed: false, reason: 'ffmpeg-missing' });
   try { await fsp.stat(full); } catch { return res.status(404).end(); }
   const info = await probe(full);
-  res.json(info ? { probed: true, ...info } : { probed: false, reason: 'probe-failed' });
+  res.json(info
+    ? { probed: !info.inferred, ...info }
+    : { probed: false, reason: 'probe-failed', remuxable: false });
 });
 
 /**
@@ -1615,7 +1680,12 @@ function pipeRemux(req, res, full, info, t) {
     '-f', 'mp4', 'pipe:1');
 
   streaming++;
-  const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'ignore'] });
+  const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  let ffmpegError = '';
+  child.stderr.on('data', (d) => {
+    const remaining = 16 * 1024 - Buffer.byteLength(ffmpegError);
+    if (remaining > 0) ffmpegError += d.subarray(0, remaining).toString('utf8');
+  });
 
   let closed = false;
   const cleanup = () => {
@@ -1644,6 +1714,12 @@ function pipeRemux(req, res, full, info, t) {
 
   child.stdout.pipe(res);
   child.on('error', () => { cleanup(); res.destroy(); });
+  child.on('exit', (code) => {
+    if (closed || code === 0) return;
+    const rel = path.relative(ROOT, full).replace(/[\r\n\t]/g, '?');
+    const why = ffmpegError.replace(/\s+/g, ' ').trim().slice(0, 800) || `exit ${code}`;
+    console.warn(`[media] ffmpeg stream failed for ${rel}: ${why}`);
+  });
   child.on('close', cleanup);
   res.on('close', cleanup);
   req.on('aborted', cleanup);

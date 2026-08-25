@@ -1978,13 +1978,17 @@ async function openViewer(f){
     info = await r.json();
   }catch{ /* fall through to the download note */ }
 
-  if(!info.probed || !info.remuxable){
+  // A failed metadata probe no longer blocks playback. The server can let
+  // ffmpeg inspect the input directly and use its universal conversion path.
+  if(!info.remuxable){
     $('#vBody').innerHTML = `<div class="viewer-note">
       <p>${info.probed
           ? (info.video && info.transcodeAvailable === false
               ? 'This video needs conversion, but the server\'s ffmpeg build has no libx264 encoder.'
               : 'No playable video stream was found in this file.')
-          : (info.reason === 'ffmpeg-missing'
+          : (info.inferred && info.transcodeAvailable === false
+              ? 'The metadata probe failed, and this server\'s ffmpeg build has no H.264 encoder for fallback conversion.'
+              : info.reason === 'ffmpeg-missing'
               ? `Vault cannot inspect this .${esc(f.ext)} file because ffmpeg or ffprobe is missing on the server.`
               : `ffprobe could not read this .${esc(f.ext)} file's video metadata.`)}</p>
       <p>Download it, or open this link in VLC:</p>
@@ -1992,6 +1996,7 @@ async function openViewer(f){
     </div>`;
     return;
   }
+  if(info.inferred) toast('Metadata unavailable — starting compatibility conversion');
   playRemuxed(f, info);
 }
 
