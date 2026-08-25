@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-cinema-cut-20260825">
+<meta name="vault-build" content="vault-cinema-metadata-ai-20260825">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1127,6 +1127,13 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 .media-folders span{color:var(--star)}
 .music-library .media-hero{min-height:clamp(300px,44vh,520px);background-image:linear-gradient(90deg,var(--void),rgba(7,8,9,.56)),radial-gradient(circle at 74% 48%,rgba(127,217,255,.22),transparent 25%),var(--hero)}
 
+/* Metadata-led private cinema */
+.movies-library,.movie-detail{color:#f5f1e9;background:radial-gradient(circle at 88% 8%,rgba(214,158,78,.12),transparent 24%),#090908}
+.movie-library-hero,.movie-detail-hero{overflow:hidden;min-height:clamp(500px,68vh,780px);background-image:linear-gradient(90deg,#090908 2%,rgba(9,9,8,.91) 35%,rgba(9,9,8,.14) 74%),linear-gradient(0deg,#090908,transparent 50%),var(--hero)}
+.movie-detail-hero{min-height:clamp(560px,76vh,850px);margin-bottom:0}.movie-library-hero .media-hero-copy,.movie-detail-hero .media-hero-copy{position:relative;z-index:3}.movie-library-hero h2,.movie-detail-hero h2{font-family:Georgia,'Times New Roman',serif;font-size:clamp(54px,7vw,108px);line-height:.91;letter-spacing:-.055em;max-width:10ch}.movie-frame{position:absolute;z-index:2;inset:0;pointer-events:none;border:1px solid rgba(235,191,118,.11);border-width:0 1px}.movie-frame::before,.movie-frame::after{content:'';position:absolute;top:0;bottom:0;width:1px;background:linear-gradient(transparent,rgba(234,190,113,.35),transparent)}.movie-frame::before{left:9%}.movie-frame::after{right:9%}.movie-frame i{position:absolute;width:5px;height:5px;border-radius:50%;background:#e7bb72;box-shadow:0 0 20px #d69848}.movie-frame i:nth-child(1){right:8.8%;top:24%}.movie-frame i:nth-child(2){left:8.8%;top:61%}.movie-frame i:nth-child(3){right:29%;bottom:9%;opacity:.5}.movie-card .media-art{border-radius:7px;border-color:rgba(255,255,255,.1);box-shadow:0 18px 45px rgba(0,0,0,.35)}.movie-card:hover{transform:translateY(-9px) scale(1.03)}.movie-card:hover .media-art{border-color:rgba(229,181,105,.52);box-shadow:0 24px 58px rgba(0,0,0,.48),0 0 38px rgba(196,132,47,.11)}.movie-card .media-play{width:auto;height:auto;padding:10px 14px;border-radius:999px;background:rgba(10,9,7,.76);border:1px solid rgba(238,202,140,.34);font:10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.movie-card .media-card-copy b{font-family:Georgia,'Times New Roman',serif;font-size:17px}.movie-card .media-card-copy small{color:#948d82}
+.ai-library-strip{display:flex;align-items:center;gap:13px;margin:0 0 34px;padding:14px 16px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.025)}.ai-library-strip .ai-pulse{width:9px;height:9px;border-radius:50%;background:#ff8b70;box-shadow:0 0 18px #ff795b}.ai-library-strip.ready .ai-pulse{background:#6ce7b4;box-shadow:0 0 18px #50d9a0}.ai-library-strip>div{flex:1;min-width:0}.ai-library-strip b,.ai-library-strip small{display:block}.ai-library-strip b{font-size:13px}.ai-library-strip small{margin-top:3px;color:#8f9ba4;font:9.5px/1.35 var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ai-library-strip button{padding:8px 11px;border:1px solid rgba(255,255,255,.13);border-radius:5px;color:#b9c4cc;font:9px/1 var(--mono);text-transform:uppercase;letter-spacing:.09em}.ai-library-strip button:hover{color:#fff;border-color:#6ce7b4}
+.movie-facts{margin-top:-42px}.movie-facts>div:first-child b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.movie-versions{margin:44px 0}.movie-versions>article{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,auto);gap:8px;align-items:center;padding:12px 14px;border-top:1px solid rgba(255,255,255,.09)}.movie-versions>article:last-child{border-bottom:1px solid rgba(255,255,255,.09)}.movie-versions b,.movie-versions small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.movie-versions b{font-size:13px}.movie-versions small{margin-top:4px;color:#7f8b94;font:9px/1 var(--mono)}.movie-versions button{padding:8px 10px;border-radius:4px;color:#9eabb4;font:9px/1 var(--mono)}.movie-versions button:hover{color:#fff;background:rgba(255,255,255,.07)}
+
 /* ══════════════════════════════════ Cinema Cut — Shows
    A reactive editorial surface: deep-space colour, oversized type, luminous
    storyboards and a tiny canvas signal field. It stays CSS/Canvas-native so it
@@ -1231,6 +1238,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   .ent-top{height:auto;min-height:62px;gap:6px;flex-wrap:wrap;padding-top:9px;padding-bottom:9px}.ent-home{display:none}.ent-top nav{order:1}.ent-back{order:2;margin-left:auto}.ent-search{order:3;flex:1 1 100%;width:100%;margin-left:0}
   .media-hero{min-height:390px;padding:28px 18px;margin-bottom:22px;background-image:linear-gradient(0deg,var(--void) 4%,rgba(7,8,9,.28) 78%),var(--hero);background-position:center}
   .show-home-hero,.show-detail-hero{min-height:560px;padding:82px 18px 45px;background-image:linear-gradient(0deg,#07070b 8%,rgba(7,7,11,.2) 72%),linear-gradient(90deg,rgba(7,7,11,.65),transparent),var(--hero);background-position:center}
+  .movie-library-hero,.movie-detail-hero{min-height:540px;padding:82px 18px 45px;background-image:linear-gradient(0deg,#090908 8%,rgba(9,9,8,.16) 72%),var(--hero);background-position:center}.movie-library-hero h2,.movie-detail-hero h2{font-size:clamp(48px,12vw,78px)}
   .show-home-hero .media-hero-copy,.show-detail-hero .media-hero-copy{width:100%;align-self:flex-end}.show-home-hero h2,.show-detail-hero h2{font-size:clamp(52px,13vw,88px);max-width:8ch}.cinema-orbits{right:-260px;width:720px;opacity:.58}.cinema-index{font-size:130px}
   .media-hero-copy{width:100%}.media-overview{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .media-row-section,.media-grid-section{margin-bottom:28px}
@@ -1245,6 +1253,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   .show-command-bar{margin:-26px 0 34px}.season-head{flex-wrap:wrap}.season-head>span{margin-right:0}.season-head h4{flex:1 1 60%}.episode-list{grid-template-columns:1fr}.episode-launch{opacity:1;transform:none}.episode-actions button{min-height:34px}
   .spotify-hero{min-height:300px;padding:35px 8px 24px;gap:18px}.spotify-disc{width:135px}.spotify-hero h2{font-size:42px}.spotify-track-head{display:none}.spotify-track{grid-template-columns:30px minmax(0,1fr) 55px}.track-album,.track-added{display:none}
   .music-dock{left:0;height:76px;padding:8px 10px}.music-now-art{width:48px;height:48px}.music-now-copy{width:115px}.music-dock #musicVolume,.music-dock #musicMute,.music-dock-time{display:none}
+  .movie-versions>article{grid-template-columns:minmax(0,1fr) repeat(2,auto)}.movie-versions>article button:last-child{display:none}
 }
 @media (max-width:560px){
   header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;height:60px}
@@ -1262,6 +1271,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   .pl-time{min-width:36px;font-size:10.5px}.pl-scrub{gap:8px}
   .rail #railCount,.rail #railDisk{display:none}
   .show-home-hero,.show-detail-hero{min-height:510px}.show-home-hero h2,.show-detail-hero h2{font-size:50px}.cinema-orbits,.cinema-index{display:none}.show-command-bar{grid-template-columns:1fr}.show-command-bar>div{border-right:0;border-bottom:1px solid rgba(255,255,255,.08)!important;padding:16px 18px}.show-command-bar>div:last-child{border-bottom:0!important}.season-head button{flex:1}.episode-copy small{font-size:9px}.episode-actions{flex-wrap:wrap}.episode-actions .episode-convert{margin-left:0}.cast-card{flex-basis:105px}.related-card{flex-basis:270px}
+  .movie-library-hero,.movie-detail-hero{min-height:500px}.movie-library-hero h2,.movie-detail-hero h2{font-size:48px}.ai-library-strip small{white-space:normal}.ai-library-strip button{padding:8px}.movie-versions>article{grid-template-columns:minmax(0,1fr) auto}.movie-versions>article button:not(:first-of-type){display:none}
   .spotify-hero{display:block}.spotify-disc{width:120px;margin-bottom:20px}.spotify-album-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.music-dock #musicSeek{display:none}.music-dock{gap:5px}.music-now-copy{flex:1;width:auto}
 }
 @media (prefers-reduced-motion:reduce){
@@ -1473,7 +1483,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 
 const $ = (s) => document.querySelector(s);
 const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
-const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', mode: 'files', showDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', mode: 'files', showDetail: null, movieDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
 const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
@@ -1742,9 +1752,28 @@ function visible(){
 const mediaHomeActive = () => state.mode === 'entertainment' && ['movies','series','music'].includes(state.shelf) && !state.folder;
 
 function cleanMediaTitle(name){
-  return name.replace(/\.[^.]+$/, '').replace(/[._]+/g, ' ')
-    .replace(/\s*[\[(](?:2160p|1080p|720p|4k|web.?dl|bluray|x26[45]).*$/i, '')
-    .replace(/\s+/g, ' ').trim();
+  let title=name.replace(/\.[^.]+$/, '').replace(/[._]+/g,' ');
+  const noise=/\b(?:2160p|1080p|720p|480p|4k|uhd|hdr10?|dolby[ ._-]*vision|dv|x26[45]|h[ ._-]*26[45]|hevc|av1|bluray|blu[ ._-]*ray|bdrip|brrip|webrip|web[ ._-]*dl|hdtv|dvdrip|remux|aac\d?|ac3|eac3|dts(?:[ ._-]*hd)?|truehd|atmos|ddp?\s?5[. ]1|flac|proper|repack|internal|limited|multi|dual|subbed|dubbed)\b/i;
+  const at=title.search(noise);if(at>0)title=title.slice(0,at);
+  return title.replace(/\[[^\]]*\]/g,' ').replace(/\((?!19\d{2}|20\d{2})[^)]*\)/g,' ')
+    .replace(/\s+-\s+[A-Za-z0-9]{2,18}$/,'').replace(/[-–—\s]+$/,'').replace(/\s+/g,' ').trim();
+}
+
+const MOVIE_EXTRA=/(^|[\/\s._-])(sample|trailer|teaser|featurette|extras?|bonus|behind[ ._-]*the[ ._-]*scenes|deleted[ ._-]*scenes?|interviews?|proof)([\/\s._-]|$)/i;
+function movieGroups(files){
+  const groups=new Map();
+  for(const file of files){
+    const folder=(file.dir||'').split('/').filter(Boolean)[0];const source=folder||file.name;const label=cleanMediaTitle(source)||cleanMediaTitle(file.name);
+    const year=(source.match(/(?:^|[\s.(\[])(19\d{2}|20\d{2})(?=$|[\s.)\]])/)||[])[1]||'';
+    const identity=label.replace(/\b(?:19\d{2}|20\d{2})\b/g,'').replace(/[^a-z0-9]+/gi,' ').trim().toLowerCase()||file.rel.toLowerCase();
+    const key=`${identity}|${year}`;if(!groups.has(key))groups.set(key,{key,label:label||'Untitled movie',year,files:[],extras:[]});
+    const group=groups.get(key);(MOVIE_EXTRA.test(`${file.dir||''}/${file.name}`)?group.extras:group.files).push(file);
+  }
+  return [...groups.values()].map((group)=>{
+    const candidates=group.files.length?group.files:group.extras;
+    candidates.sort((a,b)=>((b.watch&&!b.watch.done)-(a.watch&&!a.watch.done))||b.size-a.size);
+    group.representative=candidates[0];group.hiddenCount=group.extras.length+Math.max(0,group.files.length-1);return group;
+  }).filter((group)=>group.representative).sort((a,b)=>b.representative.modified-a.representative.modified);
 }
 
 function mediaCard(f, i, { episode = false, music = false } = {}){
@@ -1801,8 +1830,32 @@ function mediaRow(title, items, list, options = {}){
 function entertainmentTop(){
   return `<div class="ent-top"><button class="ent-home" data-ent="movies"><span>VAULT</span> Entertainment</button>
     <nav>${[['movies','Movies'],['series','Shows'],['music','Music']].map(([id,label])=>`<button data-ent="${id}" class="${state.shelf===id?'on':''}">${label}</button>`).join('')}</nav>
-    ${state.showDetail?`<button class="ent-back" data-show-back>← All shows</button>`:''}
+    ${state.showDetail||state.movieDetail?`<button class="ent-back" data-library-back>← ${state.showDetail?'All shows':'All movies'}</button>`:''}
     <label class="ent-search"><span>⌕</span><input id="entSearch" value="${esc(state.q)}" placeholder="Search ${state.shelf==='series'?'shows and episodes':state.shelf}"></label></div>`;
+}
+
+function aiStatusStrip(){
+  const ai=state.aiSubtitles||{};
+  return `<section class="ai-library-strip ${ai.available?'ready':'missing'}"><span class="ai-pulse"></span><div><b>${ai.available?'Local AI subtitles ready':'AI subtitles need one server setup step'}</b><small>${ai.available?`${esc(ai.model||'medium')} model · ${esc(ai.device||'auto')} device selection`:esc(ai.diagnostic||'faster-whisper is not available to Vault')}</small></div><button data-ai-setup>${ai.available?'Details':'Set up'}</button></section>`;
+}
+
+function movieCard(group,list){
+  const file=group.representative,i=list.indexOf(file),meta=state.artwork?`data-meta="${esc(url('meta',file.rel))}"`:'';
+  const pct=file.watch&&file.watch.dur?Math.min(100,file.watch.pos/file.watch.dur*100):0;
+  return `<button class="media-card movie-card" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}" ${meta}><span class="media-art">${state.thumbs?`<img src="${url('thumb',file.rel)}" alt="" loading="lazy">`:''}<span class="media-play">Explore</span>${pct?`<span class="watch-bar"><i style="width:${pct}%"></i></span>`:''}</span><span class="media-card-copy"><b>${esc(group.label)}</b><small>${group.year?`${esc(group.year)} · `:''}${file.watch?.done?'Watched':file.watch&&!file.watch.done?'Continue watching':ago(file.modified)}</small></span></button>`;
+}
+
+function movieHero(group,list){
+  const file=group.representative,i=list.indexOf(file),meta=state.artwork?`data-meta="${esc(url('meta',file.rel))}"`:'';
+  return `<section class="media-hero movie-library-hero" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy"><span class="media-kicker">Feature presentation</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">One clean feature from your private cinema, with release noise and auxiliary files kept out of the spotlight.</p><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">▶ ${file.watch&&!file.watch.done?'Continue':'Play'}</button><button class="media-secondary" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}">Movie details</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">MP4</button>`:''}</div></div></section>`;
+}
+
+function movieDetailView(group,list){
+  const file=group.representative,i=list.indexOf(file),meta=state.artwork?`data-meta="${esc(url('meta',file.rel))}"`:'';const done=!!file.watch?.done;
+  return `<div class="media-library movie-detail">${entertainmentTop()}<section class="media-hero movie-detail-hero" data-detail-meta="${esc(url('meta',file.rel))}" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy"><span class="media-kicker">Vault feature</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">Metadata is loading for this feature.</p><div class="show-genres"></div><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">▶ ${file.watch&&!file.watch.done?'Continue':'Play movie'}</button><button class="media-secondary" data-ai-file data-i="${i}">Generate AI subtitles</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">Convert to MP4</button>`:''}<button class="media-secondary" data-watch="${done?'clear':'done'}" data-i="${i}">${done?'Mark unwatched':'Mark watched'}</button></div></div></section>
+  <section class="show-command-bar movie-facts"><div><span>File</span><b>${esc(file.name)}</b></div><div><span>Rating</span><b id="showRating">—</b></div><div><span>Status</span><b id="showStatus">In library</b></div><div><span>Runtime</span><b id="showRuntime">—</b></div></section>${aiStatusStrip()}
+  ${group.files.length>1?`<section class="movie-versions"><div class="media-row-head"><h3>Available versions</h3><span>${group.files.length}</span></div>${group.files.map((version)=>{const at=list.indexOf(version);return `<article><div><b>${esc(version.name)}</b><small>${version.ext.toUpperCase()} · ${bytes(version.size)}</small></div><button data-act="open" data-i="${at}">Play</button>${version.ext==='mkv'?`<button data-act="convert" data-i="${at}">MP4</button>`:''}<button data-act="get" data-i="${at}">Get</button></article>`;}).join('')}</section>`:''}
+  <section class="cast-section" id="showCast" hidden><div class="media-row-head"><h3>Cast</h3></div><div class="cast-row"></div></section><section class="related-section" id="showRelated" hidden><div class="media-row-head"><h3>Because you chose this</h3></div><div class="related-row"></div></section></div>`;
 }
 
 function seriesGroups(files){
@@ -1895,13 +1948,15 @@ function mediaView(list){
     `<button data-act="folder" data-i="${list.indexOf(f)}"><span>▰</span>${esc(f.name)}</button>`).join('')}</div>` : '';
 
   if(state.shelf === 'movies'){
-    const watching = files.filter((f)=>f.watch && !f.watch.done).slice(0,12);
-    return `<div class="media-library movies-library">${entertainmentTop()}${mediaHero(feature, featureIndex, 'movies')}${folderStrip}
-      ${mediaRow('Continue watching', watching, list)}
-      ${mediaRow('Recently added', files.slice(0,18), list)}
+    const movies=movieGroups(files);const detail=state.movieDetail&&movies.find((movie)=>movie.key===state.movieDetail);if(detail)return movieDetailView(detail,list);
+    const featured=movies.find((movie)=>movie.representative.watch&&!movie.representative.watch.done)||movies[0];
+    const watching=movies.filter((movie)=>movie.representative.watch&&!movie.representative.watch.done).slice(0,12);
+    return `<div class="media-library movies-library">${entertainmentTop()}${movieHero(featured,list)}${aiStatusStrip()}${folderStrip}
+      ${watching.length?`<section class="media-row-section"><div class="media-row-head"><h3>Continue watching</h3><span>${watching.length}</span></div><div class="media-row-cards">${watching.map((movie)=>movieCard(movie,list)).join('')}</div></section>`:''}
+      <section class="media-row-section"><div class="media-row-head"><h3>Recently added</h3><span>${Math.min(movies.length,18)}</span></div><div class="media-row-cards">${movies.slice(0,18).map((movie)=>movieCard(movie,list)).join('')}</div></section>
       <section class="related-section" id="entRecommendations" hidden><div class="media-row-head"><h3>Recommended for you</h3></div><div class="related-row"></div></section>
-      <section class="media-grid-section"><div class="media-row-head"><h3>All movies</h3><span>${files.length}</span></div>
-        <div class="media-poster-grid">${files.map((f)=>mediaCard(f,list.indexOf(f))).join('')}</div></section></div>`;
+      <section class="media-grid-section"><div class="media-row-head"><h3>Feature library</h3><span>${movies.length} movies</span></div>
+        <div class="media-poster-grid">${movies.map((movie)=>movieCard(movie,list)).join('')}</div></section></div>`;
   }
 
   if(state.shelf === 'series'){
@@ -1967,11 +2022,11 @@ function render(){
   }
   $('#shelves').innerHTML = rows.join('');
   $('#shelves').querySelectorAll('.shelf').forEach((b) => {
-    b.onclick = () => { state.mode='files';state.showDetail=null;state.shelf = b.dataset.shelf; state.folder = ''; state.q='';$('#q').value='';state.picked.clear(); render(); $('#scroll').scrollTop = 0; };
+    b.onclick = () => { state.mode='files';state.showDetail=null;state.movieDetail=null;state.shelf = b.dataset.shelf; state.folder = ''; state.q='';$('#q').value='';state.picked.clear(); render(); $('#scroll').scrollTop = 0; };
   });
   const entertainmentShelves=[['movies','Movies'],['series','Shows'],['music','Music']].filter(([id])=>SHELF_ORDER.includes(id));
   $('#entertainment').innerHTML=entertainmentShelves.map(([id,label])=>`<button class="ent-side ${state.mode==='entertainment'&&state.shelf===id?'on':''}" data-ent-side="${id}"><span>${id==='movies'?'◆':id==='series'?'▣':'♪'}</span><b>${label}</b><em>${counts[id]||0}</em></button>`).join('');
-  $('#entertainment').querySelectorAll('[data-ent-side]').forEach((b)=>b.onclick=()=>{state.mode='entertainment';state.shelf=b.dataset.entSide;state.folder='';state.showDetail=null;state.q='';$('#q').value='';state.picked.clear();render();$('#scroll').scrollTop=0;});
+  $('#entertainment').querySelectorAll('[data-ent-side]').forEach((b)=>b.onclick=()=>{state.mode='entertainment';state.shelf=b.dataset.entSide;state.folder='';state.showDetail=null;state.movieDetail=null;state.q='';$('#q').value='';state.picked.clear();render();$('#scroll').scrollTop=0;});
 
   // disk
   if(state.disk){
@@ -2321,6 +2376,7 @@ function wire(){
       const act = el.dataset.act;
       if(act==='folder'){ openFolder(f); return; }
       if(act==='show'){ state.showDetail=el.dataset.show;state.q='';$('#q').value='';render();$('#scroll').scrollTop=0;return; }
+      if(act==='movie'){ state.movieDetail=el.dataset.movie;state.q='';$('#q').value='';render();$('#scroll').scrollTop=0;return; }
       if(act==='music'){ playMusic(f,list.filter((x)=>AUDIO.includes(x.ext)));return; }
       if(act==='open') openViewer(f);
       if(act==='convert') askConvert(f);
@@ -2457,15 +2513,15 @@ function wire(){
   });
 
   $('#scroll').querySelectorAll('[data-ent]').forEach((b)=>b.onclick=()=>{
-    state.mode='entertainment';state.shelf=b.dataset.ent;state.folder='';state.showDetail=null;state.q='';
+    state.mode='entertainment';state.shelf=b.dataset.ent;state.folder='';state.showDetail=null;state.movieDetail=null;state.q='';
     $('#q').value='';render();$('#scroll').scrollTop=0;
   });
   const entSearch=$('#entSearch');
   if(entSearch){let timer;entSearch.oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>{
-    state.q=entSearch.value.trim();state.showDetail=null;$('#q').value=state.q;render();
+    state.q=entSearch.value.trim();state.showDetail=null;state.movieDetail=null;$('#q').value=state.q;render();
   },220);};}
-  const showBack=$('[data-show-back]');
-  if(showBack)showBack.onclick=()=>{state.showDetail=null;render();$('#scroll').scrollTop=0;};
+  const libraryBack=$('[data-library-back]');
+  if(libraryBack)libraryBack.onclick=()=>{state.showDetail=null;state.movieDetail=null;render();$('#scroll').scrollTop=0;};
   $('#scroll').querySelectorAll('[data-mass-convert]').forEach((b)=>b.onclick=()=>{
     const scope=b.dataset.massConvert;
     askMassConvert(currentShowFiles(scope,b.dataset.season),scope==='show'?'show':`season ${b.dataset.season}`);

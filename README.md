@@ -357,7 +357,7 @@ Kept in `activity.log`, capped at 4000 entries (`activityMax`), written in batch
 `/api/health` needs no authentication and returns nothing sensitive — no paths, no account names, no file counts. Point an uptime monitor at it.
 
 ```json
-{ "ok": true, "build": "vault-cinema-cut-20260825", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
+{ "ok": true, "build": "vault-cinema-metadata-ai-20260825", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
 ```
 
 It returns **503** when something is actually wrong. `storage` is the useful field:

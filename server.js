@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-cinema-cut-20260825';
+const BUILD_ID = 'vault-cinema-metadata-ai-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1505,7 +1505,7 @@ app.get('/api/files', auth, async (req, res) => {
     files: out, folders, disk, thumbs: HAS_FFMPEG, mkvTranscode: HAS_H264_ENCODER,
     transcoder: TRANSCODER ? { label: TRANSCODER.label, hardware: TRANSCODER.hardware } : null,
     qualities: Object.values(QUALITY_PROFILES).map(({ id, label }) => ({ id, label })),
-    aiSubtitles: { available: HAS_AI_SUBTITLES, model: config.whisperModel || 'medium', device: config.whisperDevice || 'auto' },
+    aiSubtitles: { available: HAS_AI_SUBTITLES, model: config.whisperModel || 'medium', device: config.whisperDevice || 'auto', diagnostic: AI_SUBTITLE_STATUS.diagnostic },
     role: req.user.role, artwork: !!TMDB_KEY,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
@@ -1883,6 +1883,7 @@ app.get('/api/health', async (req, res) => {
     gpuTranscode: !!(TRANSCODER && TRANSCODER.hardware),
     encoderDiagnostics: ENCODER_DIAGNOSTICS,
     aiSubtitles: HAS_AI_SUBTITLES,
+    aiSubtitleDiagnostics: AI_SUBTITLE_STATUS.diagnostic,
     qualities: Object.keys(QUALITY_PROFILES),
     uptimeSec: Math.round(process.uptime()),
   });
@@ -2366,12 +2367,20 @@ app.get('/api/scrub/*', auth, shelfGate, async (req, res) => {
 const WHISPER_PYTHON = config.whisperPython || 'python3';
 const WHISPER_SCRIPT = path.join(__dirname, 'scripts', 'transcribe.py');
 const WHISPER_MODELS = new Set(['tiny', 'base', 'small', 'medium', 'large-v3']);
-const HAS_AI_SUBTITLES = (() => {
+const AI_SUBTITLE_STATUS = (() => {
+  if (!fs.existsSync(WHISPER_SCRIPT)) return { available: false, diagnostic: 'transcription script missing' };
   try {
-    return fs.existsSync(WHISPER_SCRIPT)
-      && spawnSync(WHISPER_PYTHON, ['-c', 'import faster_whisper'], { stdio: 'ignore', timeout: 12000 }).status === 0;
-  } catch { return false; }
+    const result = spawnSync(WHISPER_PYTHON, ['-c', 'import faster_whisper; print(faster_whisper.__version__)'], {
+      encoding: 'utf8', timeout: 12000,
+    });
+    if (result.status === 0) return { available: true, diagnostic: `ready via ${WHISPER_PYTHON} (${String(result.stdout || '').trim() || 'version unknown'})` };
+    const detail = String(result.stderr || result.error?.message || `Python exited ${result.status}`).replace(/\s+/g, ' ').trim().slice(0, 360);
+    return { available: false, diagnostic: detail || `faster-whisper is not installed for ${WHISPER_PYTHON}` };
+  } catch (error) {
+    return { available: false, diagnostic: error.message || `could not run ${WHISPER_PYTHON}` };
+  }
 })();
+const HAS_AI_SUBTITLES = AI_SUBTITLE_STATUS.available;
 const MAX_SUBTITLE_JOBS = Math.max(1, Math.min(Number(config.subtitleJobs) || 1, 2));
 const subtitleJobs = new Map();
 const subtitleQueue = [];
@@ -2632,29 +2641,36 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
   let st;
   try { st = await fsp.stat(full); } catch { return res.status(404).end(); }
 
-  const key = crypto.createHash('sha256').update(`meta-v3\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
+  const key = crypto.createHash('sha256').update(`meta-v4\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
   const cacheFile = path.join(META_DIR, `${key}.json`);
   try {
     return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
   } catch { /* look it up */ }
 
   const name = path.basename(full);
-  const { title, year, kind: guessKind, season } = guessTitle(name);
+  const guessed = guessTitle(name);
+  const mediaShelf = shelfOf(req.params[0]);
+  const title = guessed.title;
+  const year = guessed.year;
+  const season = guessed.season;
+  // The shelf is stronger evidence than a fuzzy search result. Movies should
+  // never turn into a TV match merely because search/multi ranked one first.
+  const guessKind = mediaShelf === 'series' ? 'tv' : mediaShelf === 'movies' ? 'movie' : guessed.kind;
   if (!title || title.length < 2) return res.json({ enabled: true, found: false });
 
   let data = { enabled: true, found: false, guessed: title };
   try {
-    const q = new URLSearchParams({ api_key: TMDB_KEY, query: title });
-    if (year) q.set('year', year);
+    const q = new URLSearchParams({ api_key: TMDB_KEY, query: title, include_adult: 'false', language: 'en-US' });
+    if (year) q.set(guessKind === 'tv' ? 'first_air_date_year' : 'year', year);
     // A filename that parsed as an episode is a show, so don't let a film with
     // a similar name win the match.
-    const endpoint = guessKind === 'tv' ? 'search/tv' : 'search/multi';
+    const endpoint = guessKind === 'tv' ? 'search/tv' : guessKind === 'movie' ? 'search/movie' : 'search/multi';
     const r = await fetch(`https://api.themoviedb.org/3/${endpoint}?${q}`, {
       signal: AbortSignal.timeout(8000),
     });
     if (r.ok) {
       const j = await r.json();
-      const hit = guessKind === 'tv'
+      const hit = guessKind === 'tv' || guessKind === 'movie'
         ? (j.results || [])[0]
         : (j.results || []).find((x) => x.media_type === 'movie' || x.media_type === 'tv');
       if (hit) {
@@ -3075,6 +3091,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
     console.log(`Vault: ${ROOT}`);
     console.log(`Thumbnails: ${HAS_FFMPEG ? 'on' : 'off (ffmpeg not found)'}`);
     console.log(`Media transcoder: ${TRANSCODER ? TRANSCODER.label : 'off (no usable H.264 encoder)'}`);
-    console.log(`AI subtitles: ${HAS_AI_SUBTITLES ? `${config.whisperModel || 'medium'} via ${config.whisperDevice || 'auto'}` : 'off (install faster-whisper)'}`);
+    console.log(`AI subtitles: ${HAS_AI_SUBTITLES ? `${config.whisperModel || 'medium'} via ${config.whisperDevice || 'auto'}` : `off (${AI_SUBTITLE_STATUS.diagnostic})`}`);
   });
 })();
