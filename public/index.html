@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
+<meta name="vault-build" content="vault-mkv-cachefix-20260825">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1259,6 +1260,7 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
 'use strict';
 
 const $ = (s) => document.querySelector(s);
+const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
 const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, artwork: false, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
 const droppedPaths = new WeakMap();
 
@@ -1974,7 +1976,7 @@ async function openViewer(f){
   $('#vBody').innerHTML = `<div class="viewer-note"><p>Checking what's inside…</p></div>`;
   let info = {};
   try{
-    const r = await fetch(url('mediainfo', f.rel));
+    const r = await fetch(url('mediainfo', f.rel), { cache:'no-store' });
     info = await r.json();
   }catch{ /* fall through to the download note */ }
 
@@ -3379,8 +3381,19 @@ $('#tGroup').classList.add('accent');   // grouping is on by default
 
 /* ── boot */
 (async () => {
-  const r = await fetch('/api/session');
+  const r = await fetch('/api/session', { cache:'no-store' });
   const d = await r.json();
+  // A deploy can leave index.html in a browser or CDN cache while the API is
+  // already new. Reload once with the server build in the cache key so both
+  // halves of the app are guaranteed to come from the same release.
+  if(d.build && FRONTEND_BUILD && d.build !== FRONTEND_BUILD){
+    const fresh = new URL(location.href);
+    if(fresh.searchParams.get('_build') !== d.build){
+      fresh.searchParams.set('_build', d.build);
+      location.replace(fresh);
+      return;
+    }
+  }
   if(d.build){
     const label = `build ${d.build}`;
     $('#gateBuild').textContent = label;

@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-mkv-fallback-20260825';
+const BUILD_ID = 'vault-mkv-cachefix-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -953,6 +953,15 @@ app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
+  // These responses describe the process currently serving the request. A
+  // cached copy can pair old browser code with a new backend and make a fixed
+  // feature look broken, so neither browsers nor intermediary CDNs may reuse it.
+  if (req.path === '/api/session' || req.path === '/api/health'
+      || req.path.startsWith('/api/mediainfo/')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('CDN-Cache-Control', 'no-store');
+    res.setHeader('Cloudflare-CDN-Cache-Control', 'no-store');
+  }
   next();
 });
 
@@ -2294,7 +2303,17 @@ app.delete('/api/progress', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));
+app.use(express.static(path.join(__dirname, 'public'), {
+  index: 'index.html',
+  setHeaders: (res, file) => {
+    if (path.basename(file) !== 'index.html') return;
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('CDN-Cache-Control', 'no-store');
+    res.setHeader('Cloudflare-CDN-Cache-Control', 'no-store');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  },
+}));
 
 // ---------------------------------------------------------------- boot
 
