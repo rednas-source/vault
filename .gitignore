@@ -6,3 +6,4 @@ users.json
 node_modules/
 storage/
 *.log
+scripts/__pycache__/

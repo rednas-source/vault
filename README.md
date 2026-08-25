@@ -16,7 +16,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Accounts with per-shelf access.** Each member sees only the shelves you give them.
 - **API tokens and a CLI**, for moving files in and out from a terminal or a script.
 - **Plays MKV in the browser.** Choose 720p, 1080p, 4K, or Original; Vault auto-detects NVENC, Quick Sync, or VAAPI and falls back to CPU when needed.
-- **Converts MKV to MP4.** Background jobs keep the source, report progress, and use the same GPU-aware quality profiles.
+- **Converts MKV to MP4.** Background jobs report progress, use the same GPU-aware quality profiles, and can safely replace a verified source.
 - **Hover a video tile** to scrub through nine frames from across its runtime.
 - **Episodes collapse into seasons** automatically, from the filename.
 - **Bulk select**, move, and delete.
@@ -26,6 +26,8 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Resume where you left off**, per person, with a Continue watching rail.
 - **Subtitles**, embedded or sidecar, converted on the fly.
 - **Poster art** from TMDB, optional.
+- **Entertainment libraries.** Movies and Shows get a streaming-service browser; Music gets its own Spotify-inspired library and persistent player.
+- **Local AI subtitles.** Generate WebVTT sidecars with faster-whisper, on GPU when CUDA is available or CPU otherwise.
 - **Light and dark themes.**
 
 ---
@@ -76,6 +78,10 @@ Create `config.json`:
   "defaultTranscodeQuality": "1080",
   "remuxStreams": 3,
   "convertJobs": 1,
+  "whisperPython": "python3",
+  "whisperModel": "medium",
+  "whisperDevice": "auto",
+  "subtitleJobs": 1,
   "https": true
 }
 ```
@@ -94,6 +100,10 @@ Create `config.json`:
 | `vaapiDevice` | Optional. VAAPI render device, default `/dev/dri/renderD128`. |
 | `defaultTranscodeQuality` | Optional. `720`, `1080`, `2160`, or `original`; default `1080`. |
 | `convertJobs` | Optional. Simultaneous background MP4 conversions, default 1. |
+| `whisperPython` | Optional. Python executable containing `faster-whisper`, default `python3`. A virtual-environment path is recommended. |
+| `whisperModel` | Optional. `tiny`, `base`, `small`, `medium`, or `large-v3`; default `medium`. |
+| `whisperDevice` | Optional. `auto`, `cuda`, or `cpu`; default `auto`. |
+| `subtitleJobs` | Optional. Simultaneous AI subtitle jobs, default 1 and capped at 2. |
 | `activityMax` | Optional. Activity entries retained, default 4000. |
 | `tmdbKey` | Optional. Enables poster art. Leave out to keep it off. |
 
@@ -111,7 +121,9 @@ Start the app once. It hashes that password into `users.json`, makes the account
 apt install -y ffmpeg
 ```
 
-On startup, check the `Media transcoder:` line or `/api/health`. It reports `NVIDIA NVENC`, `Intel Quick Sync`, `VAAPI GPU`, or `CPU libx264`. If auto-detection cannot access a GPU, make sure the `vault.service` user can access the GPU device/driver; for VAAPI this commonly means membership in the `render` group.
+On startup, check the `Media transcoder:` line or `/api/health`. It reports `NVIDIA NVENC`, `Intel Quick Sync`, `VAAPI GPU`, or `CPU libx264`. If auto-detection cannot access a GPU, `encoderDiagnostics` contains the failed real-world probe for each attempted encoder. An encoder appearing in `ffmpeg -encoders` only means the FFmpeg binary was compiled with support; it does not prove that a GPU or its driver is available to the container.
+
+For a Proxmox container, first verify the GPU and driver on the **Proxmox host**, then pass its device nodes into the container. Intel/AMD VAAPI normally needs `/dev/dri/renderD128`; NVIDIA needs the `/dev/nvidia*` devices and a compatible driver stack. If none of those devices exist inside the container, Vault correctly falls back to CPU. The exact container mapping depends on the GPU and CT ID, so inspect the host and `pct config <CTID>` before changing the container configuration.
 
 ```bash
 npm start
@@ -177,6 +189,8 @@ Each shelf has a **name** you can change freely and an **id** — the folder nam
 **Deleting a shelf never deletes files.** If it holds anything, you must nominate another shelf for the contents, and they're moved before the shelf goes. Name collisions get `(1)` appended rather than overwriting. The shelf is also removed from every account's permissions on the way out.
 
 Shelves live in `shelves.json`. If that file is missing or unreadable, the app rebuilds the defaults.
+
+The normal Movies, Series, and Music shelves remain ordinary file views. A separate **Entertainment** group below Shelves opens the richer library experience without changing where files live or how permissions work. Shows open a detail page with seasons, episodes, cast, related titles, recent additions, and continue-watching state. Music opens a Spotify-inspired album/folder browser with a player that stays docked while browsing.
 
 ---
 
@@ -280,6 +294,16 @@ Tracks embedded in the container and sidecar files beside it (`Film.srt`, `Film.
 
 Sidecar files are hidden from the file listing when they belong to a video that's also there — they're part of that item, not separate library entries. An orphaned subtitle with no matching video is still listed, since that's a file you might want to find.
 
+The player and show detail page can also generate local AI subtitles. Install `faster-whisper` in a virtual environment so system Python stays clean:
+
+```bash
+apt install -y python3-venv
+python3 -m venv /root/vault/.venv
+/root/vault/.venv/bin/pip install faster-whisper
+```
+
+Then set `"whisperPython": "/root/vault/.venv/bin/python"` and restart `vault.service`. Generated tracks are stored next to the video as `Title.ai.vtt` (or `Title.ai.en.vtt` when a language is selected), so they are reusable and move with the library. `whisperDevice: "auto"` tries CUDA first and falls back to CPU; it cannot use CUDA until the container has working NVIDIA device passthrough and runtime libraries.
+
 ---
 
 ## Poster art
@@ -306,7 +330,7 @@ Auto mode tests the actual encoder rather than trusting ffmpeg's compiled encode
 
 Pause terminates the private ffmpeg/HLS session and stores the exact logical timestamp. Play, seek, or a quality change starts a new session at that point. This is intentional: it prevents a paused live playlist from advancing invisibly and frees the GPU immediately.
 
-Choose **MP4** in a file row or player to create a durable copy beside the source. Compatible Original jobs are quick remuxes; other quality choices use the selected hardware encoder. The source is never replaced. One conversion runs at a time by default (`convertJobs`), while `remuxStreams` controls simultaneous viewers.
+Choose **MP4** in a file row or player to create a durable copy. Compatible Original jobs are quick remuxes; other quality choices use the selected hardware encoder. Individual conversions can keep the MKV or replace it. Show and season actions use replacement mode: Vault writes the MP4 to scratch space, atomically commits it, verifies that it contains a readable video stream, and only then deletes the MKV. A failed conversion or verification keeps the source. If an MP4 with the same name already exists, replacement is refused instead of creating a duplicate or overwriting anything. One conversion runs at a time by default (`convertJobs`), while `remuxStreams` controls simultaneous viewers.
 
 ---
 
@@ -333,7 +357,7 @@ Kept in `activity.log`, capped at 4000 entries (`activityMax`), written in batch
 `/api/health` needs no authentication and returns nothing sensitive — no paths, no account names, no file counts. Point an uptime monitor at it.
 
 ```json
-{ "ok": true, "storage": "ok", "freeMB": 246850, "thumbnails": true, "uptimeSec": 8134 }
+{ "ok": true, "build": "vault-entertainment-ai-20260825", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
 ```
 
 It returns **503** when something is actually wrong. `storage` is the useful field:

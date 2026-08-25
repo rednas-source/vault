@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-media-studio-20260825">
+<meta name="vault-build" content="vault-entertainment-ai-20260825">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1066,10 +1066,18 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
 }
 
 /* ══════════════════════════════════ media studio */
-body.media-mode .spectrum{display:none}
-body.media-mode .toolbar{padding-bottom:10px}
+body.media-mode .spectrum,body.media-mode .toolbar,body.media-mode header>.search{display:none}
 body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
+.ent-side-label{padding:18px 22px 8px!important;border-top:1px solid var(--line);margin-top:10px}
+.entertainment-side{padding:0 0 10px}
+.ent-side{width:100%;display:flex;align-items:center;gap:11px;padding:10px 22px;color:var(--dim);font-size:14px;position:relative}
+.ent-side>span{width:22px;color:var(--faint);font-size:16px;text-align:center}.ent-side b{flex:1;text-align:left;font-weight:500}.ent-side em{font-family:var(--mono);font-size:11px;font-style:normal;color:var(--faint)}
+.ent-side:hover{color:var(--text);background:var(--hover)}.ent-side.on{color:var(--star);background:linear-gradient(90deg,var(--star-soft),transparent)}.ent-side.on::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--star)}
 .media-library{--media-pad:clamp(16px,2.2vw,34px);padding:0 var(--media-pad);overflow:hidden}
+.ent-top{height:68px;display:flex;align-items:center;gap:24px;margin:0 calc(var(--media-pad) * -1);padding:0 var(--media-pad);position:sticky;top:0;z-index:12;background:rgba(7,8,9,.86);border-bottom:1px solid rgba(255,255,255,.07);backdrop-filter:blur(18px)}
+.ent-home{font-size:14px;font-weight:600;white-space:nowrap}.ent-home span{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--star);display:block;text-align:left}.ent-top nav{display:flex;gap:5px}.ent-top nav button,.ent-back{padding:9px 12px;font-size:13px;color:var(--dim);border-radius:4px}.ent-top nav button:hover,.ent-top nav button.on,.ent-back:hover{color:var(--text);background:rgba(255,255,255,.07)}.ent-top nav button.on{color:var(--star)}
+.ent-back{margin-left:auto}.ent-search{margin-left:auto;width:min(290px,28vw);display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid transparent;border-radius:5px;padding:8px 11px}.ent-search:focus-within{border-color:var(--star-edge);background:rgba(255,255,255,.1)}.ent-search span{color:var(--faint);font-size:18px}.ent-search input{min-width:0;width:100%;font-size:13px}.ent-search input::placeholder{color:var(--faint)}
+.ent-empty{min-height:55vh;display:grid;place-content:center;text-align:center}.ent-empty h2{font-size:32px}.ent-empty p{color:var(--dim);margin-top:8px}
 .media-hero{
   --hero:none;min-height:clamp(340px,52vh,620px);position:relative;display:flex;align-items:flex-end;
   padding:clamp(26px,5vw,72px);margin:0 calc(var(--media-pad) * -1) 30px;isolation:isolate;
@@ -1093,8 +1101,8 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 .media-row-head h3{font-size:clamp(18px,2vw,24px);font-weight:600;letter-spacing:-.02em}
 .media-row-head span{font-family:var(--mono);font-size:11px;color:var(--faint)}
 .media-row-cards{display:flex;gap:12px;overflow-x:auto;padding:3px 2px 14px;scroll-snap-type:x proximity;scrollbar-width:thin}
-.media-card{flex:0 0 clamp(155px,14vw,225px);text-align:left;min-width:0;scroll-snap-align:start;transition:transform .18s;position:relative}
-.media-card:hover{transform:translateY(-5px)}
+.media-card{flex:0 0 clamp(155px,14vw,225px);text-align:left;min-width:0;scroll-snap-align:start;transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .22s;position:relative;transform-origin:center}
+.media-card:hover{transform:translateY(-7px) scale(1.025);filter:brightness(1.08);z-index:3}
 .media-art{display:block;aspect-ratio:2/3;background:var(--raise);position:relative;overflow:hidden;border:1px solid var(--line);border-radius:4px;box-shadow:0 12px 26px rgba(0,0,0,.22)}
 .media-art>img{width:100%;height:100%;object-fit:cover;display:block}
 .media-art img.media-poster{position:absolute;inset:0;z-index:2;opacity:0;transition:opacity .3s}
@@ -1103,6 +1111,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 .media-ph{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:22px;letter-spacing:.12em;color:var(--faint);background:linear-gradient(145deg,var(--raise),var(--deep))}
 .media-play{position:absolute;z-index:4;left:50%;top:50%;width:46px;height:46px;display:grid;place-items:center;transform:translate(-50%,-42%) scale(.84);border-radius:50%;background:rgba(7,8,9,.82);color:#fff;opacity:0;transition:.18s;backdrop-filter:blur(5px)}
 .media-card:hover .media-play,.media-card:focus-visible .media-play{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.show-card .media-play{width:auto;height:auto;border-radius:999px;padding:10px 14px;white-space:nowrap;font-size:11px;font-family:var(--mono)}
 .media-card-copy{display:block;padding:10px 2px 0}
 .media-card-copy b{display:block;font-size:14px;line-height:1.35;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .media-card-copy small{display:block;margin-top:3px;font-family:var(--mono);font-size:10.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1117,6 +1126,23 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 .media-folders button:hover{border-color:var(--star-edge);color:var(--text)}
 .media-folders span{color:var(--star)}
 .music-library .media-hero{min-height:clamp(300px,44vh,520px);background-image:linear-gradient(90deg,var(--void),rgba(7,8,9,.56)),radial-gradient(circle at 74% 48%,rgba(127,217,255,.22),transparent 25%),var(--hero)}
+
+/* Show detail */
+.show-detail-hero{margin-bottom:0;min-height:clamp(480px,66vh,760px)}
+.show-genres{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}.show-genres span{font-size:11px;padding:5px 8px;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#e4e9ed;background:rgba(0,0,0,.22)}
+.show-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);margin:0 0 34px}.show-facts>div{background:var(--deep);padding:18px 22px}.show-facts span{display:block;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--faint)}.show-facts b{display:block;margin-top:5px;font-size:16px}
+.show-episodes{margin-bottom:42px}.season-block{border-top:1px solid var(--line);padding:22px 0 8px}.season-head{display:flex;align-items:center;gap:11px;margin-bottom:13px}.season-head h4{font-size:20px}.season-head>span{font-family:var(--mono);font-size:10px;color:var(--faint);margin-right:auto}.season-head button{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border:1px solid var(--line);padding:7px 9px;border-radius:3px}.season-head button:hover{color:var(--star);border-color:var(--star-edge)}
+.episode-list{display:flex;flex-direction:column}.show-episode{display:grid;grid-template-columns:36px minmax(180px,260px) minmax(0,1fr) 38px;align-items:center;gap:14px;padding:11px 8px;border-radius:5px;text-align:left;transition:background .16s,transform .16s}.show-episode:hover{background:rgba(255,255,255,.055);transform:translateX(4px)}.episode-number{font-family:var(--mono);color:var(--faint);text-align:center}.episode-still{aspect-ratio:16/9;background:var(--raise);position:relative;overflow:hidden;border-radius:3px}.episode-still img{width:100%;height:100%;object-fit:cover}.episode-still i{position:absolute;left:0;bottom:0;height:3px;background:var(--star)}.episode-copy{min-width:0}.episode-copy b,.episode-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.episode-copy b{font-size:14px}.episode-copy small{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:4px}.episode-play{width:34px;height:34px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--dim)}.show-episode:hover .episode-play{color:#fff;border-color:#fff}
+.cast-section,.related-section{margin-bottom:40px}.cast-row,.related-row{display:flex;gap:13px;overflow-x:auto;padding:3px 2px 14px}.cast-card{flex:0 0 135px}.cast-card img,.cast-card>span{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:5px;background:var(--raise);display:grid;place-items:center;font-size:30px}.cast-card b,.cast-card small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cast-card b{font-size:13px;margin-top:8px}.cast-card small{font-size:11px;color:var(--faint)}
+.related-card{flex:0 0 320px;background:var(--deep);border:1px solid var(--line);border-radius:5px;overflow:hidden;transition:transform .18s,border-color .18s}.related-card:hover{transform:translateY(-5px);border-color:var(--star-edge)}.related-card>img,.related-card>span{width:100%;height:175px;object-fit:cover;display:grid;place-items:center;background:var(--raise);font-size:30px}.related-card>div{padding:12px}.related-card b{display:block}.related-card small{font-family:var(--mono);font-size:10px;color:var(--star)}.related-card p{font-size:12px;color:var(--dim);line-height:1.5;margin-top:7px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Spotify-inspired music library */
+.spotify-library{padding-bottom:115px;background:linear-gradient(180deg,rgba(39,88,74,.2),transparent 420px)}
+.spotify-hero{min-height:330px;display:flex;align-items:flex-end;gap:28px;padding:52px 18px 34px;background:linear-gradient(135deg,rgba(41,143,105,.46),rgba(17,30,36,.3),transparent)}.spotify-disc{width:clamp(170px,20vw,270px);aspect-ratio:1;display:grid;place-items:center;font-size:80px;color:#fff;border-radius:8px;background:radial-gradient(circle at 32% 27%,#54d7ad,#137353 35%,#0d1717 75%);box-shadow:0 24px 52px rgba(0,0,0,.45)}.spotify-hero h2{font-size:clamp(38px,6vw,82px);line-height:1;letter-spacing:-.05em;margin:10px 0}.spotify-hero p{color:#c8d0d0}.spotify-play-all{margin-top:20px;background:#54d7ad;color:#04100c;border-radius:999px;padding:13px 20px;font-weight:700}.spotify-play-all:hover{transform:scale(1.04)}
+.spotify-albums,.spotify-tracks{margin:28px 0 42px}.spotify-album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}.spotify-album{text-align:left;background:rgba(255,255,255,.035);padding:12px;border-radius:7px;transition:.2s}.spotify-album:hover{background:rgba(255,255,255,.09);transform:translateY(-4px)}.album-cover{aspect-ratio:1;display:grid;place-items:center;position:relative;border-radius:5px;color:#fff;font-size:48px;background:linear-gradient(145deg,hsl(var(--album-hue) 55% 46%),hsl(calc(var(--album-hue) + 55) 40% 19%));box-shadow:0 12px 24px rgba(0,0,0,.28)}.album-cover i{position:absolute;right:10px;bottom:10px;width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#54d7ad;color:#03100b;font-style:normal;opacity:0;transform:translateY(6px);transition:.18s}.spotify-album:hover .album-cover i{opacity:1;transform:none}.spotify-album b,.spotify-album small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spotify-album b{margin-top:10px;font-size:14px}.spotify-album small{font-size:11px;color:var(--faint);margin-top:3px}
+.spotify-track-head,.spotify-track{display:grid;grid-template-columns:42px minmax(200px,2fr) minmax(120px,1fr) 100px 60px;align-items:center;gap:12px}.spotify-track-head{padding:8px 12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--faint)}.spotify-track{width:100%;padding:10px 12px;text-align:left;border-radius:4px}.spotify-track:hover{background:rgba(255,255,255,.065)}.track-no{font-family:var(--mono);color:var(--faint)}.track-eq{display:none}.spotify-track:hover .track-no{display:none}.spotify-track:hover .track-eq{display:block}.track-title b,.track-title small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track-title b{font-size:14px}.track-title small,.track-album,.track-added,.track-type{font-size:11px;color:var(--faint)}.track-album,.track-added{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track-type{font-family:var(--mono)}
+.music-dock{position:fixed;z-index:35;left:238px;right:0;bottom:var(--rail);height:88px;background:rgba(12,15,18,.96);border-top:1px solid var(--line-hot);display:none;align-items:center;gap:11px;padding:11px 18px;backdrop-filter:blur(20px);box-shadow:0 -18px 48px rgba(0,0,0,.34)}.music-dock.on{display:flex}.music-now-art{width:56px;height:56px;display:grid;place-items:center;border-radius:4px;background:linear-gradient(145deg,#42b88f,#15352d);font-size:24px}.music-now-copy{width:min(220px,18vw);min-width:0}.music-now-copy b,.music-now-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.music-now-copy b{font-size:13px}.music-now-copy small{font-size:10px;color:var(--faint)}.music-dock>button{width:34px;height:34px;color:var(--dim)}.music-dock>button:hover{color:#fff}.music-dock .music-main-play{border-radius:50%;background:#fff;color:#050708}.music-dock input[type=range]{accent-color:#54d7ad}.music-dock #musicSeek{flex:1;min-width:80px}.music-dock #musicVolume{width:88px}.music-dock-time{font-family:var(--mono);font-size:9px;color:var(--faint)}
+.replace-warning{margin:12px 0;padding:10px 12px;border-left:2px solid var(--flare);background:rgba(255,106,88,.07);font-size:12px;color:var(--dim)}.replace-check{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--dim);font-size:13px}.replace-check input{accent-color:var(--star)}.ai-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.ai-options label{font-family:var(--mono);font-size:10px;text-transform:uppercase;color:var(--faint)}.ai-options select,.ai-options input{width:100%;display:block;margin-top:6px;border:1px solid var(--line);padding:10px;background:var(--deep);font-size:13px;color:var(--text)}
 
 /* Continue-watching removal and conversion choices */
 .rz-art .rz-remove{position:absolute;right:7px;top:7px;z-index:4;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:rgba(7,8,9,.82);color:#fff;opacity:0;transition:opacity .15s}
@@ -1144,6 +1170,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 /* Responsive shell, libraries, and player */
 @media (max-width:1100px){
   main{grid-template-columns:200px 1fr}
+  .music-dock{left:200px}
   .head-right .ghost:not(.accent):not([data-theme-toggle]):not(#btnOut){display:none}
   .media-hero-copy{width:min(620px,88%)}
   .media-card{flex-basis:180px}
@@ -1151,7 +1178,9 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 }
 @media (max-width:760px){
   body.media-mode .toolbar{padding-bottom:8px}
+  .ent-side-label{display:none}.entertainment-side{display:flex;overflow-x:auto;padding:0 12px 10px;gap:4px}.ent-side{width:auto;min-width:max-content;border:1px solid var(--line);padding:8px 11px}.ent-side.on::before{display:none}.ent-side em{display:none}
   .media-library{--media-pad:12px}
+  .ent-top{height:auto;min-height:62px;gap:6px;flex-wrap:wrap;padding-top:9px;padding-bottom:9px}.ent-home{display:none}.ent-top nav{order:1}.ent-back{order:2;margin-left:auto}.ent-search{order:3;flex:1 1 100%;width:100%;margin-left:0}
   .media-hero{min-height:390px;padding:28px 18px;margin-bottom:22px;background-image:linear-gradient(0deg,var(--void) 4%,rgba(7,8,9,.28) 78%),var(--hero);background-position:center}
   .media-hero-copy{width:100%}.media-overview{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .media-row-section,.media-grid-section{margin-bottom:28px}
@@ -1163,6 +1192,9 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   .pl-stage,.player video{max-height:calc(100vh - 175px)}
   #plPip,#plConvert{display:none}
   .pl-row{gap:2px}.pl-btn{min-width:34px;padding:0 5px}.pl-quality{min-width:52px}
+  .show-facts{grid-template-columns:1fr}.season-head{flex-wrap:wrap}.season-head>span{margin-right:0}.season-head h4{flex:1 1 60%}.show-episode{grid-template-columns:28px 120px minmax(0,1fr)}.episode-play{display:none}
+  .spotify-hero{min-height:300px;padding:35px 8px 24px;gap:18px}.spotify-disc{width:135px}.spotify-hero h2{font-size:42px}.spotify-track-head{display:none}.spotify-track{grid-template-columns:30px minmax(0,1fr) 55px}.track-album,.track-added{display:none}
+  .music-dock{left:0;height:76px;padding:8px 10px}.music-now-art{width:48px;height:48px}.music-now-copy{width:115px}.music-dock #musicVolume,.music-dock #musicMute,.music-dock-time{display:none}
 }
 @media (max-width:560px){
   header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;height:60px}
@@ -1176,8 +1208,11 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   .media-primary,.media-secondary{min-height:40px;padding:0 13px;font-size:12px}
   .convert-picks{grid-template-columns:repeat(2,1fr)}
   #plBack,#plFwd,.pl-vol,#plMute{display:none}.pl-gap{flex:1}
+  #plAI{display:none}
   .pl-time{min-width:36px;font-size:10.5px}.pl-scrub{gap:8px}
   .rail #railCount,.rail #railDisk{display:none}
+  .show-detail-hero{min-height:460px}.show-episode{grid-template-columns:24px 92px minmax(0,1fr);gap:8px;padding-left:0;padding-right:0}.episode-copy small{font-size:9px}.season-head button{flex:1}.cast-card{flex-basis:105px}.related-card{flex-basis:270px}
+  .spotify-hero{display:block}.spotify-disc{width:120px;margin-bottom:20px}.spotify-album-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.music-dock #musicSeek{display:none}.music-dock{gap:5px}.music-now-copy{flex:1;width:auto}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
@@ -1225,6 +1260,8 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
     <aside>
       <div class="tag">Shelves</div>
       <div class="shelves" id="shelves"></div>
+      <div class="ent-side-label tag">Entertainment</div>
+      <div class="entertainment-side" id="entertainment"></div>
       <div class="meter">
         <div class="tag" style="padding:0">Disk</div>
         <div class="meter-bar"><div class="meter-fill" id="diskFill"></div></div>
@@ -1270,6 +1307,15 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
     <span class="rail-build" id="railBuild">build checking…</span>
     <span class="rail-keys">? for keys</span>
     <span id="railState" class="live">idle</span>
+  </div>
+
+  <div class="music-dock" id="musicDock">
+    <div class="music-now-art" id="musicNowArt">♪</div>
+    <div class="music-now-copy"><b id="musicNowTitle">Nothing playing</b><small id="musicNowAlbum">Music</small></div>
+    <button id="musicPrev" title="Previous">◀</button><button class="music-main-play" id="musicPlay" title="Play / pause">▶</button><button id="musicNext" title="Next">▶</button>
+    <span class="music-dock-time" id="musicAt">0:00</span><input type="range" id="musicSeek" min="0" max="1000" value="0"><span class="music-dock-time" id="musicDur">0:00</span>
+    <button id="musicMute" title="Mute">🔊</button><input type="range" id="musicVolume" min="0" max="100" value="100">
+    <audio id="musicAudio" preload="metadata"></audio>
   </div>
 </div>
 
@@ -1377,7 +1423,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 
 const $ = (s) => document.querySelector(s);
 const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
-const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, transcoder: null, qualities: [], pendingShelf: null, group: true, open: new Set(), picked: new Set() };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', mode: 'files', showDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
 const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
@@ -1542,6 +1588,7 @@ async function load(){
   state.artwork = !!d.artwork;
   state.transcoder = d.transcoder || null;
   state.qualities = Array.isArray(d.qualities) ? d.qualities : [];
+  state.aiSubtitles = d.aiSubtitles || { available:false, model:'medium', device:'auto' };
   if(Array.isArray(d.shelves)){
     SHELF_ORDER = d.shelves.map((x)=>x.id);
     d.shelves.forEach((x)=>{ SHELF_LABEL[x.id] = x.label; });
@@ -1625,7 +1672,7 @@ function visible(){
     // Media shelf homepages are libraries rather than filesystem folders:
     // include nested titles so a Movies/Series/Music collection still feels
     // complete when uploads are organised into folders on disk.
-    const libraryHome = ['movies','series','music'].includes(state.shelf) && !state.folder;
+    const libraryHome = state.mode === 'entertainment' && ['movies','series','music'].includes(state.shelf) && !state.folder;
     const hereFiles = state.files.filter((f) => f.shelf === state.shelf && (libraryHome || (f.dir || '') === state.folder));
     const hereFolders = state.folders.filter((f) => f.shelf === state.shelf && (f.dir || '') === state.folder);
     list = [...hereFolders, ...hereFiles];
@@ -1642,7 +1689,7 @@ function visible(){
   });
 }
 
-const mediaHomeActive = () => ['movies','series','music'].includes(state.shelf) && !state.folder && !state.q;
+const mediaHomeActive = () => state.mode === 'entertainment' && ['movies','series','music'].includes(state.shelf) && !state.folder;
 
 function cleanMediaTitle(name){
   return name.replace(/\.[^.]+$/, '').replace(/[._]+/g, ' ')
@@ -1692,10 +1739,74 @@ function mediaRow(title, items, list, options = {}){
     <div class="media-row-cards">${items.map((f)=>mediaCard(f, list.indexOf(f), options)).join('')}</div></section>`;
 }
 
+function entertainmentTop(){
+  return `<div class="ent-top"><button class="ent-home" data-ent="movies"><span>VAULT</span> Entertainment</button>
+    <nav>${[['movies','Movies'],['series','Shows'],['music','Music']].map(([id,label])=>`<button data-ent="${id}" class="${state.shelf===id?'on':''}">${label}</button>`).join('')}</nav>
+    ${state.showDetail?`<button class="ent-back" data-show-back>← All shows</button>`:''}
+    <label class="ent-search"><span>⌕</span><input id="entSearch" value="${esc(state.q)}" placeholder="Search ${state.shelf==='series'?'shows and episodes':state.shelf}"></label></div>`;
+}
+
+function seriesGroups(files){
+  const groups=new Map();
+  for(const f of files){
+    const ep=episodeOf(f.name);const label=ep?ep.show:(f.dir||cleanMediaTitle(f.name));const key=label.toLowerCase();
+    if(!groups.has(key))groups.set(key,{key,label,files:[]});groups.get(key).files.push(f);
+  }
+  return [...groups.values()].map((group)=>{
+    group.files.sort((a,b)=>{const ea=episodeOf(a.name),eb=episodeOf(b.name);return ((ea?.season||0)-(eb?.season||0))||((ea?.episode||0)-(eb?.episode||0));});
+    group.seasons=[...new Set(group.files.map((f)=>episodeOf(f.name)?.season).filter(Boolean))];
+    group.representative=group.files.find((f)=>f.watch&&!f.watch.done)||group.files.find((f)=>!f.watch||!f.watch.done)||group.files[0];
+    return group;
+  });
+}
+
+function showCard(group,list){
+  const f=group.representative,i=list.indexOf(f);const meta=state.artwork?`data-meta="${esc(url('meta',f.rel))}"`:'';
+  return `<button class="media-card show-card" data-act="show" data-i="${i}" data-show="${esc(group.key)}" ${meta}>
+    <span class="media-art">${state.thumbs?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy">`:''}<span class="media-play">View show</span></span>
+    <span class="media-card-copy"><b>${esc(group.label)}</b><small>${group.seasons.length} season${group.seasons.length===1?'':'s'} · ${group.files.length} episodes</small></span></button>`;
+}
+
+function showDetailView(group,list){
+  const f=group.representative,i=list.indexOf(f),meta=state.artwork?`data-meta="${esc(url('meta',f.rel))}"`:'';
+  const seasons=new Map();for(const file of group.files){const ep=episodeOf(file.name);const season=ep?.season||0;if(!seasons.has(season))seasons.set(season,[]);seasons.get(season).push(file);}
+  const continueFile=group.files.find((file)=>file.watch&&!file.watch.done)||group.files.find((file)=>!file.watch||!file.watch.done)||group.files[0];
+  return `<div class="media-library show-detail">${entertainmentTop()}
+    <section class="show-detail-hero media-hero" data-detail-meta="${esc(url('meta',f.rel))}" ${meta} style="--hero:url('${url('thumb',f.rel)}')">
+      <div class="media-hero-copy"><span class="media-kicker">Vault original series</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.seasons.length} seasons · ${group.files.length} episodes</p>
+      <p class="media-overview">Every episode in your private collection, organised and ready to watch.</p><div class="show-genres"></div>
+      <div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${list.indexOf(continueFile)}">▶ ${continueFile.watch&&!continueFile.watch.done?'Continue':'Play'}</button>
+      <button class="media-secondary" data-mass-convert="show">Convert show to MP4</button><button class="media-secondary" data-ai-scope="show">AI subtitles</button></div></div>
+    </section>
+    <section class="show-facts"><div><span>Rating</span><b id="showRating">—</b></div><div><span>Status</span><b id="showStatus">In library</b></div><div><span>Episode runtime</span><b id="showRuntime">—</b></div></section>
+    <section class="show-episodes"><div class="media-row-head"><h3>Episodes</h3><span>${group.files.length}</span></div>
+      ${[...seasons.entries()].sort((a,b)=>a[0]-b[0]).map(([season,episodes])=>`<div class="season-block"><div class="season-head"><h4>${season?`Season ${season}`:'Specials'}</h4><span>${episodes.length} episodes</span><button data-mass-convert="season" data-season="${season}">Replace MKVs with MP4</button><button data-ai-scope="season" data-season="${season}">Generate AI subtitles</button></div>
+      <div class="episode-list">${episodes.map((file)=>{const ep=episodeOf(file.name),idx=list.indexOf(file),pct=file.watch&&file.watch.dur?Math.min(100,file.watch.pos/file.watch.dur*100):0;return `<button class="show-episode" data-act="open" data-i="${idx}"><span class="episode-number">${ep?String(ep.episode).padStart(2,'0'):'•'}</span><span class="episode-still">${state.thumbs?`<img src="${url('thumb',file.rel)}" alt="" loading="lazy">`:''}<i style="width:${pct}%"></i></span><span class="episode-copy"><b>${esc(epTitle(file.name)||cleanMediaTitle(file.name))}</b><small>${file.watch&&file.watch.done?'Watched · ':''}${bytes(file.size)} · ${ago(file.modified)}</small></span><span class="episode-play">▶</span></button>`;}).join('')}</div></div>`).join('')}
+    </section>
+    <section class="cast-section" id="showCast" hidden><div class="media-row-head"><h3>Cast</h3></div><div class="cast-row"></div></section>
+    <section class="related-section" id="showRelated" hidden><div class="media-row-head"><h3>More like this</h3></div><div class="related-row"></div></section>
+  </div>`;
+}
+
+function musicTrackRow(f,i,n){
+  return `<button class="spotify-track" data-act="music" data-i="${i}"><span class="track-no">${n}</span><span class="track-eq">▶</span><span class="track-title"><b>${esc(cleanMediaTitle(f.name))}</b><small>${esc(f.dir||'Vault Music')}</small></span><span class="track-album">${esc((f.dir||'Loose tracks').split('/').pop())}</span><span class="track-added">${ago(f.modified)}</span><span class="track-type">${esc(f.ext.toUpperCase())}</span></button>`;
+}
+
+function musicView(files,list,folders){
+  const albums=new Map();for(const f of files){const key=f.dir||'Loose tracks';if(!albums.has(key))albums.set(key,[]);albums.get(key).push(f);}
+  const feature=files[0];const featureAlbum=(feature.dir||'Your music').split('/').pop();
+  return `<div class="media-library spotify-library">${entertainmentTop()}
+    <section class="spotify-hero"><div class="spotify-disc">♪</div><div><span class="media-kicker">Private music collection</span><h2>${esc(featureAlbum)}</h2><p>${files.length} tracks · ${albums.size} albums · lossless and original files welcome</p><button class="spotify-play-all" data-music-all>▶ Play all</button></div></section>
+    ${folders.length?`<div class="media-folders">${folders.map((f)=>`<button data-act="folder" data-i="${list.indexOf(f)}"><span>▰</span>${esc(f.name)}</button>`).join('')}</div>`:''}
+    <section class="spotify-albums"><div class="media-row-head"><h3>Albums & folders</h3><span>${albums.size}</span></div><div class="spotify-album-grid">${[...albums.entries()].map(([name,tracks],n)=>{const f=tracks[0];return `<button class="spotify-album" data-act="music" data-i="${list.indexOf(f)}"><span class="album-cover" style="--album-hue:${(n*47)%360}">♪<i>▶</i></span><b>${esc(name.split('/').pop())}</b><small>${tracks.length} tracks</small></button>`;}).join('')}</div></section>
+    <section class="spotify-tracks"><div class="media-row-head"><h3>Tracks</h3><span>${files.length}</span></div><div class="spotify-track-head"><span>#</span><span>Title</span><span>Album</span><span>Added</span><span>Type</span></div>${files.map((f,n)=>musicTrackRow(f,list.indexOf(f),n+1)).join('')}</section>
+  </div>`;
+}
+
 function mediaView(list){
   const files = list.filter((f)=>f.kind!=='folder');
   const folders = list.filter((f)=>f.kind==='folder');
-  if(!files.length){ return gridView(list); }
+  if(!files.length){ return `${entertainmentTop()}<div class="ent-empty"><h2>No matches</h2><p>Try another title or add media to this shelf.</p></div>`; }
   const feature = files.find((f)=>f.watch && !f.watch.done) || files[0];
   const featureIndex = list.indexOf(feature);
   const folderStrip = folders.length ? `<div class="media-folders">${folders.map((f)=>
@@ -1703,32 +1814,26 @@ function mediaView(list){
 
   if(state.shelf === 'movies'){
     const watching = files.filter((f)=>f.watch && !f.watch.done).slice(0,12);
-    return `<div class="media-library movies-library">${mediaHero(feature, featureIndex, 'movies')}${folderStrip}
+    return `<div class="media-library movies-library">${entertainmentTop()}${mediaHero(feature, featureIndex, 'movies')}${folderStrip}
       ${mediaRow('Continue watching', watching, list)}
       ${mediaRow('Recently added', files.slice(0,18), list)}
+      <section class="related-section" id="entRecommendations" hidden><div class="media-row-head"><h3>Recommended for you</h3></div><div class="related-row"></div></section>
       <section class="media-grid-section"><div class="media-row-head"><h3>All movies</h3><span>${files.length}</span></div>
         <div class="media-poster-grid">${files.map((f)=>mediaCard(f,list.indexOf(f))).join('')}</div></section></div>`;
   }
 
   if(state.shelf === 'series'){
-    const shows = new Map();
-    for(const f of files){
-      const e = episodeOf(f.name); const key = (e ? e.show : (f.dir || cleanMediaTitle(f.name))).toLowerCase();
-      if(!shows.has(key)) shows.set(key, []); shows.get(key).push(f);
-    }
-    const representatives = [...shows.values()].map((episodes)=>
-      episodes.find((f)=>!f.watch || !f.watch.done) || episodes[0]);
-    return `<div class="media-library series-library">${mediaHero(feature, featureIndex, 'series')}${folderStrip}
-      ${mediaRow('Shows', representatives, list)}
+    const shows=seriesGroups(files);
+    const detail=state.showDetail&&shows.find((show)=>show.key===state.showDetail);
+    if(detail)return showDetailView(detail,list);
+    const watching=files.filter((f)=>f.watch&&!f.watch.done).slice(0,16);
+    return `<div class="media-library series-library">${entertainmentTop()}${mediaHero(feature, featureIndex, 'series')}${folderStrip}
+      ${mediaRow('Continue watching', watching, list, {episode:true})}
+      <section class="media-row-section"><div class="media-row-head"><h3>Shows</h3><span>${shows.length}</span></div><div class="media-row-cards">${shows.map((show)=>showCard(show,list)).join('')}</div></section>
       ${mediaRow('Latest episodes', files.slice(0,20), list, {episode:true})}</div>`;
   }
 
-  const albums = new Map();
-  for(const f of files){ const key = f.dir || 'Loose tracks'; if(!albums.has(key)) albums.set(key, []); albums.get(key).push(f); }
-  const albumReps = [...albums.values()].map((tracks)=>tracks[0]);
-  return `<div class="media-library music-library">${mediaHero(feature, featureIndex, 'music')}${folderStrip}
-    ${mediaRow('Albums & folders', albumReps, list, {music:'album'})}
-    ${mediaRow('Recently added', files.slice(0,24), list, {music:'track'})}</div>`;
+  return musicView(files,list,folders);
 }
 
 function openFolder(folder){
@@ -1742,6 +1847,10 @@ function openFolder(folder){
 function renderBreadcrumbs(){
   const title = $('#viewTitle');
   title.className = 'breadcrumbs';
+  if(state.mode==='entertainment'){
+    title.innerHTML=`<span class="crumb">Entertainment · ${state.shelf==='series'?'Shows':esc(SHELF_LABEL[state.shelf]||state.shelf)}</span>`;
+    return;
+  }
   if(state.shelf === 'all'){
     title.innerHTML = '<span class="crumb">All files</span>';
     return;
@@ -1769,14 +1878,17 @@ function render(){
   }
 
   // sidebar
-  const rows = [`<button class="shelf ${state.shelf==='all'?'on':''}" data-shelf="all"><b>All files</b><em>${state.files.length}</em></button>`];
+  const rows = [`<button class="shelf ${state.mode==='files'&&state.shelf==='all'?'on':''}" data-shelf="all"><b>All files</b><em>${state.files.length}</em></button>`];
   for(const s of SHELF_ORDER){
-    rows.push(`<button class="shelf ${state.shelf===s?'on':''}" data-shelf="${s}"><b>${SHELF_LABEL[s]}</b><em>${counts[s]||0}</em></button>`);
+    rows.push(`<button class="shelf ${state.mode==='files'&&state.shelf===s?'on':''}" data-shelf="${s}"><b>${SHELF_LABEL[s]}</b><em>${counts[s]||0}</em></button>`);
   }
   $('#shelves').innerHTML = rows.join('');
   $('#shelves').querySelectorAll('.shelf').forEach((b) => {
-    b.onclick = () => { state.shelf = b.dataset.shelf; state.folder = ''; state.picked.clear(); render(); $('#scroll').scrollTop = 0; };
+    b.onclick = () => { state.mode='files';state.showDetail=null;state.shelf = b.dataset.shelf; state.folder = ''; state.q='';$('#q').value='';state.picked.clear(); render(); $('#scroll').scrollTop = 0; };
   });
+  const entertainmentShelves=[['movies','Movies'],['series','Shows'],['music','Music']].filter(([id])=>SHELF_ORDER.includes(id));
+  $('#entertainment').innerHTML=entertainmentShelves.map(([id,label])=>`<button class="ent-side ${state.mode==='entertainment'&&state.shelf===id?'on':''}" data-ent-side="${id}"><span>${id==='movies'?'◆':id==='series'?'▣':'♪'}</span><b>${label}</b><em>${counts[id]||0}</em></button>`).join('');
+  $('#entertainment').querySelectorAll('[data-ent-side]').forEach((b)=>b.onclick=()=>{state.mode='entertainment';state.shelf=b.dataset.entSide;state.folder='';state.showDetail=null;state.q='';$('#q').value='';state.picked.clear();render();$('#scroll').scrollTop=0;});
 
   // disk
   if(state.disk){
@@ -1842,7 +1954,7 @@ function render(){
     $('#railDisk').textContent = '';
   }
 
-  if(!list.length){
+  if(!list.length && !mediaHome){
     const where = state.shelf === 'all' ? 'the vault'
       : [SHELF_LABEL[state.shelf], state.folder].filter(Boolean).join(' / ');
     $('#scroll').innerHTML = state.q
@@ -1865,6 +1977,7 @@ function render(){
 /* Anything started but not finished, most recent first. Only shown when there
    is something to resume — an empty rail is just noise. */
 function renderResume(){
+  if(state.mode==='entertainment'){ $('#resume').innerHTML='';$('#resume').classList.remove('on');return; }
   const items = state.files
     // Far enough in to be worth resuming: 20 seconds, or 2% for short clips.
     .filter((f) => f.watch && !f.watch.done && f.watch.dur
@@ -2014,6 +2127,72 @@ function gridView(list){
 
 const playable = (f) => f.kind !== 'folder' && (VIDEO.includes(f.ext) || AUDIO.includes(f.ext) || IMAGE.includes(f.ext));
 
+function currentShowFiles(scope, season){
+  const all=state.files.filter((f)=>f.shelf==='series'&&VIDEO.includes(f.ext));
+  const group=seriesGroups(all).find((show)=>show.key===state.showDetail);
+  if(!group)return[];
+  return scope==='season'?group.files.filter((f)=>(episodeOf(f.name)?.season||0)===+season):group.files;
+}
+
+function renderRecommendations(meta,targetId='entRecommendations'){
+  const target=$('#'+targetId);if(!target||!meta.recommendations?.length)return;
+  target.hidden=false;const row=target.querySelector('.related-row');
+  row.innerHTML=meta.recommendations.map((item)=>`<article class="related-card">${item.poster?`<img src="${item.poster}" alt="" loading="lazy">`:'<span>◆</span>'}<div><b>${esc(item.title||'Untitled')}</b><small>${[item.year,item.rating?`★ ${item.rating}`:''].filter(Boolean).join(' · ')}</small><p>${esc(item.overview||'')}</p></div></article>`).join('');
+}
+
+async function askMassConvert(files,label){
+  const mkvs=files.filter((f)=>f.ext==='mkv');if(!mkvs.length)return toast('There are no MKV files in this selection');
+  let quality=(()=>{try{return localStorage.getItem('vault-quality')||'1080';}catch{return'1080';}})();
+  sheet(`<span class="tag">Replace MKVs with MP4</span><p>Convert ${mkvs.length} ${esc(label)} file${mkvs.length===1?'':'s'}. Each MKV is deleted only after its MP4 has been independently verified. Failed conversions keep the original.</p>
+    <div class="replace-warning">This is a destructive replacement after verification—not an extra copy.</div>
+    <div class="convert-picks">${[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original resolution']].map(([id,name])=>`<button data-quality="${id}" class="${quality===id?'on':''}">${name}</button>`).join('')}</div>
+    <div class="conversion-status" id="conversionStatus"></div><div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Convert and replace ${mkvs.length}</button></div>`);
+  $('#no').onclick=closeSheet;$('#sheet').querySelectorAll('[data-quality]').forEach((b)=>b.onclick=()=>{quality=b.dataset.quality;$('#sheet').querySelectorAll('[data-quality]').forEach((x)=>x.classList.toggle('on',x===b));});
+  $('#yes').onclick=async()=>{const button=$('#yes');button.disabled=true;const jobs=[];let failed=0;for(let n=0;n<mkvs.length;n++){if($('#conversionStatus'))$('#conversionStatus').textContent=`Queueing ${n+1} of ${mkvs.length}…`;try{const r=await fetch(`${url('convert',mkvs[n].rel)}?quality=${quality}&replace=1`,{method:'POST'});const job=await r.json();if(!r.ok)throw new Error(job.error);jobs.push(job.id);}catch{failed++;}}
+    try{localStorage.setItem('vault-quality',quality);}catch{}closeSheet();toast(`Queued ${jobs.length} replacement${jobs.length===1?'':'s'}${failed?` · ${failed} failed to queue`:''}`,failed?'bad':'');if(jobs.length)pollConversionBatch(jobs,label);};
+}
+
+async function pollConversionBatch(ids,label){
+  const states=await Promise.all(ids.map((id)=>fetch(`/api/convert/${encodeURIComponent(id)}`,{cache:'no-store'}).then((r)=>r.json()).catch(()=>({status:'failed'}))));
+  const complete=states.filter((j)=>j.status==='complete').length,failed=states.filter((j)=>['failed','cancelled'].includes(j.status)).length,running=states.filter((j)=>j.status==='running').length;
+  $('#railState').textContent=`MP4 ${complete}/${ids.length}${running?` · ${running} active`:''}`;
+  if(complete+failed===ids.length){$('#railState').textContent='idle';toast(`${label}: ${complete} converted${failed?`, ${failed} kept as MKV`:''}`,failed?'bad':'');load();return;}
+  setTimeout(()=>pollConversionBatch(ids,label),2200);
+}
+
+function askAiSubtitles(files,label){
+  const videos=files.filter((f)=>VIDEO.includes(f.ext));if(!videos.length)return toast('No video files selected','bad');
+  if(!state.aiSubtitles?.available)return notify('AI subtitles need faster-whisper on the server. Install it, then restart vault.service.');
+  let model=state.aiSubtitles.model||'medium',language='auto';
+  sheet(`<span class="tag">Generate AI subtitles</span><p>Transcribe ${videos.length} ${esc(label)} file${videos.length===1?'':'s'} locally. Vault creates WebVTT sidecars and automatically adds them to the CC menu.</p>
+    <div class="ai-options"><label>Model<select id="aiModel">${['small','medium','large-v3'].map((m)=>`<option ${m===model?'selected':''}>${m}</option>`).join('')}</select></label><label>Language<input id="aiLanguage" value="auto" placeholder="auto, en, no…"></label></div>
+    <div class="conversion-status" id="aiStatus"></div><div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Generate ${videos.length}</button></div>`);
+  $('#no').onclick=closeSheet;$('#yes').onclick=async()=>{const button=$('#yes');button.disabled=true;model=$('#aiModel').value;language=$('#aiLanguage').value.trim()||'auto';const jobs=[];let failed=0;for(let n=0;n<videos.length;n++){if($('#aiStatus'))$('#aiStatus').textContent=`Queueing ${n+1} of ${videos.length}…`;try{const r=await fetch(url('ai-subtitles',videos[n].rel),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,language})});const job=await r.json();if(!r.ok)throw new Error(job.error);jobs.push(job.id);}catch{failed++;}}closeSheet();toast(`Queued ${jobs.length} subtitle job${jobs.length===1?'':'s'}${failed?` · ${failed} failed`:''}`,failed?'bad':'');if(jobs.length)pollSubtitleBatch(jobs,label);};
+}
+
+async function pollSubtitleBatch(ids,label){
+  const states=await Promise.all(ids.map((id)=>fetch(`/api/ai-subtitles/${encodeURIComponent(id)}`,{cache:'no-store'}).then((r)=>r.json()).catch(()=>({status:'failed'}))));
+  const complete=states.filter((j)=>j.status==='complete').length,failed=states.filter((j)=>['failed','cancelled'].includes(j.status)).length,active=states.find((j)=>j.status==='running');
+  $('#railState').textContent=`AI CC ${complete}/${ids.length}${active?` · ${Math.round(active.progress)}%`:''}`;
+  if(complete+failed===ids.length){$('#railState').textContent='idle';toast(`${label}: ${complete} subtitle file${complete===1?'':'s'} ready${failed?`, ${failed} failed`:''}`,failed?'bad':'');load();return;}
+  setTimeout(()=>pollSubtitleBatch(ids,label),2400);
+}
+
+let musicQueue=[],musicIndex=-1;
+function playMusic(f,queue){
+  musicQueue=(queue&&queue.length?queue:state.files.filter((x)=>x.shelf==='music'&&AUDIO.includes(x.ext)));musicIndex=Math.max(0,musicQueue.findIndex((x)=>x.rel===f.rel));
+  const audio=$('#musicAudio');audio.src=url('stream',f.rel);$('#musicNowTitle').textContent=cleanMediaTitle(f.name);$('#musicNowAlbum').textContent=f.dir||'Vault Music';$('#musicDock').classList.add('on');audio.play().catch(()=>{});
+}
+function musicStep(delta){if(!musicQueue.length)return;musicIndex=(musicIndex+delta+musicQueue.length)%musicQueue.length;playMusic(musicQueue[musicIndex],musicQueue);}
+const musicAudio=$('#musicAudio');
+$('#musicPrev').onclick=()=>musicStep(-1);$('#musicNext').onclick=()=>musicStep(1);$('#musicPlay').onclick=()=>musicAudio.paused?musicAudio.play().catch(()=>{}):musicAudio.pause();
+musicAudio.onplay=()=>{$('#musicPlay').textContent='❚❚';};musicAudio.onpause=()=>{$('#musicPlay').textContent='▶';};musicAudio.onended=()=>musicStep(1);
+musicAudio.ontimeupdate=()=>{const d=isFinite(musicAudio.duration)?musicAudio.duration:0;$('#musicAt').textContent=fmtTime(musicAudio.currentTime);$('#musicDur').textContent=fmtTime(d);if(d)$('#musicSeek').value=Math.round(musicAudio.currentTime/d*1000);};
+$('#musicSeek').oninput=()=>{if(isFinite(musicAudio.duration))musicAudio.currentTime=+$('#musicSeek').value/1000*musicAudio.duration;};
+const musicVolume=(()=>{try{return parseFloat(localStorage.getItem('vault-music-vol')||'1');}catch{return 1;}})();musicAudio.volume=Math.max(0,Math.min(1,musicVolume));$('#musicVolume').value=Math.round(musicAudio.volume*100);
+$('#musicVolume').oninput=()=>{musicAudio.volume=+$('#musicVolume').value/100;musicAudio.muted=false;try{localStorage.setItem('vault-music-vol',String(musicAudio.volume));}catch{}};
+$('#musicMute').onclick=()=>{musicAudio.muted=!musicAudio.muted;$('#musicMute').textContent=musicAudio.muted?'🔇':'🔊';};
+
 function wire(){
   const list = visible();
 
@@ -2024,6 +2203,8 @@ function wire(){
       if(!f) return;
       const act = el.dataset.act;
       if(act==='folder'){ openFolder(f); return; }
+      if(act==='show'){ state.showDetail=el.dataset.show;state.q='';$('#q').value='';render();$('#scroll').scrollTop=0;return; }
+      if(act==='music'){ playMusic(f,list.filter((x)=>AUDIO.includes(x.ext)));return; }
       if(act==='open') openViewer(f);
       if(act==='convert') askConvert(f);
       if(act==='get') location.href = url('download', f.rel);
@@ -2111,7 +2292,18 @@ function wire(){
       const h=hero.querySelector('h2');if(h&&m.title)h.textContent=m.title;
       const overview=hero.querySelector('.media-overview');if(overview&&m.overview)overview.textContent=m.overview;
       const meta=hero.querySelector('.media-hero-meta');if(meta)meta.textContent=[m.year,m.rating?`★ ${m.rating}`:'',meta.textContent].filter(Boolean).join(' · ');
+      if($('#entRecommendations'))renderRecommendations(m,'entRecommendations');
     });
+    const detail=$('[data-detail-meta]');if(detail)(async()=>{
+      const m=await fetchMediaMeta(detail.dataset.detailMeta);if(!m.found||!detail.isConnected)return;
+      if(m.backdrop||m.poster)detail.style.setProperty('--hero',`url("${m.backdrop||m.poster}")`);
+      const title=detail.querySelector('h2');if(title&&m.title)title.textContent=m.title;
+      const overview=detail.querySelector('.media-overview');if(overview&&m.overview)overview.textContent=m.overview;
+      const genres=detail.querySelector('.show-genres');if(genres)genres.innerHTML=(m.genres||[]).map((g)=>`<span>${esc(g)}</span>`).join('');
+      if($('#showRating'))$('#showRating').textContent=m.rating?`★ ${m.rating}`:'—';if($('#showStatus'))$('#showStatus').textContent=m.status||'In library';if($('#showRuntime'))$('#showRuntime').textContent=m.runtime?`${m.runtime} min`:'—';
+      if(m.cast?.length){const cast=$('#showCast');cast.hidden=false;cast.querySelector('.cast-row').innerHTML=m.cast.map((p)=>`<article class="cast-card">${p.photo?`<img src="${p.photo}" alt="" loading="lazy">`:'<span>◇</span>'}<b>${esc(p.name)}</b><small>${esc(p.character||'')}</small></article>`).join('');}
+      if(m.recommendations?.length)renderRecommendations(m,'showRelated');
+    })();
   }
 
   // ── hover scrubbing: one strip of nine frames, positioned by cursor x
@@ -2146,6 +2338,27 @@ function wire(){
       if(ticks) [...ticks.children].forEach((el) => el.classList.remove('on'));
     });
   });
+
+  $('#scroll').querySelectorAll('[data-ent]').forEach((b)=>b.onclick=()=>{
+    state.mode='entertainment';state.shelf=b.dataset.ent;state.folder='';state.showDetail=null;state.q='';
+    $('#q').value='';render();$('#scroll').scrollTop=0;
+  });
+  const entSearch=$('#entSearch');
+  if(entSearch){let timer;entSearch.oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>{
+    state.q=entSearch.value.trim();state.showDetail=null;$('#q').value=state.q;render();
+  },220);};}
+  const showBack=$('[data-show-back]');
+  if(showBack)showBack.onclick=()=>{state.showDetail=null;render();$('#scroll').scrollTop=0;};
+  $('#scroll').querySelectorAll('[data-mass-convert]').forEach((b)=>b.onclick=()=>{
+    const scope=b.dataset.massConvert;
+    askMassConvert(currentShowFiles(scope,b.dataset.season),scope==='show'?'show':`season ${b.dataset.season}`);
+  });
+  $('#scroll').querySelectorAll('[data-ai-scope]').forEach((b)=>b.onclick=()=>{
+    const scope=b.dataset.aiScope;
+    askAiSubtitles(currentShowFiles(scope,b.dataset.season),scope==='show'?'show':`season ${b.dataset.season}`);
+  });
+  const playAll=$('[data-music-all]');
+  if(playAll)playAll.onclick=()=>{const tracks=list.filter((f)=>AUDIO.includes(f.ext));if(tracks.length)playMusic(tracks[0],tracks);};
 }
 
 /* ── bulk actions */
@@ -2204,9 +2417,10 @@ $('#bulkMove').onclick = () => {
 function askConvert(f){
   let quality = (()=>{ try{return localStorage.getItem('vault-quality')||'1080';}catch{return '1080';} })();
   sheet(`<span class="tag">Convert to MP4</span>
-    <p>Vault keeps the original and writes a browser-friendly MP4 beside it. Original uses a lossless stream copy when the codecs allow it; otherwise it preserves the source resolution.</p>
+    <p>Vault writes a browser-friendly MP4. Original uses a lossless stream copy when the codecs allow it; otherwise it preserves the source resolution.</p>
     <div class="convert-picks">${[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original']].map(([id,label])=>
       `<button data-quality="${id}" class="${quality===id?'on':''}">${label}</button>`).join('')}</div>
+    <label class="replace-check"><input type="checkbox" id="replaceSource" checked><span>Delete the MKV only after the MP4 is verified</span></label>
     <div class="conversion-status" id="conversionStatus"></div>
     <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Start conversion</button></div>`);
   $('#no').onclick = closeSheet;
@@ -2216,7 +2430,8 @@ function askConvert(f){
   $('#yes').onclick = async ()=>{
     const btn=$('#yes'); btn.disabled=true; $('#conversionStatus').textContent='Preparing conversion…';
     try{
-      const r=await fetch(`${url('convert',f.rel)}?quality=${encodeURIComponent(quality)}`,{method:'POST'});
+      const replace=$('#replaceSource').checked?'1':'0';
+      const r=await fetch(`${url('convert',f.rel)}?quality=${encodeURIComponent(quality)}&replace=${replace}`,{method:'POST'});
       const job=await r.json().catch(()=>({}));
       if(!r.ok) throw new Error(job.error||'Could not queue conversion');
       try{localStorage.setItem('vault-quality',quality);}catch{}
@@ -2345,7 +2560,7 @@ function mountPlayer(f, { src, native, info = {} }){
         <button class="pl-btn" id="plMute" title="Mute (m)">🔊</button><div class="pl-vol" id="plVol"><div class="pl-vol-track"></div><div class="pl-vol-fill" id="plVolFill"></div><div class="pl-vol-knob" id="plVolKnob"></div></div><div class="pl-gap"></div>
         <button class="pl-btn pl-cc-btn" id="plCC" title="Subtitles (c)" hidden><span class="cc-mark">CC</span><span id="plCCName">Off</span></button>
         <button class="pl-btn pl-quality" id="plQuality" title="Transcode quality" ${native?'hidden':''}><span id="plQualityLabel">${names[quality]}</span></button>
-        <button class="pl-btn" id="plGear" title="Playback speed">⚙</button><button class="pl-btn" id="plConvert" title="Convert this MKV to MP4" ${f.ext==='mkv'?'':'hidden'}>MP4</button>
+        <button class="pl-btn" id="plGear" title="Playback speed">⚙</button><button class="pl-btn" id="plAI" title="Generate AI subtitles">AI CC</button><button class="pl-btn" id="plConvert" title="Convert this MKV to MP4" ${f.ext==='mkv'?'':'hidden'}>MP4</button>
         <button class="pl-btn" id="plPip" title="Picture in picture">⧉</button><button class="pl-btn" id="plTheater" title="Theater mode (t)">▣</button><button class="pl-btn" id="plFull" title="Browser fullscreen (f)">⛶</button>
       </div>
     </div>
@@ -2429,7 +2644,7 @@ function mountPlayer(f, { src, native, info = {} }){
 
   const full=()=>document.fullscreenElement?document.exitFullscreen():player.requestFullscreen&&player.requestFullscreen().catch(()=>{});
   const theaterMode=()=>{theater=!theater;player.classList.toggle('theater',theater);$('#viewer').classList.toggle('theater',theater);$('#plTheater').classList.toggle('on',theater);theater?scheduleChrome():showChrome();};
-  $('#plFull').onclick=full;$('#plTheater').onclick=theaterMode;$('#plConvert').onclick=()=>askConvert(f);
+  $('#plFull').onclick=full;$('#plTheater').onclick=theaterMode;$('#plConvert').onclick=()=>askConvert(f);$('#plAI').onclick=()=>askAiSubtitles([f],'episode');
   $('#plPip').onclick=()=>{if(!document.pictureInPictureEnabled)return toast('This browser has no picture-in-picture','bad');document.pictureInPictureElement?document.exitPictureInPicture().catch(()=>{}):video.requestPictureInPicture().catch(()=>toast('Picture-in-picture unavailable','bad'));};
   $('#plGear').onclick=()=>{const menu=$('#plSpeed'),open=menu.hidden;closeMenus();menu.innerHTML=[.5,.75,1,1.25,1.5,2].map((r)=>`<button data-r="${r}" class="${video.playbackRate===r?'on':''}">${r===1?'Normal':r+'×'}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{video.playbackRate=+b.dataset.r;menu.hidden=true;$('#plGear').classList.toggle('on',video.playbackRate!==1);});menu.hidden=!open;showChrome();};
   if(!native)$('#plQuality').onclick=()=>{const menu=$('#plQualityMenu'),open=menu.hidden;closeMenus();menu.innerHTML=[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original / direct']].map(([id,label])=>`<button data-q="${id}" class="${quality===id?'on':''}">${label}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{const at=now(),playing=wantsPlay;quality=b.dataset.q;$('#plQualityLabel').textContent=names[quality];try{localStorage.setItem('vault-quality',quality);}catch{}menu.hidden=true;if(playing)startHls(at);else $('#plNote').textContent=`${names[quality]} selected · press play to prepare`;});menu.hidden=!open;showChrome();};
@@ -3142,6 +3357,8 @@ const ACT_LABEL = {
   'account-delete':'deleted account', 'token-create':'created token',
   'shelf-create':'created shelf', 'shelf-delete':'deleted shelf',
   'folder-create':'created folder', convert:'converted video',
+  'convert-replace':'converted and replaced video',
+  'ai-subtitles':'generated AI subtitles',
 };
 const ACT_KIND = (a) =>
   a.includes('delete') ? 'bad' : (a === 'login-failed' ? 'warn' : '');
@@ -3206,6 +3423,7 @@ $('#btnNewFolder').onclick = () => {
       b.classList.add('on'); shelf = b.dataset.folderShelf;
     };
   });
+
   const input = $('#folderName'); input.focus();
   $('#no').onclick = closeSheet;
   const create = async () => {

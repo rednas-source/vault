@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-media-studio-20260825';
+const BUILD_ID = 'vault-entertainment-ai-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -749,27 +749,39 @@ const FFMPEG_ENCODERS = (() => {
 })();
 
 const hasEncoder = (name) => new RegExp(`\\b${name}\\b`).test(FFMPEG_ENCODERS);
+const ENCODER_DIAGNOSTICS = {};
 
 function encoderProbe(kind) {
   const common = ['-nostdin', '-hide_banner', '-loglevel', 'error'];
   let args;
   if (kind === 'nvenc') {
-    args = [...common, '-f', 'lavfi', '-i', 'color=s=128x72:d=.08', '-frames:v', '1',
+    args = [...common, '-f', 'lavfi', '-i', 'color=s=128x72:d=0.08', '-frames:v', '1',
       '-c:v', 'h264_nvenc', '-f', 'null', '-'];
   } else if (kind === 'qsv') {
-    args = [...common, '-f', 'lavfi', '-i', 'color=s=128x72:d=.08', '-frames:v', '1',
+    args = [...common, '-f', 'lavfi', '-i', 'color=s=128x72:d=0.08', '-frames:v', '1',
       '-vf', 'format=nv12', '-c:v', 'h264_qsv', '-f', 'null', '-'];
   } else if (kind === 'vaapi') {
     const device = config.vaapiDevice || '/dev/dri/renderD128';
-    if (!fs.existsSync(device)) return false;
-    args = [...common, '-vaapi_device', device, '-f', 'lavfi', '-i', 'color=s=128x72:d=.08',
+    if (!fs.existsSync(device)) {
+      ENCODER_DIAGNOSTICS[kind] = `device missing: ${device}`;
+      return false;
+    }
+    args = [...common, '-vaapi_device', device, '-f', 'lavfi', '-i', 'color=s=128x72:d=0.08',
       '-frames:v', '1', '-vf', 'format=nv12,hwupload', '-c:v', 'h264_vaapi', '-f', 'null', '-'];
   } else {
+    ENCODER_DIAGNOSTICS[kind] = HAS_LIBX264 ? 'available' : 'libx264 not compiled';
     return HAS_LIBX264;
   }
   try {
-    return spawnSync('ffmpeg', args, { stdio: 'ignore', timeout: 8000 }).status === 0;
-  } catch { return false; }
+    const result = spawnSync('ffmpeg', args, { encoding: 'utf8', timeout: 8000 });
+    const ok = result.status === 0;
+    ENCODER_DIAGNOSTICS[kind] = ok ? 'available'
+      : String(result.stderr || result.error?.message || `exit ${result.status}`).replace(/\s+/g, ' ').trim().slice(0, 400);
+    return ok;
+  } catch (error) {
+    ENCODER_DIAGNOSTICS[kind] = error.message || 'probe failed';
+    return false;
+  }
 }
 
 function detectTranscoder() {
@@ -784,8 +796,8 @@ function detectTranscoder() {
   const compiled = (kind) => kind === 'cpu' ? HAS_LIBX264 : hasEncoder(definitions[kind].encoder);
   if (wanted !== 'auto') {
     const picked = definitions[wanted];
-    if (picked && compiled(wanted)) return { ...picked, verified: encoderProbe(wanted) };
-    console.warn(`[media] configured transcodeEncoder "${wanted}" is unavailable; falling back to auto`);
+    if (picked && compiled(wanted) && encoderProbe(wanted)) return { ...picked, verified: true };
+    console.warn(`[media] configured transcodeEncoder "${wanted}" failed its live probe; falling back to auto`);
   }
   for (const kind of ['nvenc', 'qsv', 'vaapi', 'cpu']) {
     if (compiled(kind) && encoderProbe(kind)) return { ...definitions[kind], verified: true };
@@ -1493,6 +1505,7 @@ app.get('/api/files', auth, async (req, res) => {
     files: out, folders, disk, thumbs: HAS_FFMPEG, mkvTranscode: HAS_H264_ENCODER,
     transcoder: TRANSCODER ? { label: TRANSCODER.label, hardware: TRANSCODER.hardware } : null,
     qualities: Object.values(QUALITY_PROFILES).map(({ id, label }) => ({ id, label })),
+    aiSubtitles: { available: HAS_AI_SUBTITLES, model: config.whisperModel || 'medium', device: config.whisperDevice || 'auto' },
     role: req.user.role, artwork: !!TMDB_KEY,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
@@ -1868,6 +1881,8 @@ app.get('/api/health', async (req, res) => {
     mkvTransport: HAS_H264_ENCODER ? 'hls' : null,
     transcoder: TRANSCODER ? TRANSCODER.label : null,
     gpuTranscode: !!(TRANSCODER && TRANSCODER.hardware),
+    encoderDiagnostics: ENCODER_DIAGNOSTICS,
+    aiSubtitles: HAS_AI_SUBTITLES,
     qualities: Object.keys(QUALITY_PROFILES),
     uptimeSec: Math.round(process.uptime()),
   });
@@ -2087,8 +2102,9 @@ app.get('/api/hls/:id/:segment', auth, async (req, res) => {
 
 // ---------------------------------------------------------------- durable MP4 conversions
 // These jobs are deliberately separate from live HLS sessions: one may run in
-// the background, reports progress, preserves the source, and atomically moves
-// its completed MP4 beside the original.
+// the background, reports progress, and atomically moves its completed MP4
+// beside the original. Explicit replacement jobs remove an MKV only after the
+// MP4 has been committed and independently verified.
 const MAX_CONVERSIONS = Math.max(1, Math.min(Number(config.convertJobs) || 1, 4));
 const conversionJobs = new Map();
 const conversionQueue = [];
@@ -2099,6 +2115,7 @@ function publicConversion(job) {
     id: job.id, status: job.status, rel: job.rel, outputRel: job.outputRel || null,
     quality: job.quality.label, progress: Math.max(0, Math.min(100, job.progress || 0)),
     encoder: job.encoder, direct: !!job.direct, error: job.error || '',
+    replace: !!job.replace, sourceDeleted: !!job.sourceDeleted,
     created: job.created, finished: job.finished || null,
   };
 }
@@ -2158,10 +2175,22 @@ async function runConversion(job) {
       const dest = path.join(job.destDir, finalName);
       await fsp.rename(job.tmp, dest);
       job.outputRel = path.relative(ROOT, dest).split(path.sep).join('/');
+      if (job.replace) {
+        // Destructive replacement is only allowed after ffmpeg succeeded, the
+        // MP4 was committed, and ffprobe independently confirmed a video
+        // stream. If verification fails both files are kept.
+        const verified = await probe(dest);
+        if (!verified || verified.inferred || !verified.video) {
+          throw new Error('The MP4 was created but could not be verified; the MKV was kept for safety');
+        }
+        await fsp.unlink(job.full);
+        probeCache.delete(job.full);
+        job.sourceDeleted = true;
+      }
       job.progress = 100;
       job.status = 'complete';
       job.finished = Date.now();
-      note(job.user, 'convert', `${job.rel} -> ${job.outputRel}`);
+      note(job.user, job.replace ? 'convert-replace' : 'convert', `${job.rel} -> ${job.outputRel}`);
     } catch (error) {
       job.status = 'failed';
       job.error = error.message || 'Could not save the converted MP4';
@@ -2183,7 +2212,7 @@ function runNextConversion() {
 
 app.post('/api/convert/*', auth, shelfGate, async (req, res) => {
   if (!HAS_H264_ENCODER) return res.status(503).json({ error: 'No usable H.264 encoder is available' });
-  if (conversionQueue.length >= 20) return res.status(503).json({ error: 'The conversion queue is full' });
+  if (conversionQueue.length >= 200) return res.status(503).json({ error: 'The conversion queue is full' });
   const full = safePath(req.params[0]);
   if (!full || !THUMBABLE.includes(ext(full))) return res.status(400).json({ error: 'Bad video path' });
   try { await fsp.stat(full); } catch { return res.status(404).json({ error: 'Video not found' }); }
@@ -2191,13 +2220,22 @@ app.post('/api/convert/*', auth, shelfGate, async (req, res) => {
   const info = await probe(full);
   if (!info || (!info.video && !info.inferred)) return res.status(415).json({ error: 'No video stream found' });
   const quality = qualityProfile(req.query.quality || req.body.quality);
+  const replace = req.query.replace === '1' || req.body.replace === true;
+  const desiredName = `${path.parse(full).name}${replace || quality.id === 'original' ? '' : ` (${quality.label})`}.mp4`;
+  if (replace) {
+    try {
+      await fsp.access(path.join(path.dirname(full), desiredName));
+      return res.status(409).json({ error: 'An MP4 with this name already exists. The MKV was kept; remove or rename the existing MP4 first.' });
+    } catch (error) {
+      if (error && error.code !== 'ENOENT') return res.status(500).json({ error: 'Could not check the MP4 destination' });
+    }
+  }
   const id = crypto.randomBytes(16).toString('hex');
-  const suffix = quality.id === 'original' ? '' : ` (${quality.label})`;
   const job = {
     id, user: req.user.name, rel: req.params[0], full, info, quality,
-    destDir: path.dirname(full), desiredName: `${path.parse(full).name}${suffix}.mp4`,
+    destDir: path.dirname(full), desiredName,
     tmp: path.join(CONVERSION_DIR, `${id}.mp4`), status: 'queued', progress: 0,
-    encoder: TRANSCODER.label, direct: false, stderr: '', error: '', created: Date.now(),
+    encoder: TRANSCODER.label, direct: false, replace, sourceDeleted: false, stderr: '', error: '', created: Date.now(),
     finished: null, child: null, cancelled: false,
   };
   conversionJobs.set(id, job);
@@ -2320,6 +2358,125 @@ app.get('/api/scrub/*', auth, shelfGate, async (req, res) => {
  * next to the video. Both are converted to WebVTT, which is the only format
  * a <track> element accepts.
  */
+
+const WHISPER_PYTHON = config.whisperPython || 'python3';
+const WHISPER_SCRIPT = path.join(__dirname, 'scripts', 'transcribe.py');
+const WHISPER_MODELS = new Set(['tiny', 'base', 'small', 'medium', 'large-v3']);
+const HAS_AI_SUBTITLES = (() => {
+  try {
+    return fs.existsSync(WHISPER_SCRIPT)
+      && spawnSync(WHISPER_PYTHON, ['-c', 'import faster_whisper'], { stdio: 'ignore', timeout: 12000 }).status === 0;
+  } catch { return false; }
+})();
+const MAX_SUBTITLE_JOBS = Math.max(1, Math.min(Number(config.subtitleJobs) || 1, 2));
+const subtitleJobs = new Map();
+const subtitleQueue = [];
+let subtitling = 0;
+
+function publicSubtitleJob(job) {
+  return {
+    id: job.id, rel: job.rel, status: job.status, progress: Math.max(0, Math.min(100, job.progress || 0)),
+    model: job.model, device: job.actualDevice || job.device, language: job.detectedLanguage || job.language,
+    outputRel: job.outputRel || null, error: job.error || '', created: job.created, finished: job.finished || null,
+  };
+}
+
+function runNextSubtitle() {
+  while (subtitling < MAX_SUBTITLE_JOBS && subtitleQueue.length) {
+    const id = subtitleQueue.shift();
+    const job = subtitleJobs.get(id);
+    if (job && !job.cancelled && job.status === 'queued') runSubtitleJob(job);
+  }
+}
+
+function runSubtitleJob(job) {
+  subtitling++;
+  job.status = 'running';
+  const args = [WHISPER_SCRIPT, '--input', job.full, '--output', job.output,
+    '--model', job.model, '--device', job.device, '--language', job.language];
+  const child = spawn(WHISPER_PYTHON, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  job.child = child;
+  let lines = '';
+  child.stdout.on('data', (chunk) => {
+    lines += chunk.toString('utf8');
+    const complete = lines.split(/\r?\n/); lines = complete.pop() || '';
+    for (const line of complete) {
+      try {
+        const event = JSON.parse(line);
+        if (Number.isFinite(event.progress)) job.progress = event.progress;
+        if (event.device) job.actualDevice = event.device;
+        if (event.language) job.detectedLanguage = event.language;
+        if (event.kind === 'error' && event.message) job.error = event.message;
+      } catch { /* diagnostic line from a dependency */ }
+    }
+  });
+  child.stderr.on('data', (chunk) => {
+    const remaining = 16 * 1024 - Buffer.byteLength(job.stderr);
+    if (remaining > 0) job.stderr += chunk.subarray(0, remaining).toString('utf8');
+  });
+  child.on('error', (error) => { job.spawnError = error.message || 'Could not start AI subtitles'; });
+  child.on('close', async (code) => {
+    try {
+      if (job.cancelled) {
+        job.status = 'cancelled';
+        await fsp.rm(`${job.output}.part`, { force: true }).catch(() => {});
+      } else if (code !== 0 || job.spawnError) {
+        job.status = 'failed';
+        job.error = job.error || job.spawnError || job.stderr.replace(job.full, path.basename(job.full)).replace(/\s+/g, ' ').trim().slice(0, 1200) || `subtitle process exited with code ${code}`;
+        await fsp.rm(`${job.output}.part`, { force: true }).catch(() => {});
+      } else {
+        const stat = await fsp.stat(job.output);
+        if (!stat.size) throw new Error('AI subtitle file was empty');
+        job.status = 'complete'; job.progress = 100;
+        job.outputRel = path.relative(ROOT, job.output).split(path.sep).join('/');
+        note(job.user, 'ai-subtitles', job.rel);
+      }
+    } catch (error) {
+      job.status = 'failed'; job.error = error.message || 'Could not save AI subtitles';
+    } finally {
+      job.finished = Date.now(); job.child = null; subtitling = Math.max(0, subtitling - 1); runNextSubtitle();
+    }
+  });
+}
+
+app.post('/api/ai-subtitles/*', auth, shelfGate, async (req, res) => {
+  if (!HAS_AI_SUBTITLES) return res.status(503).json({ error: 'AI subtitles are not installed. Install faster-whisper on the server.' });
+  if (subtitleQueue.length >= 60) return res.status(503).json({ error: 'The subtitle queue is full' });
+  const full = safePath(req.params[0]);
+  if (!full || !THUMBABLE.includes(ext(full))) return res.status(400).json({ error: 'Bad video path' });
+  try { await fsp.stat(full); } catch { return res.status(404).json({ error: 'Video not found' }); }
+  const model = WHISPER_MODELS.has(String(req.body.model || config.whisperModel || 'medium'))
+    ? String(req.body.model || config.whisperModel || 'medium') : 'medium';
+  const requestedLanguage = String(req.body.language || 'auto').toLowerCase();
+  const language = requestedLanguage === 'auto' || /^[a-z]{2,8}(?:-[a-z]{2,8})?$/.test(requestedLanguage)
+    ? requestedLanguage : 'auto';
+  const device = ['auto', 'cuda', 'cpu'].includes(String(config.whisperDevice || 'auto'))
+    ? String(config.whisperDevice || 'auto') : 'auto';
+  const tag = language === 'auto' ? 'ai' : `ai.${language}`;
+  const output = path.join(path.dirname(full), `${path.parse(full).name}.${tag}.vtt`);
+  const id = crypto.randomBytes(16).toString('hex');
+  const job = { id, user: req.user.name, rel: req.params[0], full, output, model, language, device,
+    status: 'queued', progress: 0, error: '', stderr: '', created: Date.now(), finished: null,
+    child: null, cancelled: false, actualDevice: '', detectedLanguage: '', outputRel: '' };
+  subtitleJobs.set(id, job); subtitleQueue.push(id); runNextSubtitle();
+  res.status(202).json(publicSubtitleJob(job));
+});
+
+app.get('/api/ai-subtitles/:id', auth, (req, res) => {
+  const job = subtitleJobs.get(req.params.id);
+  if (!job || job.user !== req.user.name) return res.status(404).json({ error: 'Subtitle job not found' });
+  res.setHeader('Cache-Control', 'no-store'); res.json(publicSubtitleJob(job));
+});
+
+app.delete('/api/ai-subtitles/:id', auth, async (req, res) => {
+  const job = subtitleJobs.get(req.params.id);
+  if (!job || job.user !== req.user.name) return res.status(404).json({ error: 'Subtitle job not found' });
+  job.cancelled = true;
+  if (job.status === 'queued') { job.status = 'cancelled'; job.finished = Date.now(); }
+  else if (job.child && job.child.exitCode === null) job.child.kill('SIGKILL');
+  await fsp.rm(`${job.output}.part`, { force: true }).catch(() => {});
+  res.json({ ok: true });
+});
 
 async function subtitleTracks(full) {
   const out = [];
@@ -2471,7 +2628,7 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
   let st;
   try { st = await fsp.stat(full); } catch { return res.status(404).end(); }
 
-  const key = crypto.createHash('sha256').update(`meta-v2\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
+  const key = crypto.createHash('sha256').update(`meta-v3\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
   const cacheFile = path.join(META_DIR, `${key}.json`);
   try {
     return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
@@ -2497,6 +2654,7 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
         ? (j.results || [])[0]
         : (j.results || []).find((x) => x.media_type === 'movie' || x.media_type === 'tv');
       if (hit) {
+        const actualKind = hit.media_type || guessKind;
         data = {
           enabled: true, found: true, guessed: title,
           title: hit.title || hit.name,
@@ -2506,9 +2664,40 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
           poster: hit.poster_path ? `https://image.tmdb.org/t/p/w400${hit.poster_path}` : null,
           backdrop: hit.backdrop_path ? `https://image.tmdb.org/t/p/w1280${hit.backdrop_path}` : null,
           tmdbId: hit.id,
-          kind: hit.media_type || guessKind,
+          kind: actualKind,
           season: season || undefined,
         };
+        try {
+          const detailType = actualKind === 'tv' ? 'tv' : 'movie';
+          const detailQuery = new URLSearchParams({ api_key: TMDB_KEY, append_to_response: 'credits,recommendations,similar' });
+          const detailResponse = await fetch(`https://api.themoviedb.org/3/${detailType}/${hit.id}?${detailQuery}`, {
+            signal: AbortSignal.timeout(8000),
+          });
+          if (detailResponse.ok) {
+            const detail = await detailResponse.json();
+            const related = (detail.recommendations?.results?.length
+              ? detail.recommendations.results : detail.similar?.results || []).slice(0, 18);
+            data = {
+              ...data,
+              tagline: (detail.tagline || '').slice(0, 180),
+              genres: (detail.genres || []).map((genre) => genre.name).filter(Boolean).slice(0, 6),
+              runtime: detail.runtime || (detail.episode_run_time || [])[0] || null,
+              status: detail.status || null,
+              cast: (detail.credits?.cast || []).slice(0, 14).map((person) => ({
+                name: person.name, character: person.character || '',
+                photo: person.profile_path ? `https://image.tmdb.org/t/p/w185${person.profile_path}` : null,
+              })),
+              recommendations: related.map((item) => ({
+                id: item.id, title: item.title || item.name,
+                year: (item.release_date || item.first_air_date || '').slice(0, 4),
+                overview: (item.overview || '').slice(0, 260),
+                poster: item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : null,
+                backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : null,
+                rating: item.vote_average ? Math.round(item.vote_average * 10) / 10 : null,
+              })),
+            };
+          }
+        } catch { /* base match remains useful when detail lookup fails */ }
       }
     }
   } catch { /* network trouble — cache the miss briefly rather than retrying hard */ }
@@ -2842,6 +3031,10 @@ app.use(express.static(path.join(__dirname, 'public'), {
       if (job.finished && job.finished < cutoff) conversionJobs.delete(id);
     }
   }, 30 * 60 * 1000).unref();
+  setInterval(() => {
+    const cutoff = Date.now() - 6 * 3600 * 1000;
+    for (const [id, job] of subtitleJobs) if (job.finished && job.finished < cutoff) subtitleJobs.delete(id);
+  }, 30 * 60 * 1000).unref();
   setInterval(flushLog, 5000).unref();
   setInterval(flushProgress, 5000).unref();
   setInterval(pruneShares, 6 * 3600 * 1000).unref();
@@ -2852,6 +3045,9 @@ app.use(express.static(path.join(__dirname, 'public'), {
         if (session.child && session.child.exitCode === null) session.child.kill('SIGKILL');
       }
       for (const job of conversionJobs.values()) {
+        if (job.child && job.child.exitCode === null) job.child.kill('SIGKILL');
+      }
+      for (const job of subtitleJobs.values()) {
         if (job.child && job.child.exitCode === null) job.child.kill('SIGKILL');
       }
       flushLog();
@@ -2865,5 +3061,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
     console.log(`Vault: ${ROOT}`);
     console.log(`Thumbnails: ${HAS_FFMPEG ? 'on' : 'off (ffmpeg not found)'}`);
     console.log(`Media transcoder: ${TRANSCODER ? TRANSCODER.label : 'off (no usable H.264 encoder)'}`);
+    console.log(`AI subtitles: ${HAS_AI_SUBTITLES ? `${config.whisperModel || 'medium'} via ${config.whisperDevice || 'auto'}` : 'off (install faster-whisper)'}`);
   });
 })();
