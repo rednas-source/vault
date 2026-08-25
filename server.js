@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-entertainment-ai-20260825';
+const BUILD_ID = 'vault-cinema-cut-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -2219,8 +2219,12 @@ app.post('/api/convert/*', auth, shelfGate, async (req, res) => {
 
   const info = await probe(full);
   if (!info || (!info.video && !info.inferred)) return res.status(415).json({ error: 'No video stream found' });
-  const quality = qualityProfile(req.query.quality || req.body.quality);
-  const replace = req.query.replace === '1' || req.body.replace === true;
+  // A query-only POST has no request body. Express intentionally leaves
+  // req.body undefined in that case, which used to make every conversion from
+  // the browser fail before a job was even queued.
+  const body = req.body || {};
+  const quality = qualityProfile(req.query.quality || body.quality);
+  const replace = req.query.replace === '1' || body.replace === true;
   const desiredName = `${path.parse(full).name}${replace || quality.id === 'original' ? '' : ` (${quality.label})`}.mp4`;
   if (replace) {
     try {
@@ -2978,6 +2982,14 @@ app.post('/api/progress', auth, (req, res) => {
   const rel = String(req.body.rel || '');
   const shelf = shelfOf(rel);
   if (!shelf || !canUse(req.user, shelf)) return res.status(404).json({ error: 'Not found' });
+  if (req.body.done === true) {
+    if (!progress[req.user.name]) progress[req.user.name] = {};
+    const previous = progress[req.user.name][rel];
+    const dur = Math.max(0, Number(req.body.dur) || Number(previous && previous.dur) || 0);
+    progress[req.user.name][rel] = { pos: 0, dur: Math.round(dur), at: Date.now(), done: true };
+    progressDirty = true;
+    return res.json({ ok: true, done: true });
+  }
   const pos = Math.max(0, Number(req.body.pos) || 0);
   const dur = Math.max(0, Number(req.body.dur) || 0);
   setProgress(req.user.name, rel, pos, dur);
@@ -2986,6 +2998,8 @@ app.post('/api/progress', auth, (req, res) => {
 
 app.delete('/api/progress', auth, (req, res) => {
   const rel = String(req.query.rel || '');
+  const shelf = shelfOf(rel);
+  if (!shelf || !canUse(req.user, shelf)) return res.status(404).json({ error: 'Not found' });
   if (progress[req.user.name]) delete progress[req.user.name][rel];
   progressDirty = true;
   res.json({ ok: true });

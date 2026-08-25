@@ -190,7 +190,7 @@ Each shelf has a **name** you can change freely and an **id** — the folder nam
 
 Shelves live in `shelves.json`. If that file is missing or unreadable, the app rebuilds the defaults.
 
-The normal Movies, Series, and Music shelves remain ordinary file views. A separate **Entertainment** group below Shelves opens the richer library experience without changing where files live or how permissions work. Shows open a detail page with seasons, episodes, cast, related titles, recent additions, and continue-watching state. Music opens a Spotify-inspired album/folder browser with a player that stays docked while browsing.
+The normal Movies, Series, and Music shelves remain ordinary file views. A separate **Entertainment** group below Shelves opens the richer library experience without changing where files live or how permissions work. Shows use the reactive Cinema Cut interface: layered artwork, a lightweight Canvas signal field, show detail pages, seasons, episode storyboards, cast, related titles, recent additions, and continue-watching state. Every episode has quick controls for playback, clearing progress, marking watched/unwatched, download, AI subtitles, and individual MP4 replacement. Music opens a Spotify-inspired album/folder browser with a player that stays docked while browsing.
 
 ---
 
@@ -357,7 +357,7 @@ Kept in `activity.log`, capped at 4000 entries (`activityMax`), written in batch
 `/api/health` needs no authentication and returns nothing sensitive — no paths, no account names, no file counts. Point an uptime monitor at it.
 
 ```json
-{ "ok": true, "build": "vault-entertainment-ai-20260825", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
+{ "ok": true, "build": "vault-cinema-cut-20260825", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
 ```
 
 It returns **503** when something is actually wrong. `storage` is the useful field:
