@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-hls-20260825';
+const BUILD_ID = 'vault-media-studio-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -38,6 +38,7 @@ const MAX_BYTES = (config.maxFileGB || 64) * 1024 ** 3;
 const PARTS_DIR = path.join(ROOT, '.uploads');
 const THUMB_DIR = path.join(ROOT, '.thumbs');
 const HLS_DIR = path.join(ROOT, '.hls');
+const CONVERSION_DIR = path.join(ROOT, '.conversions');
 
 const PART_TTL_MS = (config.partTtlHours || 24) * 3600 * 1000;
 
@@ -733,6 +734,80 @@ const HAS_LIBX264 = (() => {
   } catch { return false; }
 })();
 
+/**
+ * Pick a real H.264 encoder, not merely one listed by ffmpeg. Distribution
+ * builds often advertise NVENC/QSV/VAAPI even when the machine has no matching
+ * device or driver, so auto mode verifies each candidate with a tiny frame.
+ * `transcodeEncoder` can pin a known-good encoder when a host needs it.
+ */
+const FFMPEG_ENCODERS = (() => {
+  if (!HAS_FFMPEG) return '';
+  try {
+    const check = spawnSync('ffmpeg', ['-hide_banner', '-encoders'], { encoding: 'utf8' });
+    return check.status === 0 ? `${check.stdout || ''}\n${check.stderr || ''}` : '';
+  } catch { return ''; }
+})();
+
+const hasEncoder = (name) => new RegExp(`\\b${name}\\b`).test(FFMPEG_ENCODERS);
+
+function encoderProbe(kind) {
+  const common = ['-nostdin', '-hide_banner', '-loglevel', 'error'];
+  let args;
+  if (kind === 'nvenc') {
+    args = [...common, '-f', 'lavfi', '-i', 'color=s=128x72:d=.08', '-frames:v', '1',
+      '-c:v', 'h264_nvenc', '-f', 'null', '-'];
+  } else if (kind === 'qsv') {
+    args = [...common, '-f', 'lavfi', '-i', 'color=s=128x72:d=.08', '-frames:v', '1',
+      '-vf', 'format=nv12', '-c:v', 'h264_qsv', '-f', 'null', '-'];
+  } else if (kind === 'vaapi') {
+    const device = config.vaapiDevice || '/dev/dri/renderD128';
+    if (!fs.existsSync(device)) return false;
+    args = [...common, '-vaapi_device', device, '-f', 'lavfi', '-i', 'color=s=128x72:d=.08',
+      '-frames:v', '1', '-vf', 'format=nv12,hwupload', '-c:v', 'h264_vaapi', '-f', 'null', '-'];
+  } else {
+    return HAS_LIBX264;
+  }
+  try {
+    return spawnSync('ffmpeg', args, { stdio: 'ignore', timeout: 8000 }).status === 0;
+  } catch { return false; }
+}
+
+function detectTranscoder() {
+  if (!HAS_FFMPEG) return null;
+  const wanted = String(config.transcodeEncoder || 'auto').toLowerCase();
+  const definitions = {
+    nvenc: { kind: 'nvenc', encoder: 'h264_nvenc', label: 'NVIDIA NVENC', hardware: true },
+    qsv: { kind: 'qsv', encoder: 'h264_qsv', label: 'Intel Quick Sync', hardware: true },
+    vaapi: { kind: 'vaapi', encoder: 'h264_vaapi', label: 'VAAPI GPU', hardware: true },
+    cpu: { kind: 'cpu', encoder: 'libx264', label: 'CPU libx264', hardware: false },
+  };
+  const compiled = (kind) => kind === 'cpu' ? HAS_LIBX264 : hasEncoder(definitions[kind].encoder);
+  if (wanted !== 'auto') {
+    const picked = definitions[wanted];
+    if (picked && compiled(wanted)) return { ...picked, verified: encoderProbe(wanted) };
+    console.warn(`[media] configured transcodeEncoder "${wanted}" is unavailable; falling back to auto`);
+  }
+  for (const kind of ['nvenc', 'qsv', 'vaapi', 'cpu']) {
+    if (compiled(kind) && encoderProbe(kind)) return { ...definitions[kind], verified: true };
+  }
+  return HAS_LIBX264 ? { ...definitions.cpu, verified: true } : null;
+}
+
+const TRANSCODER = detectTranscoder();
+const HAS_H264_ENCODER = !!TRANSCODER;
+
+const QUALITY_PROFILES = Object.freeze({
+  '720':  { id: '720',  label: '720p',  width: 1280, height: 720,  bitrate: '3M',  maxrate: '4M',  bufsize: '6M' },
+  '1080': { id: '1080', label: '1080p', width: 1920, height: 1080, bitrate: '6M',  maxrate: '8M',  bufsize: '12M' },
+  '2160': { id: '2160', label: '4K',    width: 3840, height: 2160, bitrate: '16M', maxrate: '22M', bufsize: '32M' },
+  original:{ id: 'original', label: 'Original', width: 0, height: 0, bitrate: '0', maxrate: '0', bufsize: '0' },
+});
+
+function qualityProfile(value) {
+  const id = String(value || config.defaultTranscodeQuality || '1080').toLowerCase();
+  return QUALITY_PROFILES[id] || QUALITY_PROFILES['1080'];
+}
+
 const THUMBABLE = ['mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'wmv', 'flv', 'mpg', 'mpeg', 'ts'];
 
 // Subtitle files that sit beside a video rather than inside it.
@@ -866,8 +941,8 @@ function compatibilityVideoInfo(file, reason = 'forced-compatibility') {
     audioOk: false,
     videoMode: 'h264',
     audioMode: 'aac',
-    transcodeAvailable: HAS_LIBX264,
-    remuxable: HAS_LIBX264 && THUMBABLE.includes(ext(file)),
+    transcodeAvailable: HAS_H264_ENCODER,
+    remuxable: HAS_H264_ENCODER && THUMBABLE.includes(ext(file)),
     transcoding: true,
     inferred: true,
     probeFailure: reason,
@@ -932,10 +1007,10 @@ async function probe(file) {
   info.audioOk = !info.audio || COPYABLE_AUDIO.includes(info.audio);
   info.videoMode = info.videoOk ? 'copy' : 'h264';
   info.audioMode = info.audioOk ? 'copy' : 'aac';
-  info.transcodeAvailable = HAS_LIBX264;
+  info.transcodeAvailable = HAS_H264_ENCODER;
   // Any probed video can use the media endpoint. Compatible streams are only
   // repackaged; everything else gets the smallest browser-safe conversion.
-  info.remuxable = !!info.video && (info.videoOk || HAS_LIBX264);
+  info.remuxable = !!info.video && (info.videoOk || HAS_H264_ENCODER);
   info.transcoding = !info.videoOk;
 
   probeCache.set(file, { at: Date.now(), info });
@@ -983,33 +1058,81 @@ async function waitForHls(session, timeoutMs = 75000) {
   return false;
 }
 
-async function startHlsConversion(full, user, startAt) {
+function encoderInputArgs() {
+  return TRANSCODER && TRANSCODER.kind === 'vaapi'
+    ? ['-vaapi_device', config.vaapiDevice || '/dev/dri/renderD128'] : [];
+}
+
+function scaleFilter(profile) {
+  if (!profile.width || !profile.height) return null;
+  return `scale=w='min(iw,${profile.width})':h='min(ih,${profile.height})':force_original_aspect_ratio=decrease:force_divisible_by=2`;
+}
+
+function videoEncodeArgs(profile, { lowLatency = false } = {}) {
+  if (!TRANSCODER) return [];
+  const scale = scaleFilter(profile);
+  const filters = [];
+  if (scale) filters.push(scale);
+  if (TRANSCODER.kind === 'vaapi') filters.push('format=nv12', 'hwupload');
+  const args = filters.length ? ['-vf', filters.join(',')] : [];
+
+  if (TRANSCODER.kind === 'nvenc') {
+    args.push('-c:v', 'h264_nvenc', '-preset', lowLatency ? 'p3' : 'p5',
+      '-tune', lowLatency ? 'll' : 'hq', '-rc:v', 'vbr', '-cq:v', '22');
+  } else if (TRANSCODER.kind === 'qsv') {
+    args.push('-c:v', 'h264_qsv', '-preset', lowLatency ? 'veryfast' : 'medium',
+      '-global_quality:v', '22', '-look_ahead', '0');
+  } else if (TRANSCODER.kind === 'vaapi') {
+    args.push('-c:v', 'h264_vaapi', '-qp', '22');
+  } else {
+    args.push('-c:v', 'libx264', '-preset', lowLatency ? 'veryfast' : 'medium', '-crf', '22');
+    if (lowLatency) args.push('-tune', 'zerolatency');
+  }
+  if (profile.bitrate !== '0') {
+    args.push('-b:v', profile.bitrate, '-maxrate', profile.maxrate, '-bufsize', profile.bufsize);
+  }
+  args.push('-pix_fmt', 'yuv420p', '-profile:v', 'high');
+  return args;
+}
+
+function mediaOutputArgs(info, profile, { lowLatency = false, allowCopy = true } = {}) {
+  const direct = allowCopy && profile.id === 'original' && info && info.videoOk;
+  const video = direct
+    ? ['-c:v', 'copy']
+    : videoEncodeArgs(profile, { lowLatency });
+  const audio = info && info.audioOk ? ['-c:a', 'copy'] : ['-c:a', 'aac', '-b:a', '192k', '-ac', '2'];
+  return { direct, args: [...video, ...audio] };
+}
+
+async function startHlsConversion(full, user, startAt, requestedQuality) {
   const id = crypto.randomBytes(16).toString('hex');
   const dir = path.join(HLS_DIR, id);
+  const quality = qualityProfile(requestedQuality);
+  const info = await probe(full);
+  const output = mediaOutputArgs(info, quality, { lowLatency: true, allowCopy: true });
   const session = {
-    id, dir, full, user, startAt, child: null, error: '', stderr: '',
+    id, dir, full, user, startAt, quality: quality.id,
+    qualityLabel: quality.label, direct: output.direct,
+    encoder: output.direct ? 'stream copy' : TRANSCODER.label,
+    child: null, error: '', stderr: '',
     created: Date.now(), lastAccess: Date.now(), stopping: false, finished: false,
   };
   await fsp.mkdir(dir, { recursive: true });
   hlsSessions.set(id, session);
 
-  const args = ['-nostdin', '-hide_banner', '-loglevel', 'error'];
+  const args = ['-nostdin', '-hide_banner', '-loglevel', 'error', ...encoderInputArgs()];
   if (startAt > 0) args.push('-ss', startAt.toFixed(2));
-  // Pace file input like a live source; otherwise a fast CPU can generate and
-  // delete the sliding-window segments before the viewer reaches them.
-  args.push('-re', '-i', full, '-map', '0:v:0', '-map', '0:a:0?',
-    // 2160p HEVC is too expensive for dependable live software conversion.
-    // Cap output at 1080p while preserving aspect ratio and never stretching.
-    '-vf', "scale=w='min(1920,iw)':h=-2",
-    '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'zerolatency', '-crf', '23',
-    '-pix_fmt', 'yuv420p', '-profile:v', 'high',
-    '-force_key_frames', 'expr:gte(t,n_forced*4)',
-    '-c:a', 'aac', '-b:a', '160k', '-ac', '2',
+  // Event HLS keeps every completed segment until the private session ends.
+  // That lets a GPU prepare ahead at full speed without racing a sliding
+  // window, while pause/close still kills the process and clears the cache.
+  args.push('-i', full, '-map', '0:v:0', '-map', '0:a:0?',
+    ...output.args,
+    ...(output.direct ? [] : ['-force_key_frames', 'expr:gte(t,n_forced*2)']),
     '-sn', '-dn', '-map_metadata', '-1', '-max_muxing_queue_size', '4096',
     '-avoid_negative_ts', 'make_zero',
-    '-f', 'hls', '-hls_time', '4', '-hls_list_size', '8',
-    '-hls_delete_threshold', '2', '-hls_allow_cache', '0',
-    '-hls_flags', 'delete_segments+independent_segments+temp_file',
+    '-f', 'hls', '-hls_time', '2', '-hls_list_size', '0',
+    '-hls_playlist_type', 'event', '-hls_allow_cache', '0',
+    '-hls_flags', 'independent_segments+temp_file',
     '-hls_segment_filename', path.join(dir, 'seg-%06d.ts'),
     path.join(dir, 'index.m3u8'));
 
@@ -1367,7 +1490,9 @@ app.get('/api/files', auth, async (req, res) => {
   }
 
   res.json({
-    files: out, folders, disk, thumbs: HAS_FFMPEG, mkvTranscode: HAS_LIBX264,
+    files: out, folders, disk, thumbs: HAS_FFMPEG, mkvTranscode: HAS_H264_ENCODER,
+    transcoder: TRANSCODER ? { label: TRANSCODER.label, hardware: TRANSCODER.hardware } : null,
+    qualities: Object.values(QUALITY_PROFILES).map(({ id, label }) => ({ id, label })),
     role: req.user.role, artwork: !!TMDB_KEY,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
@@ -1739,8 +1864,11 @@ app.get('/api/health', async (req, res) => {
     storage,
     freeMB: free,
     thumbnails: HAS_FFMPEG,
-    mkvTranscode: HAS_LIBX264,
-    mkvTransport: HAS_LIBX264 ? 'hls' : null,
+    mkvTranscode: HAS_H264_ENCODER,
+    mkvTransport: HAS_H264_ENCODER ? 'hls' : null,
+    transcoder: TRANSCODER ? TRANSCODER.label : null,
+    gpuTranscode: !!(TRANSCODER && TRANSCODER.hardware),
+    qualities: Object.keys(QUALITY_PROFILES),
     uptimeSec: Math.round(process.uptime()),
   });
 });
@@ -1864,7 +1992,7 @@ app.get('/api/media-status/*', auth, shelfGate, (req, res) => {
 // failure mode: ffmpeg writes short, complete segments and every HTTP request
 // finishes normally, while hls.js joins the segments in the browser.
 app.post('/api/hls/start/*', auth, shelfGate, async (req, res) => {
-  if (!HAS_LIBX264) return res.status(503).json({ error: 'ffmpeg has no libx264 encoder' });
+  if (!HAS_H264_ENCODER) return res.status(503).json({ error: 'ffmpeg has no usable H.264 encoder' });
   if (streaming >= MAX_STREAMS) {
     return res.status(503).json({ error: 'Too many streams running. Try again in a moment.' });
   }
@@ -1874,9 +2002,10 @@ app.post('/api/hls/start/*', auth, shelfGate, async (req, res) => {
   try { await fsp.stat(full); } catch { return res.status(404).json({ error: 'Video not found' }); }
 
   const startAt = Math.max(0, Math.min(Number(req.query.t) || 0, 24 * 3600));
+  const quality = qualityProfile(req.query.quality);
   let session;
   try {
-    session = await startHlsConversion(full, req.user.name, startAt);
+    session = await startHlsConversion(full, req.user.name, startAt, quality.id);
     const ready = await waitForHls(session);
     if (!ready) {
       const error = session.error || 'Could not prepare the first video segment';
@@ -1890,7 +2019,14 @@ app.post('/api/hls/start/*', auth, shelfGate, async (req, res) => {
 
   session.lastAccess = Date.now();
   res.setHeader('Cache-Control', 'no-store');
-  res.json({ id: session.id, url: `/api/hls/${session.id}/index.m3u8` });
+  res.json({
+    id: session.id,
+    url: `/api/hls/${session.id}/index.m3u8`,
+    quality: session.quality,
+    qualityLabel: session.qualityLabel,
+    direct: session.direct,
+    encoder: session.encoder,
+  });
 });
 
 const ownedHls = (req) => {
@@ -1947,6 +2083,147 @@ app.get('/api/hls/:id/:segment', auth, async (req, res) => {
   } catch {
     res.status(404).end();
   }
+});
+
+// ---------------------------------------------------------------- durable MP4 conversions
+// These jobs are deliberately separate from live HLS sessions: one may run in
+// the background, reports progress, preserves the source, and atomically moves
+// its completed MP4 beside the original.
+const MAX_CONVERSIONS = Math.max(1, Math.min(Number(config.convertJobs) || 1, 4));
+const conversionJobs = new Map();
+const conversionQueue = [];
+let converting = 0;
+
+function publicConversion(job) {
+  return {
+    id: job.id, status: job.status, rel: job.rel, outputRel: job.outputRel || null,
+    quality: job.quality.label, progress: Math.max(0, Math.min(100, job.progress || 0)),
+    encoder: job.encoder, direct: !!job.direct, error: job.error || '',
+    created: job.created, finished: job.finished || null,
+  };
+}
+
+function finishConversionSlot(job) {
+  converting = Math.max(0, converting - 1);
+  job.child = null;
+  runNextConversion();
+}
+
+async function runConversion(job) {
+  converting++;
+  job.status = 'running';
+  const output = mediaOutputArgs(job.info, job.quality, { lowLatency: false, allowCopy: true });
+  job.direct = output.direct;
+  job.encoder = output.direct ? 'stream copy' : TRANSCODER.label;
+
+  const args = ['-nostdin', '-hide_banner', '-loglevel', 'error', ...encoderInputArgs(),
+    '-i', job.full, '-map', '0:v:0', '-map', '0:a:0?', ...output.args,
+    '-sn', '-dn', '-map_metadata', '0', '-max_muxing_queue_size', '4096',
+    '-movflags', '+faststart', '-progress', 'pipe:1', '-nostats', '-y', job.tmp];
+
+  const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  job.child = child;
+  let progressText = '';
+  child.stdout.on('data', (chunk) => {
+    progressText += chunk.toString('utf8');
+    const lines = progressText.split(/\r?\n/);
+    progressText = lines.pop() || '';
+    for (const line of lines) {
+      const m = /^out_time_(?:us|ms)=(\d+)$/.exec(line);
+      if (m && job.info.duration) job.progress = Math.min(99.5, (+m[1] / 1e6) / job.info.duration * 100);
+    }
+  });
+  child.stderr.on('data', (chunk) => {
+    const remaining = 16 * 1024 - Buffer.byteLength(job.stderr);
+    if (remaining > 0) job.stderr += chunk.subarray(0, remaining).toString('utf8');
+  });
+  child.on('error', (error) => { job.spawnError = error.message || 'Could not start ffmpeg'; });
+  child.on('close', async (code) => {
+    try {
+      if (job.cancelled) {
+        job.status = 'cancelled';
+        job.finished = Date.now();
+        await fsp.rm(job.tmp, { force: true }).catch(() => {});
+        return;
+      }
+      if (code !== 0 || job.spawnError) {
+        const clean = job.stderr.replace(job.full, path.basename(job.full)).replace(/\s+/g, ' ').trim().slice(0, 1200);
+        job.status = 'failed';
+        job.error = job.spawnError || clean || `ffmpeg exited with code ${code}`;
+        job.finished = Date.now();
+        await fsp.rm(job.tmp, { force: true }).catch(() => {});
+        return;
+      }
+      const finalName = await uniqueName(job.destDir, job.desiredName);
+      const dest = path.join(job.destDir, finalName);
+      await fsp.rename(job.tmp, dest);
+      job.outputRel = path.relative(ROOT, dest).split(path.sep).join('/');
+      job.progress = 100;
+      job.status = 'complete';
+      job.finished = Date.now();
+      note(job.user, 'convert', `${job.rel} -> ${job.outputRel}`);
+    } catch (error) {
+      job.status = 'failed';
+      job.error = error.message || 'Could not save the converted MP4';
+      job.finished = Date.now();
+      await fsp.rm(job.tmp, { force: true }).catch(() => {});
+    } finally {
+      finishConversionSlot(job);
+    }
+  });
+}
+
+function runNextConversion() {
+  while (converting < MAX_CONVERSIONS && conversionQueue.length) {
+    const id = conversionQueue.shift();
+    const job = conversionJobs.get(id);
+    if (job && !job.cancelled && job.status === 'queued') runConversion(job);
+  }
+}
+
+app.post('/api/convert/*', auth, shelfGate, async (req, res) => {
+  if (!HAS_H264_ENCODER) return res.status(503).json({ error: 'No usable H.264 encoder is available' });
+  if (conversionQueue.length >= 20) return res.status(503).json({ error: 'The conversion queue is full' });
+  const full = safePath(req.params[0]);
+  if (!full || !THUMBABLE.includes(ext(full))) return res.status(400).json({ error: 'Bad video path' });
+  try { await fsp.stat(full); } catch { return res.status(404).json({ error: 'Video not found' }); }
+
+  const info = await probe(full);
+  if (!info || (!info.video && !info.inferred)) return res.status(415).json({ error: 'No video stream found' });
+  const quality = qualityProfile(req.query.quality || req.body.quality);
+  const id = crypto.randomBytes(16).toString('hex');
+  const suffix = quality.id === 'original' ? '' : ` (${quality.label})`;
+  const job = {
+    id, user: req.user.name, rel: req.params[0], full, info, quality,
+    destDir: path.dirname(full), desiredName: `${path.parse(full).name}${suffix}.mp4`,
+    tmp: path.join(CONVERSION_DIR, `${id}.mp4`), status: 'queued', progress: 0,
+    encoder: TRANSCODER.label, direct: false, stderr: '', error: '', created: Date.now(),
+    finished: null, child: null, cancelled: false,
+  };
+  conversionJobs.set(id, job);
+  conversionQueue.push(id);
+  runNextConversion();
+  res.status(202).json(publicConversion(job));
+});
+
+app.get('/api/convert/:id', auth, (req, res) => {
+  const job = conversionJobs.get(req.params.id);
+  if (!job || job.user !== req.user.name) return res.status(404).json({ error: 'Conversion not found' });
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(publicConversion(job));
+});
+
+app.delete('/api/convert/:id', auth, async (req, res) => {
+  const job = conversionJobs.get(req.params.id);
+  if (!job || job.user !== req.user.name) return res.status(404).json({ error: 'Conversion not found' });
+  job.cancelled = true;
+  if (job.status === 'queued') {
+    job.status = 'cancelled'; job.finished = Date.now();
+  } else if (job.child && job.child.exitCode === null) {
+    job.child.kill('SIGKILL');
+  }
+  await fsp.rm(job.tmp, { force: true }).catch(() => {});
+  res.json({ ok: true });
 });
 
 app.get('/api/media/*', auth, shelfGate, async (req, res) => {
@@ -2194,7 +2471,7 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
   let st;
   try { st = await fsp.stat(full); } catch { return res.status(404).end(); }
 
-  const key = crypto.createHash('sha256').update(`meta\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
+  const key = crypto.createHash('sha256').update(`meta-v2\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
   const cacheFile = path.join(META_DIR, `${key}.json`);
   try {
     return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
@@ -2227,6 +2504,7 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
           overview: (hit.overview || '').slice(0, 600),
           rating: hit.vote_average ? Math.round(hit.vote_average * 10) / 10 : null,
           poster: hit.poster_path ? `https://image.tmdb.org/t/p/w400${hit.poster_path}` : null,
+          backdrop: hit.backdrop_path ? `https://image.tmdb.org/t/p/w1280${hit.backdrop_path}` : null,
           tmdbId: hit.id,
           kind: hit.media_type || guessKind,
           season: season || undefined,
@@ -2552,10 +2830,18 @@ app.use(express.static(path.join(__dirname, 'public'), {
   // their URLs, so clear only this dedicated cache directory at boot.
   await fsp.rm(HLS_DIR, { recursive: true, force: true });
   await fsp.mkdir(HLS_DIR, { recursive: true });
+  await fsp.rm(CONVERSION_DIR, { recursive: true, force: true });
+  await fsp.mkdir(CONVERSION_DIR, { recursive: true });
 
   await sweepParts();
   setInterval(sweepParts, 3600 * 1000).unref();
   setInterval(sweepHlsSessions, 30 * 1000).unref();
+  setInterval(() => {
+    const cutoff = Date.now() - 6 * 3600 * 1000;
+    for (const [id, job] of conversionJobs) {
+      if (job.finished && job.finished < cutoff) conversionJobs.delete(id);
+    }
+  }, 30 * 60 * 1000).unref();
   setInterval(flushLog, 5000).unref();
   setInterval(flushProgress, 5000).unref();
   setInterval(pruneShares, 6 * 3600 * 1000).unref();
@@ -2564,6 +2850,9 @@ app.use(express.static(path.join(__dirname, 'public'), {
       for (const session of hlsSessions.values()) {
         session.stopping = true;
         if (session.child && session.child.exitCode === null) session.child.kill('SIGKILL');
+      }
+      for (const job of conversionJobs.values()) {
+        if (job.child && job.child.exitCode === null) job.child.kill('SIGKILL');
       }
       flushLog();
       flushProgress();
@@ -2575,6 +2864,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
     console.log(`VAULT listening on ${config.bind || '0.0.0.0'}:${PORT}`);
     console.log(`Vault: ${ROOT}`);
     console.log(`Thumbnails: ${HAS_FFMPEG ? 'on' : 'off (ffmpeg not found)'}`);
-    console.log(`MKV fallback: ${HAS_LIBX264 ? 'on' : 'off (ffmpeg needs libx264)'}`);
+    console.log(`Media transcoder: ${TRANSCODER ? TRANSCODER.label : 'off (no usable H.264 encoder)'}`);
   });
 })();

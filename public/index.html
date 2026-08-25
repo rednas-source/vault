@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-hls-20260825">
+<meta name="vault-build" content="vault-media-studio-20260825">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1064,6 +1064,121 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
   .act{padding:6px}
   .upload-choices{grid-template-columns:1fr}
 }
+
+/* ══════════════════════════════════ media studio */
+body.media-mode .spectrum{display:none}
+body.media-mode .toolbar{padding-bottom:10px}
+body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
+.media-library{--media-pad:clamp(16px,2.2vw,34px);padding:0 var(--media-pad);overflow:hidden}
+.media-hero{
+  --hero:none;min-height:clamp(340px,52vh,620px);position:relative;display:flex;align-items:flex-end;
+  padding:clamp(26px,5vw,72px);margin:0 calc(var(--media-pad) * -1) 30px;isolation:isolate;
+  background-image:linear-gradient(90deg,var(--void) 0%,rgba(7,8,9,.82) 33%,rgba(7,8,9,.18) 72%),
+    linear-gradient(0deg,var(--void),transparent 45%),var(--hero);
+  background-size:cover;background-position:center 24%;
+}
+.media-hero::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 75% 30%,var(--star-soft),transparent 34%)}
+.media-hero-copy{width:min(620px,78%);text-shadow:0 2px 18px rgba(0,0,0,.8)}
+.media-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--star)}
+.media-hero h2{font-size:clamp(34px,5vw,70px);line-height:1.02;letter-spacing:-.045em;margin:10px 0 12px;text-wrap:balance}
+.media-hero-meta{font-family:var(--mono);font-size:12.5px;color:#d9e5ef;letter-spacing:.05em}
+.media-overview{font-size:clamp(14px,1.3vw,17px);line-height:1.65;color:#d2d9e0;margin-top:14px;max-width:58ch;text-shadow:0 1px 12px #000}
+.media-hero-actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.media-primary,.media-secondary{min-height:44px;padding:0 18px;border-radius:3px;font-weight:600;font-size:14px;transition:transform .15s,filter .15s,background .15s}
+.media-primary{background:var(--text);color:var(--void)}
+.media-secondary{background:rgba(34,40,49,.82);color:#f3f6f8;backdrop-filter:blur(8px)}
+.media-primary:hover,.media-secondary:hover{transform:translateY(-1px);filter:brightness(1.12)}
+.media-row-section,.media-grid-section{margin-bottom:34px}
+.media-row-head{display:flex;align-items:baseline;gap:10px;margin-bottom:13px}
+.media-row-head h3{font-size:clamp(18px,2vw,24px);font-weight:600;letter-spacing:-.02em}
+.media-row-head span{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.media-row-cards{display:flex;gap:12px;overflow-x:auto;padding:3px 2px 14px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.media-card{flex:0 0 clamp(155px,14vw,225px);text-align:left;min-width:0;scroll-snap-align:start;transition:transform .18s;position:relative}
+.media-card:hover{transform:translateY(-5px)}
+.media-art{display:block;aspect-ratio:2/3;background:var(--raise);position:relative;overflow:hidden;border:1px solid var(--line);border-radius:4px;box-shadow:0 12px 26px rgba(0,0,0,.22)}
+.media-art>img{width:100%;height:100%;object-fit:cover;display:block}
+.media-art img.media-poster{position:absolute;inset:0;z-index:2;opacity:0;transition:opacity .3s}
+.media-art img.media-poster.ready{opacity:1}
+.media-art .watch-bar{z-index:5}
+.media-ph{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:22px;letter-spacing:.12em;color:var(--faint);background:linear-gradient(145deg,var(--raise),var(--deep))}
+.media-play{position:absolute;z-index:4;left:50%;top:50%;width:46px;height:46px;display:grid;place-items:center;transform:translate(-50%,-42%) scale(.84);border-radius:50%;background:rgba(7,8,9,.82);color:#fff;opacity:0;transition:.18s;backdrop-filter:blur(5px)}
+.media-card:hover .media-play,.media-card:focus-visible .media-play{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.media-card-copy{display:block;padding:10px 2px 0}
+.media-card-copy b{display:block;font-size:14px;line-height:1.35;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.media-card-copy small{display:block;margin-top:3px;font-family:var(--mono);font-size:10.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.episode-card{flex-basis:clamp(245px,24vw,390px)}
+.episode-card .media-art{aspect-ratio:16/9}
+.music-card .media-art{aspect-ratio:1;border-radius:7px}
+.music-card .media-ph{font-family:var(--sans);font-size:52px;color:var(--star);background:radial-gradient(circle at 35% 30%,var(--star-soft),transparent 40%),linear-gradient(145deg,#15202a,var(--deep))}
+.media-poster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:22px 13px}
+.media-poster-grid .media-card{width:auto;max-width:none}
+.media-folders{display:flex;gap:8px;overflow-x:auto;margin:-12px 0 28px;padding-bottom:5px}
+.media-folders button{flex:0 0 auto;display:flex;align-items:center;gap:8px;border:1px solid var(--line);padding:9px 13px;font-size:13px;color:var(--dim);border-radius:3px}
+.media-folders button:hover{border-color:var(--star-edge);color:var(--text)}
+.media-folders span{color:var(--star)}
+.music-library .media-hero{min-height:clamp(300px,44vh,520px);background-image:linear-gradient(90deg,var(--void),rgba(7,8,9,.56)),radial-gradient(circle at 74% 48%,rgba(127,217,255,.22),transparent 25%),var(--hero)}
+
+/* Continue-watching removal and conversion choices */
+.rz-art .rz-remove{position:absolute;right:7px;top:7px;z-index:4;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:rgba(7,8,9,.82);color:#fff;opacity:0;transition:opacity .15s}
+.rz:hover .rz-remove,.rz:focus-within .rz-remove{opacity:1}
+.rz-remove:hover{background:var(--flare)}
+.convert-picks{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:18px 0}
+.convert-picks button{border:1px solid var(--line);padding:11px 7px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.convert-picks button.on{border-color:var(--star);background:var(--star-soft);color:var(--star)}
+.conversion-status{min-height:22px;font-family:var(--mono);font-size:11.5px;color:var(--flare);margin-bottom:5px}
+
+/* Theater mode fills the browser viewport but deliberately does not invoke
+   the browser Fullscreen API. Chrome returns on pointer movement. */
+.viewer.theater .viewer-body{padding:0;overflow:hidden;place-items:stretch}
+.player.theater{width:100vw;height:100vh;margin:0;border:0;background:#000}
+.player.theater .pl-stage{position:absolute;inset:0;max-height:none;aspect-ratio:auto!important}
+.player.theater video{height:100%;max-height:none;object-fit:contain}
+.player.theater .pl-head,.player.theater .pl-bar{position:absolute;left:0;right:0;z-index:5;opacity:1;transition:opacity .24s;background:linear-gradient(rgba(0,0,0,.86),transparent)}
+.player.theater .pl-head{top:0;padding:22px 26px 54px}
+.player.theater .pl-bar{bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.9));padding:52px 26px 22px}
+.player.theater .pl-note{display:none}
+.player.theater.chrome-hidden{cursor:none}
+.player.theater.chrome-hidden .pl-head,.player.theater.chrome-hidden .pl-bar{opacity:0;pointer-events:none}
+.pl-quality{font-family:var(--mono);font-size:11px;min-width:58px}
+
+/* Responsive shell, libraries, and player */
+@media (max-width:1100px){
+  main{grid-template-columns:200px 1fr}
+  .head-right .ghost:not(.accent):not([data-theme-toggle]):not(#btnOut){display:none}
+  .media-hero-copy{width:min(620px,88%)}
+  .media-card{flex-basis:180px}
+  .episode-card{flex-basis:300px}
+}
+@media (max-width:760px){
+  body.media-mode .toolbar{padding-bottom:8px}
+  .media-library{--media-pad:12px}
+  .media-hero{min-height:390px;padding:28px 18px;margin-bottom:22px;background-image:linear-gradient(0deg,var(--void) 4%,rgba(7,8,9,.28) 78%),var(--hero);background-position:center}
+  .media-hero-copy{width:100%}.media-overview{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .media-row-section,.media-grid-section{margin-bottom:28px}
+  .media-card{flex-basis:145px}.episode-card{flex-basis:260px}.music-card{flex-basis:155px}
+  .media-poster-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 9px}
+  .media-card-copy b{font-size:13px}.media-card-copy small{font-size:10px}
+  .viewer.playing .viewer-body{padding:8px}
+  .player{width:100%;max-height:calc(100vh - 16px)}
+  .pl-stage,.player video{max-height:calc(100vh - 175px)}
+  #plPip,#plConvert{display:none}
+  .pl-row{gap:2px}.pl-btn{min-width:34px;padding:0 5px}.pl-quality{min-width:52px}
+}
+@media (max-width:560px){
+  header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;height:60px}
+  .head-right{margin:0}.head-right .ghost.accent{padding:8px 10px}
+  .toolbar{gap:8px}.toolbar .count{display:none}.toolbar select.sort{max-width:112px}
+  .scroll{overflow-x:hidden}.rows .f-meta{display:none}.rows thead th:nth-child(3){display:none}
+  .rows td:last-child{max-width:120px}.acts{flex-wrap:wrap}.act{font-size:9.5px}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .media-poster-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .media-hero h2{font-size:34px}.media-overview{font-size:13px}
+  .media-primary,.media-secondary{min-height:40px;padding:0 13px;font-size:12px}
+  .convert-picks{grid-template-columns:repeat(2,1fr)}
+  #plBack,#plFwd,.pl-vol,#plMute{display:none}.pl-gap{flex:1}
+  .pl-time{min-width:36px;font-size:10.5px}.pl-scrub{gap:8px}
+  .rail #railCount,.rail #railDisk{display:none}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
 }
@@ -1262,7 +1377,7 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
 
 const $ = (s) => document.querySelector(s);
 const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
-const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, transcoder: null, qualities: [], pendingShelf: null, group: true, open: new Set(), picked: new Set() };
 const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
@@ -1407,6 +1522,12 @@ $('#btnOut').addEventListener('click', async () => {
 let everLoaded = false;
 let spectrumDrawn = false;
 let pulseShelf = null;      // shelf to flare on the next render
+const mediaMetaCache = new Map();
+
+async function fetchMediaMeta(endpoint){
+  if(!mediaMetaCache.has(endpoint)) mediaMetaCache.set(endpoint, fetch(endpoint).then((r)=>r.json()).catch(()=>({found:false})));
+  return mediaMetaCache.get(endpoint);
+}
 
 async function load(){
   if(!everLoaded) $('#scroll').innerHTML = skeleton();
@@ -1419,6 +1540,8 @@ async function load(){
   state.thumbs = !!d.thumbs;
   state.mkvTranscode = !!d.mkvTranscode;
   state.artwork = !!d.artwork;
+  state.transcoder = d.transcoder || null;
+  state.qualities = Array.isArray(d.qualities) ? d.qualities : [];
   if(Array.isArray(d.shelves)){
     SHELF_ORDER = d.shelves.map((x)=>x.id);
     d.shelves.forEach((x)=>{ SHELF_LABEL[x.id] = x.label; });
@@ -1499,7 +1622,11 @@ function visible(){
   }else if(state.shelf === 'all'){
     list = state.files;
   }else{
-    const hereFiles = state.files.filter((f) => f.shelf === state.shelf && (f.dir || '') === state.folder);
+    // Media shelf homepages are libraries rather than filesystem folders:
+    // include nested titles so a Movies/Series/Music collection still feels
+    // complete when uploads are organised into folders on disk.
+    const libraryHome = ['movies','series','music'].includes(state.shelf) && !state.folder;
+    const hereFiles = state.files.filter((f) => f.shelf === state.shelf && (libraryHome || (f.dir || '') === state.folder));
     const hereFolders = state.folders.filter((f) => f.shelf === state.shelf && (f.dir || '') === state.folder);
     list = [...hereFolders, ...hereFiles];
   }
@@ -1513,6 +1640,95 @@ function visible(){
     if(b.kind === 'folder' && a.kind !== 'folder') return 1;
     return by[state.sort](a,b);
   });
+}
+
+const mediaHomeActive = () => ['movies','series','music'].includes(state.shelf) && !state.folder && !state.q;
+
+function cleanMediaTitle(name){
+  return name.replace(/\.[^.]+$/, '').replace(/[._]+/g, ' ')
+    .replace(/\s*[\[(](?:2160p|1080p|720p|4k|web.?dl|bluray|x26[45]).*$/i, '')
+    .replace(/\s+/g, ' ').trim();
+}
+
+function mediaCard(f, i, { episode = false, music = false } = {}){
+  const isVideo = VIDEO.includes(f.ext);
+  const art = isVideo && state.thumbs
+    ? `<img src="${url('thumb',f.rel)}" alt="" loading="lazy" onerror="this.remove()">`
+    : `<span class="media-ph">${music ? '♪' : esc((f.ext || 'FILE').toUpperCase())}</span>`;
+  const w = f.watch;
+  const pct = w && w.dur ? Math.min(100, w.pos/w.dur*100) : 0;
+  const ep = episode ? episodeOf(f.name) : null;
+  const title = ep ? (epTitle(f.name) || `Episode ${ep.episode}`)
+    : music === 'album' && f.dir ? f.dir.split('/').pop() : cleanMediaTitle(f.name);
+  const meta = state.artwork && isVideo ? `data-meta="${esc(url('meta',f.rel))}"` : '';
+  return `<button class="media-card ${episode?'episode-card':''} ${music?'music-card':''}" data-act="open" data-i="${i}" ${meta}>
+    <span class="media-art">${art}<span class="media-play">▶</span>
+      ${pct>0?`<span class="watch-bar"><i style="width:${pct.toFixed(1)}%"></i></span>`:''}</span>
+    <span class="media-card-copy"><b>${esc(title)}</b>
+      <small>${ep?`S${String(ep.season).padStart(2,'0')} · E${String(ep.episode).padStart(2,'0')}`:music?(music==='album'?'Album':(f.dir||'Track')):`${f.watch&&f.watch.done?'Watched · ':''}${ago(f.modified)}`}</small></span>
+  </button>`;
+}
+
+function mediaHero(f, i, kind){
+  const ep = episodeOf(f.name);
+  const title = ep ? ep.show : cleanMediaTitle(f.name);
+  const subtitle = ep ? `Season ${ep.season} · Episode ${ep.episode}`
+    : kind === 'music' ? (f.dir || 'Your music') : `${bytes(f.size)} · ${ago(f.modified)}`;
+  const bg = state.thumbs && VIDEO.includes(f.ext) ? `style="--hero:url('${url('thumb',f.rel)}')"` : '';
+  const meta = state.artwork && VIDEO.includes(f.ext) ? `data-meta="${esc(url('meta',f.rel))}"` : '';
+  return `<section class="media-hero ${kind}-hero" data-i="${i}" ${meta} ${bg}>
+    <div class="media-hero-copy"><span class="media-kicker">${kind === 'series' ? 'Featured episode' : kind === 'music' ? 'Now in your collection' : 'Featured'}</span>
+      <h2>${esc(title)}</h2><p class="media-hero-meta">${esc(subtitle)}</p>
+      <p class="media-overview">Your private library, ready whenever you are.</p>
+      <div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">▶ Play</button>
+      ${f.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">Convert to MP4</button>`:''}</div>
+    </div>
+  </section>`;
+}
+
+function mediaRow(title, items, list, options = {}){
+  if(!items.length) return '';
+  return `<section class="media-row-section"><div class="media-row-head"><h3>${esc(title)}</h3><span>${items.length}</span></div>
+    <div class="media-row-cards">${items.map((f)=>mediaCard(f, list.indexOf(f), options)).join('')}</div></section>`;
+}
+
+function mediaView(list){
+  const files = list.filter((f)=>f.kind!=='folder');
+  const folders = list.filter((f)=>f.kind==='folder');
+  if(!files.length){ return gridView(list); }
+  const feature = files.find((f)=>f.watch && !f.watch.done) || files[0];
+  const featureIndex = list.indexOf(feature);
+  const folderStrip = folders.length ? `<div class="media-folders">${folders.map((f)=>
+    `<button data-act="folder" data-i="${list.indexOf(f)}"><span>▰</span>${esc(f.name)}</button>`).join('')}</div>` : '';
+
+  if(state.shelf === 'movies'){
+    const watching = files.filter((f)=>f.watch && !f.watch.done).slice(0,12);
+    return `<div class="media-library movies-library">${mediaHero(feature, featureIndex, 'movies')}${folderStrip}
+      ${mediaRow('Continue watching', watching, list)}
+      ${mediaRow('Recently added', files.slice(0,18), list)}
+      <section class="media-grid-section"><div class="media-row-head"><h3>All movies</h3><span>${files.length}</span></div>
+        <div class="media-poster-grid">${files.map((f)=>mediaCard(f,list.indexOf(f))).join('')}</div></section></div>`;
+  }
+
+  if(state.shelf === 'series'){
+    const shows = new Map();
+    for(const f of files){
+      const e = episodeOf(f.name); const key = (e ? e.show : (f.dir || cleanMediaTitle(f.name))).toLowerCase();
+      if(!shows.has(key)) shows.set(key, []); shows.get(key).push(f);
+    }
+    const representatives = [...shows.values()].map((episodes)=>
+      episodes.find((f)=>!f.watch || !f.watch.done) || episodes[0]);
+    return `<div class="media-library series-library">${mediaHero(feature, featureIndex, 'series')}${folderStrip}
+      ${mediaRow('Shows', representatives, list)}
+      ${mediaRow('Latest episodes', files.slice(0,20), list, {episode:true})}</div>`;
+  }
+
+  const albums = new Map();
+  for(const f of files){ const key = f.dir || 'Loose tracks'; if(!albums.has(key)) albums.set(key, []); albums.get(key).push(f); }
+  const albumReps = [...albums.values()].map((tracks)=>tracks[0]);
+  return `<div class="media-library music-library">${mediaHero(feature, featureIndex, 'music')}${folderStrip}
+    ${mediaRow('Albums & folders', albumReps, list, {music:'album'})}
+    ${mediaRow('Recently added', files.slice(0,24), list, {music:'track'})}</div>`;
 }
 
 function openFolder(folder){
@@ -1604,6 +1820,10 @@ function render(){
 
   // header
   const list = visible();
+  const mediaHome = mediaHomeActive();
+  document.body.classList.toggle('media-mode', mediaHome);
+  $('#tGroup').hidden = state.shelf !== 'series';
+  $('.view-tog').hidden = mediaHome;
   renderBreadcrumbs();
   $('#viewCount').textContent = list.length
     ? `${list.length} ${list.length===1?'item':'items'} · ${bytes(list.reduce((a,f)=>a+(f.size||0),0))}`
@@ -1638,7 +1858,7 @@ function render(){
          </div>`;
     return;
   }
-  $('#scroll').innerHTML = state.view==='list' ? listView(list) : gridView(list);
+  $('#scroll').innerHTML = mediaHome ? mediaView(list) : (state.view==='list' ? listView(list) : gridView(list));
   wire();
 }
 
@@ -1648,20 +1868,23 @@ function renderResume(){
   const items = state.files
     // Far enough in to be worth resuming: 20 seconds, or 2% for short clips.
     .filter((f) => f.watch && !f.watch.done && f.watch.dur
+                && (state.shelf === 'all' || f.shelf === state.shelf)
                 && f.watch.pos > Math.min(20, f.watch.dur * 0.02))
     .sort((a,b) => b.watch.at - a.watch.at)
     .slice(0, 12);
 
   const el = $('#resume');
-  if(!items.length || state.q || state.shelf !== 'all'){ el.innerHTML = ''; el.classList.remove('on'); return; }
+  const scoped = items;
+  if(!scoped.length || state.q || !['all','movies','series'].includes(state.shelf)){ el.innerHTML = ''; el.classList.remove('on'); return; }
   el.classList.add('on');
   el.innerHTML = `<div class="tag">Continue watching</div>
-    <div class="resume-row">${items.map((f)=>{
+    <div class="resume-row">${scoped.map((f)=>{
       const pct = Math.min(100, f.watch.pos/f.watch.dur*100);
       const left = fmtTime(f.watch.dur - f.watch.pos);
       const isVid = state.thumbs && VIDEO.includes(f.ext);
       return `<button class="rz" data-rel="${esc(f.rel)}">
         <div class="rz-art">${isVid?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+          <span class="rz-remove" data-remove="${esc(f.rel)}" role="button" tabindex="0" title="Remove from Continue watching">✕</span>
           <div class="rz-bar"><i style="width:${pct.toFixed(1)}%"></i></div></div>
         <div class="rz-name" title="${esc(f.name)}">${esc(f.name)}</div>
         <div class="rz-left">${left} left</div>
@@ -1673,6 +1896,16 @@ function renderResume(){
       const f = state.files.find((x)=>x.rel===b.dataset.rel);
       if(f) openViewer(f);
     };
+  });
+  el.querySelectorAll('[data-remove]').forEach((b) => {
+    const remove = async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      await fetch(`/api/progress?rel=${encodeURIComponent(b.dataset.remove)}`, { method:'DELETE' });
+      const f = state.files.find((x)=>x.rel===b.dataset.remove); if(f) delete f.watch;
+      renderResume(); toast('Removed from Continue watching');
+    };
+    b.onclick = remove;
+    b.onkeydown = (e) => { if(e.key==='Enter'||e.key===' ') remove(e); };
   });
 }
 
@@ -1737,6 +1970,7 @@ function fileRow(f, i, nested){
     <td class="f-meta col-added">${ago(f.modified)}</td>
     <td><div class="acts">
       ${playable(f)?`<button class="act" data-act="open" data-i="${i}">Open</button>`:''}
+      ${f.ext==='mkv'?`<button class="act" data-act="convert" data-i="${i}">MP4</button>`:''}
       <button class="act" data-act="get" data-i="${i}">Get</button>
       <button class="act" data-act="rename" data-i="${i}">Rename</button>
       <button class="act" data-act="share" data-i="${i}">Share</button>
@@ -1791,6 +2025,7 @@ function wire(){
       const act = el.dataset.act;
       if(act==='folder'){ openFolder(f); return; }
       if(act==='open') openViewer(f);
+      if(act==='convert') askConvert(f);
       if(act==='get') location.href = url('download', f.rel);
       if(act==='rename') askRename(f);
       if(act==='share') askShare(f);
@@ -1862,6 +2097,20 @@ function wire(){
           body.title = tile.querySelector('.tile-body b').textContent;
         }
       }catch{ /* leave the frame grab in place */ }
+    });
+
+    $('#scroll').querySelectorAll('.media-card[data-meta]').forEach(async(card)=>{
+      const m=await fetchMediaMeta(card.dataset.meta); if(!m.found||!m.poster||!card.isConnected)return;
+      const img=document.createElement('img');img.className='media-poster';img.loading='lazy';img.src=m.poster;
+      img.onload=()=>img.classList.add('ready');img.onerror=()=>img.remove();card.querySelector('.media-art').appendChild(img);
+      const title=card.querySelector('.media-card-copy b');if(title&&m.title)title.textContent=m.title+(m.year?` (${m.year})`:'');
+    });
+    $('#scroll').querySelectorAll('.media-hero[data-meta]').forEach(async(hero)=>{
+      const m=await fetchMediaMeta(hero.dataset.meta);if(!m.found||!hero.isConnected)return;
+      if(m.backdrop||m.poster)hero.style.setProperty('--hero',`url("${m.backdrop||m.poster}")`);
+      const h=hero.querySelector('h2');if(h&&m.title)h.textContent=m.title;
+      const overview=hero.querySelector('.media-overview');if(overview&&m.overview)overview.textContent=m.overview;
+      const meta=hero.querySelector('.media-hero-meta');if(meta)meta.textContent=[m.year,m.rating?`★ ${m.rating}`:'',meta.textContent].filter(Boolean).join(' · ');
     });
   }
 
@@ -1951,6 +2200,47 @@ $('#bulkMove').onclick = () => {
   });
 };
 
+/* ── durable MP4 conversion */
+function askConvert(f){
+  let quality = (()=>{ try{return localStorage.getItem('vault-quality')||'1080';}catch{return '1080';} })();
+  sheet(`<span class="tag">Convert to MP4</span>
+    <p>Vault keeps the original and writes a browser-friendly MP4 beside it. Original uses a lossless stream copy when the codecs allow it; otherwise it preserves the source resolution.</p>
+    <div class="convert-picks">${[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original']].map(([id,label])=>
+      `<button data-quality="${id}" class="${quality===id?'on':''}">${label}</button>`).join('')}</div>
+    <div class="conversion-status" id="conversionStatus"></div>
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Start conversion</button></div>`);
+  $('#no').onclick = closeSheet;
+  $('#sheet').querySelectorAll('[data-quality]').forEach((b)=>{
+    b.onclick = ()=>{ quality=b.dataset.quality; $('#sheet').querySelectorAll('[data-quality]').forEach((x)=>x.classList.toggle('on',x===b)); };
+  });
+  $('#yes').onclick = async ()=>{
+    const btn=$('#yes'); btn.disabled=true; $('#conversionStatus').textContent='Preparing conversion…';
+    try{
+      const r=await fetch(`${url('convert',f.rel)}?quality=${encodeURIComponent(quality)}`,{method:'POST'});
+      const job=await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(job.error||'Could not queue conversion');
+      try{localStorage.setItem('vault-quality',quality);}catch{}
+      closeSheet(); toast(`${job.quality} MP4 conversion queued`); pollConversion(job.id,f.name);
+    }catch(err){ $('#conversionStatus').textContent=err.message; btn.disabled=false; }
+  };
+}
+
+async function pollConversion(id, name){
+  try{
+    const r=await fetch(`/api/convert/${encodeURIComponent(id)}`,{cache:'no-store'});
+    const job=await r.json();
+    if(!r.ok) throw new Error(job.error||'Conversion status unavailable');
+    $('#railState').textContent = job.status==='running' ? `converting ${Math.round(job.progress)}%` : job.status;
+    if(job.status==='complete'){
+      $('#railState').textContent='idle'; toast(`MP4 ready: ${name}`); load(); return;
+    }
+    if(job.status==='failed'||job.status==='cancelled'){
+      $('#railState').textContent='idle'; toast(job.error||'Conversion cancelled','bad'); return;
+    }
+    setTimeout(()=>pollConversion(id,name),1500);
+  }catch(err){ $('#railState').textContent='idle'; toast(err.message||'Lost conversion status','bad'); }
+}
+
 /* ── viewer */
 async function openViewer(f){
   $('#vTitle').textContent = f.name;
@@ -2028,363 +2318,128 @@ function playRemuxed(f, info){
 }
 
 /**
- * One player for both paths. Native files can seek normally; a remuxed stream
- * can't, so seeking restarts the stream from the chosen second and the control
- * bar tracks an offset. Everything above that difference is shared.
+ * One player for native range streams and GPU-backed HLS. A converted stream
+ * is disposable: pause records the exact logical timestamp and terminates
+ * ffmpeg, while play/seek/quality starts a new session at that timestamp.
  */
-function mountPlayer(f, { src, native, info }){
-  $('#viewer').classList.add('playing');   // full-bleed: the player draws its own chrome
-  const dur = native ? 0 : (info.duration || 0);
-  let base = 0;
-
-  // Show/season/episode when the filename gives it, otherwise just the name.
+function mountPlayer(f, { src, native, info = {} }){
+  $('#viewer').classList.add('playing');
+  const duration = native ? 0 : (info.duration || 0);
   const ep = episodeOf(f.name);
   const heading = ep ? ep.show : f.name;
   const subheading = ep
     ? `Season ${ep.season} · Episode ${ep.episode}${epTitle(f.name) ? ' · ' + epTitle(f.name) : ''}`
-    : (info && info.width ? `${info.width}×${info.height}` : bytes(f.size));
+    : (info.width ? `${info.width}×${info.height}` : bytes(f.size));
+  const names = {720:'720p',1080:'1080p',2160:'4K',original:'Original'};
+  let quality = native ? 'original' : (()=>{try{return localStorage.getItem('vault-quality')||'1080';}catch{return '1080';}})();
+  if(!names[quality]) quality='1080';
 
-  $('#vBody').innerHTML = `
-    <div class="player" id="pl">
-      <div class="pl-head">
-        <div class="pl-titles">
-          <b>${esc(heading)}</b>
-          <small>${esc(subheading)}</small>
-        </div>
-        <button class="pl-x" id="plClose" title="Close (Esc)">✕</button>
+  $('#vBody').innerHTML=`<div class="player" id="pl">
+    <div class="pl-head"><div class="pl-titles"><b>${esc(heading)}</b><small>${esc(subheading)}</small></div><button class="pl-x" id="plClose" title="Close (Esc)">✕</button></div>
+    <div class="pl-stage" id="plStage"><video id="rmx" playsinline></video><div class="pl-veil"><button class="pl-big" id="plBig">▶</button></div></div>
+    <div class="pl-bar">
+      <div class="pl-scrub"><div class="pl-time" id="plAt">0:00</div><div class="pl-track" id="plTrack"><div class="pl-buf" id="plBuf"></div><div class="pl-fill" id="plFill"></div><div class="pl-knob" id="plKnob"></div></div><div class="pl-time pl-rem" id="plRem">-0:00</div></div>
+      <div class="pl-row">
+        <button class="pl-btn pl-play" id="plPlay" title="Play / pause (space)">▶</button>
+        <button class="pl-btn" id="plBack" title="Back 10s (←)"><span class="pl-skip">↺<i>10</i></span></button><button class="pl-btn" id="plFwd" title="Forward 10s (→)"><span class="pl-skip">↻<i>10</i></span></button><div class="pl-sep"></div>
+        <button class="pl-btn" id="plMute" title="Mute (m)">🔊</button><div class="pl-vol" id="plVol"><div class="pl-vol-track"></div><div class="pl-vol-fill" id="plVolFill"></div><div class="pl-vol-knob" id="plVolKnob"></div></div><div class="pl-gap"></div>
+        <button class="pl-btn pl-cc-btn" id="plCC" title="Subtitles (c)" hidden><span class="cc-mark">CC</span><span id="plCCName">Off</span></button>
+        <button class="pl-btn pl-quality" id="plQuality" title="Transcode quality" ${native?'hidden':''}><span id="plQualityLabel">${names[quality]}</span></button>
+        <button class="pl-btn" id="plGear" title="Playback speed">⚙</button><button class="pl-btn" id="plConvert" title="Convert this MKV to MP4" ${f.ext==='mkv'?'':'hidden'}>MP4</button>
+        <button class="pl-btn" id="plPip" title="Picture in picture">⧉</button><button class="pl-btn" id="plTheater" title="Theater mode (t)">▣</button><button class="pl-btn" id="plFull" title="Browser fullscreen (f)">⛶</button>
       </div>
+    </div>
+    <div class="pl-menu" id="plMenu" hidden></div><div class="pl-menu" id="plSpeed" hidden></div><div class="pl-menu" id="plQualityMenu" hidden></div>
+    <div class="pl-note" id="plNote">${native?'Original file · direct range stream':'Ready to prepare '+names[quality]}</div>
+  </div>`;
 
-      <div class="pl-stage" id="plStage">
-        <video id="rmx" playsinline ${native ? `src="${src}"` : ''}></video>
-        <div class="pl-veil"><button class="pl-big" id="plBig">▶</button></div>
-      </div>
+  const player=$('#pl'),stage=$('#plStage'),video=$('#rmx');
+  if(info.width&&info.height) stage.style.aspectRatio=`${info.width} / ${info.height}`;
+  else{stage.style.aspectRatio='16 / 9';video.addEventListener('loadedmetadata',function ratio(){if(this.videoWidth)stage.style.aspectRatio=`${this.videoWidth} / ${this.videoHeight}`;this.removeEventListener('loadedmetadata',ratio);});}
 
-      <div class="pl-bar">
-        <div class="pl-scrub">
-          <div class="pl-time" id="plAt">0:00</div>
-          <div class="pl-track" id="plTrack">
-            <div class="pl-buf" id="plBuf"></div>
-            <div class="pl-fill" id="plFill"></div>
-            <div class="pl-knob" id="plKnob"></div>
-          </div>
-          <div class="pl-time pl-rem" id="plRem">-0:00</div>
-        </div>
+  let base=0,pausedAt=0,hls=null,hlsId='',version=0;
+  let suppress=false,wantsPlay=false,preparing=false,theater=false,chromeTimer=null,keyHandler=null;
+  const alive=()=>!!document.getElementById('pl')&&!!$('#plPlay');
+  const now=()=>native?(video.currentTime||0):base+(video.currentTime||0);
+  const total=()=>duration||(f.watch&&f.watch.dur)||(native&&isFinite(video.duration)?video.duration:0)||0;
+  const draw=()=>{if(!alive())return;const t=total(),at=now(),p=t?Math.min(100,at/t*100):0;$('#plFill').style.width=`${p}%`;$('#plKnob').style.left=`${p}%`;$('#plAt').textContent=fmtTime(at);$('#plRem').textContent=t?`-${fmtTime(Math.max(0,t-at))}`:'';};
+  const closeMenus=()=>['plMenu','plSpeed','plQualityMenu'].forEach((id)=>{const el=$('#'+id);if(el)el.hidden=true;});
+  const showChrome=()=>{if(!alive())return;clearTimeout(chromeTimer);player.classList.remove('chrome-hidden');};
+  const scheduleChrome=()=>{showChrome();chromeTimer=setTimeout(()=>{if(alive()&&theater&&!video.paused&&!['plMenu','plSpeed','plQualityMenu'].some((id)=>!$('#'+id).hidden))player.classList.add('chrome-hidden');},2200);};
+  const setPlaying=(on)=>{if(!alive())return;$('#plPlay').textContent=on?'❚❚':'▶';player.classList.toggle('playing',on);on?scheduleChrome():showChrome();};
 
-        <div class="pl-row">
-          <button class="pl-btn pl-play" id="plPlay" title="Play / pause (space)">▶</button>
-          <button class="pl-btn" id="plBack" title="Back 10s (←)">
-            <span class="pl-skip">↺<i>10</i></span></button>
-          <button class="pl-btn" id="plFwd" title="Forward 10s (→)">
-            <span class="pl-skip">↻<i>10</i></span></button>
-
-          <div class="pl-sep"></div>
-
-          <button class="pl-btn" id="plMute" title="Mute (m)">🔊</button>
-          <div class="pl-vol" id="plVol"><div class="pl-vol-track"></div>
-            <div class="pl-vol-fill" id="plVolFill"></div>
-            <div class="pl-vol-knob" id="plVolKnob"></div></div>
-
-          <div class="pl-gap"></div>
-
-          <button class="pl-btn pl-cc-btn" id="plCC" title="Subtitles (c)" hidden>
-            <span class="cc-mark">CC</span><span id="plCCName">Off</span></button>
-          <button class="pl-btn" id="plGear" title="Playback speed">⚙</button>
-          <button class="pl-btn" id="plPip" title="Picture in picture">⧉</button>
-          <button class="pl-btn" id="plFull" title="Fullscreen (f)">⛶</button>
-        </div>
-      </div>
-
-      <div class="pl-menu" id="plMenu" hidden></div>
-      <div class="pl-menu" id="plSpeed" hidden></div>
-      <div class="pl-note" id="plNote">${native ? '' :
-        (info.transcoding ? 'Converted live to browser-compatible H.264 / AAC'
-          : `Repackaged live${info.audioOk ? '' : ', audio converted to AAC'}`)}</div>
-    </div>`;
-
-  /**
-   * ffprobe already told us the frame size, so the stage can hold its shape
-   * from the first paint. Without this the box starts at the video element's
-   * default 300×150, then snaps once metadata loads — which is the "small
-   * preview then the whole thing" flash.
-   */
-  const stage = $('#plStage');
-  if(info && info.width && info.height){
-    stage.style.aspectRatio = `${info.width} / ${info.height}`;
-  }else{
-    stage.style.aspectRatio = '16 / 9';
-    // Native files carry no probe, so take the real ratio the moment it's known.
-    $('#rmx').addEventListener('loadedmetadata', function once(){
-      if(this.videoWidth) stage.style.aspectRatio = `${this.videoWidth} / ${this.videoHeight}`;
-      this.removeEventListener('loadedmetadata', once);
-    });
-  }
-
-  const v = $('#rmx');
-  const now = () => base + (v.currentTime || 0);
-  /**
-   * A fragmented stream reports only what it has buffered, so its duration
-   * grows as it plays. Trust ffprobe first, then anything already recorded,
-   * and only fall back to the element for native files.
-   */
-  const total = () => dur
-    || (f.watch && f.watch.dur)
-    || (native && isFinite(v.duration) ? v.duration : 0);
-  const alive = () => !!document.getElementById('pl') && !!$('#plPlay');
-  let hls = null;
-  let hlsId = '';
-  let streamVersion = 0;
-  let suppressStreamErrors = false;
-
-  const releaseHls = () => {
-    const oldId = hlsId;
-    hlsId = '';
-    suppressStreamErrors = true;
-    if(hls){ hls.destroy(); hls = null; }
-    if(!native){ v.pause(); v.removeAttribute('src'); v.load(); }
-    if(oldId){
-      fetch(`/api/hls/${encodeURIComponent(oldId)}`, {
-        method:'DELETE', keepalive:true,
-      }).catch(()=>{});
-    }
+  const release=()=>{
+    const old=hlsId;hlsId='';suppress=true;
+    if(hls){hls.destroy();hls=null;}
+    if(!native){video.pause();video.removeAttribute('src');video.load();}
+    if(old)fetch(`/api/hls/${encodeURIComponent(old)}`,{method:'DELETE',keepalive:true}).catch(()=>{});
+  };
+  const fail=async(message)=>{
+    if(!alive()||suppress)return;
+    let server='';if(hlsId){try{const r=await fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`,{cache:'no-store'});const d=await r.json();if(d&&!d.ok)server=d.error||'';}catch{}}
+    if(!alive())return;wantsPlay=false;preparing=false;release();
+    $('#vBody').innerHTML=`<div class="viewer-note"><p>Playback failed: ${esc(server||message||'The stream stopped unexpectedly.')}</p><p>Download the file, or open this link in VLC:</p><p class="viewer-link">${location.origin}${url('stream',f.rel)}</p></div>`;
+  };
+  const pauseConverted=()=>{
+    if(native)return;pausedAt=now();if(video.__report)video.__report();wantsPlay=false;preparing=false;version++;base=pausedAt;release();setPlaying(false);draw();
+    if($('#plNote'))$('#plNote').textContent=`Paused at ${fmtTime(pausedAt)} · server transcode stopped`;
   };
 
-  const showStreamError = async (fallback) => {
-    if(!alive() || suppressStreamErrors) return;
-    let serverError = '';
-    if(hlsId){
-      try{
-        const r = await fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`, { cache:'no-store' });
-        const status = await r.json();
-        if(status && !status.ok) serverError = status.error || '';
-      }catch{ /* use the HLS/browser error below */ }
-    }else if(!native){
-      try{
-        const r = await fetch(url('media-status', f.rel), { cache:'no-store' });
-        const status = await r.json();
-        if(status && !status.ok) serverError = status.error || '';
-      }catch{ /* use the browser error below */ }
-    }
-    if(!alive()) return;
-    const message = serverError || fallback || 'The video stream stopped unexpectedly.';
-    releaseHls();
-    $('#vBody').innerHTML = `<div class="viewer-note">
-      <p>Playback failed: ${esc(message)}</p>
-      <p>Download the file, or open this link in VLC:</p>
-      <p class="viewer-link">${location.origin}${url('stream', f.rel)}</p>
-    </div>`;
-  };
-
-  const startHls = async (at) => {
-    const version = ++streamVersion;
-    releaseHls();
-    base = at;
-    if($('#plBig')) $('#plBig').textContent = '…';
-    if($('#plNote')) $('#plNote').textContent = 'Preparing a Cloudflare-safe 1080p HLS stream…';
-
+  const startHls=async(at)=>{
+    const mine=++version;release();base=Math.max(0,at||0);pausedAt=base;wantsPlay=true;preparing=true;suppress=true;draw();
+    $('#plBig').textContent='…';$('#plNote').textContent=`Preparing ${names[quality]} · ${state.transcoder?state.transcoder.label:'H.264 encoder'}…`;
     try{
-      const r = await fetch(`${url('hls/start', f.rel)}?t=${at.toFixed(2)}`, { method:'POST' });
-      const data = await r.json().catch(()=>({}));
-      if(!r.ok) throw new Error(data.error || `HLS preparation returned HTTP ${r.status}`);
-      if(version !== streamVersion || !alive()){
-        fetch(`/api/hls/${encodeURIComponent(data.id)}`, { method:'DELETE', keepalive:true }).catch(()=>{});
-        return;
-      }
+      const r=await fetch(`${url('hls/start',f.rel)}?t=${base.toFixed(2)}&quality=${encodeURIComponent(quality)}`,{method:'POST'});const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.error||`HLS preparation returned HTTP ${r.status}`);
+      if(mine!==version||!alive()){fetch(`/api/hls/${encodeURIComponent(data.id)}`,{method:'DELETE',keepalive:true}).catch(()=>{});return;}
+      hlsId=data.id;
+      const ready=()=>{if(mine!==version||!alive())return;preparing=false;suppress=false;$('#plBig').textContent='▶';$('#plNote').textContent=`${data.qualityLabel||names[quality]} · ${data.direct?'direct stream copy':data.encoder||'H.264 / AAC'}`;if(wantsPlay)video.play().catch(()=>{});};
+      if(window.Hls&&Hls.isSupported()){
+        hls=new Hls({enableWorker:true,lowLatencyMode:false,startPosition:0,backBufferLength:45,maxBufferLength:45,maxMaxBufferLength:90});
+        hls.on(Hls.Events.ERROR,(_e,d)=>{if(mine===version&&d.fatal){suppress=false;fail(`HLS ${d.type||'stream'} error: ${d.details||'unknown failure'}`);}});
+        hls.on(Hls.Events.MEDIA_ATTACHED,()=>{if(mine===version)hls.loadSource(data.url);});hls.on(Hls.Events.MANIFEST_PARSED,ready);hls.attachMedia(video);
+      }else if(video.canPlayType('application/vnd.apple.mpegurl')){video.src=data.url;video.addEventListener('loadedmetadata',ready,{once:true});}
+      else throw new Error('This browser does not support HLS or Media Source playback');
+    }catch(err){preparing=false;suppress=false;if(mine===version)fail(err.message||'Could not prepare playback');}
+  };
+  const go=(at)=>{
+    at=Math.max(0,Math.min(total()?total()-.25:1e9,at||0));
+    if(!native)return startHls(at);
+    const play=()=>{try{video.currentTime=at;}catch{}video.play().catch(()=>{});};video.readyState?play():video.addEventListener('loadedmetadata',play,{once:true});
+  };
+  const toggle=()=>{if(native){video.paused?video.play().catch(()=>{}):video.pause();return;}if(wantsPlay){video.paused?pauseConverted():video.pause();}else startHls(pausedAt||now());};
+  const jump=(seconds)=>{const at=Math.max(0,Math.min(total()?total()-.25:1e9,now()+seconds));if(native)video.currentTime=at;else if(wantsPlay)startHls(at);else{base=pausedAt=at;draw();}};
 
-      hlsId = data.id;
-      if(window.Hls && Hls.isSupported()){
-        hls = new Hls({
-          enableWorker:true, lowLatencyMode:false,
-          backBufferLength:16, maxBufferLength:24,
-          liveSyncDurationCount:2, liveMaxLatencyDurationCount:6,
-        });
-        hls.on(Hls.Events.ERROR, (_event, detail) => {
-          if(version !== streamVersion || !detail.fatal) return;
-          suppressStreamErrors = false;
-          showStreamError(`HLS ${detail.type || 'stream'} error: ${detail.details || 'unknown failure'}`);
-        });
-        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          if(version === streamVersion) hls.loadSource(data.url);
-        });
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          if(version !== streamVersion || !alive()) return;
-          suppressStreamErrors = false;
-          $('#plBig').textContent = '▶';
-          $('#plNote').textContent = 'Cloudflare-safe 1080p HLS · H.264 / AAC';
-          v.play().catch(()=>{});
-        });
-        hls.attachMedia(v);
-      }else if(v.canPlayType('application/vnd.apple.mpegurl')){
-        suppressStreamErrors = false;
-        v.src = data.url;
-        $('#plBig').textContent = '▶';
-        $('#plNote').textContent = 'Cloudflare-safe 1080p HLS · H.264 / AAC';
-        v.play().catch(()=>{});
-      }else{
-        throw new Error('This browser does not support HLS or Media Source playback');
-      }
-    }catch(err){
-      suppressStreamErrors = false;
-      if(version === streamVersion) showStreamError(err.message || 'Could not prepare HLS playback');
-    }
-  };
+  video.onplay=()=>{wantsPlay=true;setPlaying(true);};video.onpause=()=>{setPlaying(false);if(!native&&wantsPlay&&!suppress)pauseConverted();};video.ontimeupdate=draw;
+  video.onprogress=()=>{if(alive()&&total()&&video.buffered.length)$('#plBuf').style.width=`${Math.min(100,(base+video.buffered.end(video.buffered.length-1))/total()*100)}%`;};
+  video.onerror=()=>{if(!suppress)fail(video.error?`browser media error ${video.error.code}`:'browser media error');};
+  $('#plPlay').onclick=toggle;$('#plBig').onclick=toggle;video.onclick=toggle;$('#plBack').onclick=()=>jump(-10);$('#plFwd').onclick=()=>jump(10);$('#plClose').onclick=closeViewer;
 
-  const start = (at) => {
-    if(native){ v.currentTime = at; v.play().catch(()=>{}); return; }
-    startHls(at);
-  };
-  v.__destroyStream = () => { streamVersion++; releaseHls(); };
+  const track=$('#plTrack');let drag=false;
+  const trackPos=(e)=>{const r=track.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));};
+  const preview=(p)=>{const t=total();$('#plFill').style.width=`${p*100}%`;$('#plKnob').style.left=`${p*100}%`;if(t){$('#plAt').textContent=fmtTime(p*t);$('#plRem').textContent=`-${fmtTime(t-p*t)}`;}};
+  track.onpointerdown=(e)=>{if(!total())return;drag=true;track.setPointerCapture(e.pointerId);preview(trackPos(e));};track.onpointermove=(e)=>{if(drag)preview(trackPos(e));};
+  track.onpointerup=(e)=>{if(!drag)return;drag=false;const at=trackPos(e)*total();if(!native&&!wantsPlay){base=pausedAt=at;draw();}else go(at);};
 
-  // ── transport
-  const setPlaying = (on) => {
-    if(!alive()) return;
-    $('#plPlay').textContent = on ? '❚❚' : '▶';
-    $('#pl').classList.toggle('playing', on);
-  };
-  const toggle = () => v.paused ? v.play().catch(()=>{}) : v.pause();
-  v.onplay = () => setPlaying(true);
-  v.onpause = () => setPlaying(false);
-  $('#plPlay').onclick = toggle;
-  $('#plBig').onclick = toggle;
-  v.onclick = toggle;
-  v.ondblclick = () => goFull();
-  $('#plClose').onclick = () => closeViewer();
+  const savedVol=(()=>{try{return parseFloat(localStorage.getItem('vault-vol'));}catch{return NaN;}})();video.volume=isFinite(savedVol)?savedVol:1;
+  const drawVol=()=>{if(!alive())return;const n=video.muted?0:video.volume;$('#plVolFill').style.width=`${n*100}%`;$('#plVolKnob').style.left=`${n*100}%`;$('#plMute').textContent=n===0?'🔇':n<.5?'🔉':'🔊';};
+  $('#plMute').onclick=()=>{video.muted=!video.muted;drawVol();};const vol=$('#plVol');let volDrag=false;
+  const setVol=(e)=>{const r=vol.getBoundingClientRect();video.volume=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));video.muted=false;try{localStorage.setItem('vault-vol',String(video.volume));}catch{}drawVol();};
+  vol.onpointerdown=(e)=>{volDrag=true;vol.setPointerCapture(e.pointerId);setVol(e);};vol.onpointermove=(e)=>{if(volDrag)setVol(e);};vol.onpointerup=()=>{volDrag=false;};drawVol();
 
-  const jump = (d) => {
-    const t = total();
-    start(Math.max(0, Math.min(t ? t - 1 : 1e9, now() + d)));
-  };
-  $('#plBack').onclick = () => jump(-10);
-  $('#plFwd').onclick  = () => jump(10);
+  const full=()=>document.fullscreenElement?document.exitFullscreen():player.requestFullscreen&&player.requestFullscreen().catch(()=>{});
+  const theaterMode=()=>{theater=!theater;player.classList.toggle('theater',theater);$('#viewer').classList.toggle('theater',theater);$('#plTheater').classList.toggle('on',theater);theater?scheduleChrome():showChrome();};
+  $('#plFull').onclick=full;$('#plTheater').onclick=theaterMode;$('#plConvert').onclick=()=>askConvert(f);
+  $('#plPip').onclick=()=>{if(!document.pictureInPictureEnabled)return toast('This browser has no picture-in-picture','bad');document.pictureInPictureElement?document.exitPictureInPicture().catch(()=>{}):video.requestPictureInPicture().catch(()=>toast('Picture-in-picture unavailable','bad'));};
+  $('#plGear').onclick=()=>{const menu=$('#plSpeed'),open=menu.hidden;closeMenus();menu.innerHTML=[.5,.75,1,1.25,1.5,2].map((r)=>`<button data-r="${r}" class="${video.playbackRate===r?'on':''}">${r===1?'Normal':r+'×'}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{video.playbackRate=+b.dataset.r;menu.hidden=true;$('#plGear').classList.toggle('on',video.playbackRate!==1);});menu.hidden=!open;showChrome();};
+  if(!native)$('#plQuality').onclick=()=>{const menu=$('#plQualityMenu'),open=menu.hidden;closeMenus();menu.innerHTML=[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original / direct']].map(([id,label])=>`<button data-q="${id}" class="${quality===id?'on':''}">${label}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{const at=now(),playing=wantsPlay;quality=b.dataset.q;$('#plQualityLabel').textContent=names[quality];try{localStorage.setItem('vault-quality',quality);}catch{}menu.hidden=true;if(playing)startHls(at);else $('#plNote').textContent=`${names[quality]} selected · press play to prepare`;});menu.hidden=!open;showChrome();};
 
-  // ── progress
-  v.ontimeupdate = () => {
-    if(!alive()) return;
-    const t = total();
-    const p = t ? Math.min(100, now()/t*100) : 0;
-    $('#plFill').style.width = `${p}%`;
-    $('#plKnob').style.left = `${p}%`;
-    $('#plAt').textContent = fmtTime(now());
-    $('#plRem').textContent = t ? `-${fmtTime(Math.max(0, t - now()))}` : '';
-  };
-  v.onprogress = () => {
-    if(!alive() || !$('#plBuf')) return;
-    const t = total();
-    if(!t || !v.buffered.length) return;
-    $('#plBuf').style.width = `${Math.min(100, (base + v.buffered.end(v.buffered.length-1))/t*100)}%`;
-  };
-
-  // ── scrubbing: drag as well as click
-  const track = $('#plTrack');
-  const posFromEvent = (e) => {
-    const r = track.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-    return Math.max(0, Math.min(1, x / r.width));
-  };
-  let dragging = false;
-  const previewAt = (p) => {
-    $('#plFill').style.width = `${p*100}%`;
-    $('#plKnob').style.left = `${p*100}%`;
-    const t = total();
-    if(t){ $('#plAt').textContent = fmtTime(p*t); $('#plRem').textContent = `-${fmtTime(t - p*t)}`; }
-  };
-  track.addEventListener('pointerdown', (e) => {
-    if(!total()) return;
-    dragging = true; track.setPointerCapture(e.pointerId); previewAt(posFromEvent(e));
-  });
-  track.addEventListener('pointermove', (e) => { if(dragging) previewAt(posFromEvent(e)); });
-  track.addEventListener('pointerup', (e) => {
-    if(!dragging) return;
-    dragging = false;
-    start(posFromEvent(e) * total());
-  });
-
-  // ── volume
-  const savedVol = (() => { try{ return parseFloat(localStorage.getItem('vault-vol')); }catch{ return NaN; } })();
-  v.volume = isFinite(savedVol) ? savedVol : 1;
-  const drawVol = () => {
-    if(!alive() || !$('#plVolFill')) return;
-    const lvl = v.muted ? 0 : v.volume;
-    $('#plVolFill').style.width = `${lvl*100}%`;
-    $('#plVolKnob').style.left = `${lvl*100}%`;
-    $('#plMute').textContent = lvl === 0 ? '🔇' : (lvl < 0.5 ? '🔉' : '🔊');
-  };
-  $('#plMute').onclick = () => { v.muted = !v.muted; drawVol(); };
-  const volEl = $('#plVol');
-  const setVolFrom = (e) => {
-    const r = volEl.getBoundingClientRect();
-    v.volume = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-    v.muted = false;
-    try{ localStorage.setItem('vault-vol', String(v.volume)); }catch{ /* private mode */ }
-    drawVol();
-  };
-  let volDrag = false;
-  volEl.addEventListener('pointerdown', (e) => { volDrag = true; volEl.setPointerCapture(e.pointerId); setVolFrom(e); });
-  volEl.addEventListener('pointermove', (e) => { if(volDrag) setVolFrom(e); });
-  volEl.addEventListener('pointerup', () => { volDrag = false; });
-  drawVol();
-
-  // ── fullscreen + picture in picture
-  const goFull = () => {
-    if(document.fullscreenElement) document.exitFullscreen();
-    else $('#pl').requestFullscreen && $('#pl').requestFullscreen().catch(()=>{});
-  };
-  $('#plFull').onclick = goFull;
-  $('#plPip').onclick = () => {
-    if(!document.pictureInPictureEnabled) return toast('This browser has no picture-in-picture', 'bad');
-    document.pictureInPictureElement
-      ? document.exitPictureInPicture().catch(()=>{})
-      : v.requestPictureInPicture().catch(()=>toast('Picture-in-picture unavailable for this stream','bad'));
-  };
-
-  // ── playback speed
-  $('#plGear').onclick = () => {
-    const menu = $('#plSpeed');
-    $('#plMenu').hidden = true;
-    menu.innerHTML = [0.5,0.75,1,1.25,1.5,2].map((r)=>
-      `<button data-r="${r}" class="${v.playbackRate===r?'on':''}">${r === 1 ? 'Normal' : r + '×'}</button>`).join('');
-    menu.querySelectorAll('button').forEach((btn) => {
-      btn.onclick = () => { v.playbackRate = +btn.dataset.r; menu.hidden = true;
-        $('#plGear').classList.toggle('on', v.playbackRate !== 1); };
-    });
-    menu.hidden = !menu.hidden;
-  };
-
-  // ── errors
-  v.onerror = () => {
-    if(suppressStreamErrors) return;
-    const err = v.error;
-    const code = err ? `browser media error ${err.code}` : 'browser media error';
-    showStreamError(code);
-  };
-
-  // ── keyboard, scoped to the open player
-  const keys = (e) => {
-    if(!alive()) return document.removeEventListener('keydown', keys, true);
-    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
-    const stop = () => { e.preventDefault(); e.stopPropagation(); };
-    switch(e.key){
-      case ' ': case 'k': stop(); toggle(); break;
-      case 'ArrowRight': stop(); jump(10); break;
-      case 'ArrowLeft':  stop(); jump(-10); break;
-      case 'l': stop(); jump(30); break;
-      case 'j': stop(); jump(-30); break;
-      case 'ArrowUp': stop(); v.volume = Math.min(1, v.volume + 0.1); v.muted = false; drawVol(); break;
-      case 'ArrowDown': stop(); v.volume = Math.max(0, v.volume - 0.1); drawVol(); break;
-      case 'm': stop(); v.muted = !v.muted; drawVol(); break;
-      case 'f': stop(); goFull(); break;
-      case 'c': stop(); if(!$('#plCC').hidden) $('#plCC').click(); break;
-      default: return;
-    }
-  };
-  document.addEventListener('keydown', keys, true);
-
-  trackProgress(v, f, () => base, dur);
-  attachSubtitles(v, f).then(() => buildCCMenu(v));
-
-  const from = f.watch && f.watch.pos > 5 && (!total() || f.watch.pos < total() - 20) ? f.watch.pos : 0;
-  if(native){ v.src = src; v.oncanplay = () => { v.oncanplay = null; if(from) v.currentTime = from; }; }
-  start(from);
-  if(native) v.play().catch(()=>{});
+  player.onpointermove=scheduleChrome;player.onmouseleave=()=>{if(theater&&!video.paused)scheduleChrome();};
+  keyHandler=(e)=>{if(!alive()){document.removeEventListener('keydown',keyHandler,true);return;}if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;const stop=()=>{e.preventDefault();e.stopPropagation();};switch(e.key){case ' ':case 'k':stop();toggle();break;case 'ArrowRight':stop();jump(10);break;case 'ArrowLeft':stop();jump(-10);break;case 'l':stop();jump(30);break;case 'j':stop();jump(-30);break;case 'ArrowUp':stop();video.volume=Math.min(1,video.volume+.1);video.muted=false;drawVol();break;case 'ArrowDown':stop();video.volume=Math.max(0,video.volume-.1);drawVol();break;case 'm':stop();video.muted=!video.muted;drawVol();break;case 'f':stop();full();break;case 't':stop();theaterMode();break;case 'c':stop();if(!$('#plCC').hidden)$('#plCC').click();break;default:return;}};
+  document.addEventListener('keydown',keyHandler,true);trackProgress(video,f,()=>native?0:base,duration);attachSubtitles(video,f).then(()=>buildCCMenu(video));
+  const from=f.watch&&f.watch.pos>5&&(!total()||f.watch.pos<total()-20)?f.watch.pos:0;pausedAt=from;base=native?0:from;
+  if(native){video.src=src;go(from);}else startHls(from);
+  video.__destroyStream=()=>{version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater');release();};
 }
 
 /** The part of an episode filename after the SxxExx marker, if there is one. */
@@ -2418,7 +2473,10 @@ function buildCCMenu(v){
       };
     });
   };
-  btn.onclick = () => { const sp = $('#plSpeed'); if(sp) sp.hidden = true; draw(); menu.hidden = !menu.hidden; };
+  btn.onclick = () => {
+    const sp = $('#plSpeed'), qm = $('#plQualityMenu'); if(sp) sp.hidden = true; if(qm) qm.hidden = true;
+    draw(); menu.hidden = !menu.hidden;
+  };
   draw();
 }
 
@@ -2485,7 +2543,7 @@ function fmtTime(sec){
 function closeViewer(){ closeLayer() || teardownViewer(); }
 
 function teardownViewer(){
-  $('#viewer').classList.remove('playing');
+  $('#viewer').classList.remove('playing','theater');
   // Blank the source first: leaving it set keeps the live ffmpeg job running.
   const v = $('#vBody').querySelector('video, audio');
   if(v){
@@ -3083,7 +3141,7 @@ const ACT_LABEL = {
   'login-failed':'failed sign-in', 'account-create':'created account',
   'account-delete':'deleted account', 'token-create':'created token',
   'shelf-create':'created shelf', 'shelf-delete':'deleted shelf',
-  'folder-create':'created folder',
+  'folder-create':'created folder', convert:'converted video',
 };
 const ACT_KIND = (a) =>
   a.includes('delete') ? 'bad' : (a === 'login-failed' ? 'warn' : '');

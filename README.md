@@ -15,7 +15,8 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Real folders.** Create folders in a shelf, choose a whole folder, or drag one onto the page; nested paths are preserved.
 - **Accounts with per-shelf access.** Each member sees only the shelves you give them.
 - **API tokens and a CLI**, for moving files in and out from a terminal or a script.
-- **Plays MKV in the browser.** Video is converted to a browser-safe 1080p H.264/AAC HLS stream, whose short segments work reliably through Cloudflare Tunnel.
+- **Plays MKV in the browser.** Choose 720p, 1080p, 4K, or Original; Vault auto-detects NVENC, Quick Sync, or VAAPI and falls back to CPU when needed.
+- **Converts MKV to MP4.** Background jobs keep the source, report progress, and use the same GPU-aware quality profiles.
 - **Hover a video tile** to scrub through nine frames from across its runtime.
 - **Episodes collapse into seasons** automatically, from the filename.
 - **Bulk select**, move, and delete.
@@ -71,6 +72,10 @@ Create `config.json`:
   "sessionSecret": "paste-a-long-random-string-here",
   "sessionDays": 30,
   "maxFileGB": 64,
+  "transcodeEncoder": "auto",
+  "defaultTranscodeQuality": "1080",
+  "remuxStreams": 3,
+  "convertJobs": 1,
   "https": true
 }
 ```
@@ -85,6 +90,10 @@ Create `config.json`:
 | `thumbJobs` | Optional. Parallel ffmpeg processes, default 2. |
 | `partTtlHours` | Optional. How long an abandoned partial upload is kept, default 24. |
 | `remuxStreams` | Optional. Simultaneous live video conversions, default 3. |
+| `transcodeEncoder` | Optional. `auto` probes NVIDIA NVENC, Intel Quick Sync, VAAPI (Intel/AMD), then CPU. May be pinned to `nvenc`, `qsv`, `vaapi`, or `cpu`. |
+| `vaapiDevice` | Optional. VAAPI render device, default `/dev/dri/renderD128`. |
+| `defaultTranscodeQuality` | Optional. `720`, `1080`, `2160`, or `original`; default `1080`. |
+| `convertJobs` | Optional. Simultaneous background MP4 conversions, default 1. |
 | `activityMax` | Optional. Activity entries retained, default 4000. |
 | `tmdbKey` | Optional. Enables poster art. Leave out to keep it off. |
 
@@ -96,13 +105,13 @@ Create `config.json`:
 
 Start the app once. It hashes that password into `users.json`, makes the account an admin, and tells you so. Then delete the `users` block — it's never read again, and there's no reason to leave a password sitting in a file.
 
-**For thumbnails and MKV playback**, install an ffmpeg build with ffprobe and the `libx264` encoder:
+**For thumbnails and MKV playback**, install ffmpeg and ffprobe. Vault uses a working GPU H.264 encoder when one is available, with `libx264` as the dependable fallback:
 
 ```bash
 apt install -y ffmpeg
 ```
 
-Without it the app logs `Thumbnails: off` and `MKV fallback: off`; regular uploads, downloads, and browser-native media still work.
+On startup, check the `Media transcoder:` line or `/api/health`. It reports `NVIDIA NVENC`, `Intel Quick Sync`, `VAAPI GPU`, or `CPU libx264`. If auto-detection cannot access a GPU, make sure the `vault.service` user can access the GPU device/driver; for VAAPI this commonly means membership in the `render` group.
 
 ```bash
 npm start
@@ -289,15 +298,15 @@ This is the one feature I could not test against the live API, since it needs yo
 
 ---
 
-## Playing MKV
+## Playing and converting MKV
 
-Browsers never shipped Matroska support, but what's usually inside an MKV — H.264 video, AAC audio — they handle fine. Vault repackages compatible streams into fragmented MP4 as you watch. The picture is bit-identical and the CPU cost is near zero.
+Browsers never shipped dependable Matroska support. Vault therefore produces two-second HLS segments, which also avoids Cloudflare Tunnel buffering one endless response. The player offers 720p, 1080p, 4K, and Original. Original stream-copies browser-safe H.264/AAC without quality loss; incompatible HEVC, AV1, DTS, TrueHD, and similar tracks are converted to H.264/AAC while preserving source resolution.
 
-Audio such as DTS, TrueHD, FLAC, or Opus is converted to AAC for dependable MP4 playback. HEVC, AV1, MPEG-2, high-bit-depth H.264, and other video that browsers cannot reliably decode is converted live to H.264. That fallback uses more CPU than repackaging—especially for 4K video—but means an MKV is no longer rejected merely because of its codecs.
+Auto mode tests the actual encoder rather than trusting ffmpeg's compiled encoder list. It prefers NVIDIA NVENC, then Intel Quick Sync, then VAAPI for Intel/AMD, and finally `libx264`. `/api/health` exposes both `transcoder` and `gpuTranscode`, so you can prove what the systemd process can access.
 
-A live ffmpeg stream can't answer byte-range requests, so the browser's own seek bar won't work. Vault draws its own underneath: click it and the stream restarts from that point, and ffmpeg seeks to the requested time before it starts sending video.
+Pause terminates the private ffmpeg/HLS session and stores the exact logical timestamp. Play, seek, or a quality change starts a new session at that point. This is intentional: it prevents a paused live playlist from advancing invisibly and frees the GPU immediately.
 
-Three streams run at once by default (`remuxStreams` in config). A fourth viewer gets a clear "try again in a moment" rather than a stalled player.
+Choose **MP4** in a file row or player to create a durable copy beside the source. Compatible Original jobs are quick remuxes; other quality choices use the selected hardware encoder. The source is never replaced. One conversion runs at a time by default (`convertJobs`), while `remuxStreams` controls simultaneous viewers.
 
 ---
 
