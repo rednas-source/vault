@@ -9,7 +9,6 @@
   "defaultTranscodeQuality": "1080",
   "remuxStreams": 3,
   "convertJobs": 1,
-  "whisperPython": "python3",
   "whisperModel": "medium",
   "whisperDevice": "auto",
   "subtitleJobs": 1,

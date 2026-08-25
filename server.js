@@ -1884,6 +1884,7 @@ app.get('/api/health', async (req, res) => {
     encoderDiagnostics: ENCODER_DIAGNOSTICS,
     aiSubtitles: HAS_AI_SUBTITLES,
     aiSubtitleDiagnostics: AI_SUBTITLE_STATUS.diagnostic,
+    metadata: !!TMDB_KEY,
     qualities: Object.keys(QUALITY_PROFILES),
     uptimeSec: Math.round(process.uptime()),
   });
@@ -2364,13 +2365,16 @@ app.get('/api/scrub/*', auth, shelfGate, async (req, res) => {
  * a <track> element accepts.
  */
 
-const WHISPER_PYTHON = config.whisperPython || 'python3';
+const LOCAL_WHISPER_PYTHON = process.platform === 'win32'
+  ? path.join(__dirname, '.venv', 'Scripts', 'python.exe')
+  : path.join(__dirname, '.venv', 'bin', 'python');
+const WHISPER_PYTHON = config.whisperPython || (fs.existsSync(LOCAL_WHISPER_PYTHON) ? LOCAL_WHISPER_PYTHON : 'python3');
 const WHISPER_SCRIPT = path.join(__dirname, 'scripts', 'transcribe.py');
 const WHISPER_MODELS = new Set(['tiny', 'base', 'small', 'medium', 'large-v3']);
 const AI_SUBTITLE_STATUS = (() => {
   if (!fs.existsSync(WHISPER_SCRIPT)) return { available: false, diagnostic: 'transcription script missing' };
   try {
-    const result = spawnSync(WHISPER_PYTHON, ['-c', 'import faster_whisper; print(faster_whisper.__version__)'], {
+    const result = spawnSync(WHISPER_PYTHON, ['-c', 'import faster_whisper, importlib.metadata as m; print(m.version("faster-whisper"))'], {
       encoding: 'utf8', timeout: 12000,
     });
     if (result.status === 0) return { available: true, diagnostic: `ready via ${WHISPER_PYTHON} (${String(result.stdout || '').trim() || 'version unknown'})` };
@@ -2647,9 +2651,12 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
     return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
   } catch { /* look it up */ }
 
-  const name = path.basename(full);
-  const guessed = guessTitle(name);
   const mediaShelf = shelfOf(req.params[0]);
+  const relParts = String(req.params[0]).replace(/\\/g, '/').split('/').filter(Boolean);
+  // A movie folder is usually a cleaner identity than the release filename
+  // inside it (and handles generic names such as movie.mkv or main.mkv).
+  const name = mediaShelf === 'movies' && relParts.length > 2 ? relParts[1] : path.basename(full);
+  const guessed = guessTitle(name);
   const title = guessed.title;
   const year = guessed.year;
   const season = guessed.season;

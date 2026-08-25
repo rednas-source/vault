@@ -78,7 +78,6 @@ Create `config.json`:
   "defaultTranscodeQuality": "1080",
   "remuxStreams": 3,
   "convertJobs": 1,
-  "whisperPython": "python3",
   "whisperModel": "medium",
   "whisperDevice": "auto",
   "subtitleJobs": 1,
@@ -100,7 +99,7 @@ Create `config.json`:
 | `vaapiDevice` | Optional. VAAPI render device, default `/dev/dri/renderD128`. |
 | `defaultTranscodeQuality` | Optional. `720`, `1080`, `2160`, or `original`; default `1080`. |
 | `convertJobs` | Optional. Simultaneous background MP4 conversions, default 1. |
-| `whisperPython` | Optional. Python executable containing `faster-whisper`, default `python3`. A virtual-environment path is recommended. |
+| `whisperPython` | Optional override. Vault automatically uses `/root/vault/.venv/bin/python` when installed by the included setup script, then falls back to `python3`. |
 | `whisperModel` | Optional. `tiny`, `base`, `small`, `medium`, or `large-v3`; default `medium`. |
 | `whisperDevice` | Optional. `auto`, `cuda`, or `cpu`; default `auto`. |
 | `subtitleJobs` | Optional. Simultaneous AI subtitle jobs, default 1 and capped at 2. |
@@ -294,15 +293,16 @@ Tracks embedded in the container and sidecar files beside it (`Film.srt`, `Film.
 
 Sidecar files are hidden from the file listing when they belong to a video that's also there — they're part of that item, not separate library entries. An orphaned subtitle with no matching video is still listed, since that's a file you might want to find.
 
-The player and show detail page can also generate local AI subtitles. Install `faster-whisper` in a virtual environment so system Python stays clean:
+The player plus movie and show detail pages can generate local AI subtitles. Install the isolated Python environment with the included setup script:
 
 ```bash
-apt install -y python3-venv
-python3 -m venv /root/vault/.venv
-/root/vault/.venv/bin/pip install faster-whisper
+cd /root/vault
+bash scripts/install-ai-subtitles.sh
+sudo systemctl restart vault.service
+curl -s http://127.0.0.1:8420/api/health
 ```
 
-Then set `"whisperPython": "/root/vault/.venv/bin/python"` and restart `vault.service`. Generated tracks are stored next to the video as `Title.ai.vtt` (or `Title.ai.en.vtt` when a language is selected), so they are reusable and move with the library. `whisperDevice: "auto"` tries CUDA first and falls back to CPU; it cannot use CUDA until the container has working NVIDIA device passthrough and runtime libraries.
+Vault detects that environment automatically. The health response reports `aiSubtitles: true` when it is ready and includes `aiSubtitleDiagnostics` when it is not. Generated tracks are stored next to the video as `Title.ai.vtt` (or `Title.ai.en.vtt` when a language is selected), so they are reusable and move with the library. `whisperDevice: "auto"` tries CUDA first and falls back to CPU; it works on CPU now and can use CUDA later when GPU passthrough is configured.
 
 ---
 
@@ -314,7 +314,7 @@ Off unless you add a TMDB key:
 "tmdbKey": "your-key-from-themoviedb.org"
 ```
 
-With it, grid tiles show real posters instead of frame grabs, and titles are replaced with the matched name and year. Results are cached under `.meta` in your storage path; **Clear** them by calling `POST /api/meta/clear` as an admin.
+With it, grid tiles show real posters instead of frame grabs, and titles are replaced with the matched name and year. The Movies entertainment library groups alternate versions, suppresses samples/trailers/extras, chooses the main feature, and sends movie-shelf lookups only to TMDB's movie search. Nothing is deleted—the complete file shelf still exposes every source file. Results are cached under `.meta` in your storage path; **Clear** them by calling `POST /api/meta/clear` as an admin.
 
 Matching works from the filename, so it will sometimes be wrong. `Blade Runner 2049 (2017)` correctly yields the 2017 film rather than reading 2049 as the year, and `Arcane - S01E03` searches for the show rather than a film. But a filename with no useful title in it won't match anything, and a wrong match is possible — anything TMDB doesn't recognise simply keeps its video frame.
 
