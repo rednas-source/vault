@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-cinema-metadata-ai-20260825';
+const BUILD_ID = 'vault-cinema-rails-convert-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -807,6 +807,14 @@ function detectTranscoder() {
 
 const TRANSCODER = detectTranscoder();
 const HAS_H264_ENCODER = !!TRANSCODER;
+const CPU_TRANSCODER = HAS_LIBX264
+  ? { kind: 'cpu', encoder: 'libx264', label: 'CPU libx264', hardware: false, verified: true }
+  : null;
+// x264's automatic thread count is aggressive on 4K sources and can make a
+// memory-limited container kill ffmpeg with SIGKILL (Node then reports a null
+// exit code). Background conversions use a small, configurable ceiling and
+// automatically retry with one thread if the first attempt is terminated.
+const CONVERSION_THREADS = Math.max(1, Math.min(Number(config.convertThreads) || 2, 8));
 
 const QUALITY_PROFILES = Object.freeze({
   '720':  { id: '720',  label: '720p',  width: 1280, height: 720,  bitrate: '3M',  maxrate: '4M',  bufsize: '6M' },
@@ -1070,8 +1078,8 @@ async function waitForHls(session, timeoutMs = 75000) {
   return false;
 }
 
-function encoderInputArgs() {
-  return TRANSCODER && TRANSCODER.kind === 'vaapi'
+function encoderInputArgs(transcoder = TRANSCODER) {
+  return transcoder && transcoder.kind === 'vaapi'
     ? ['-vaapi_device', config.vaapiDevice || '/dev/dri/renderD128'] : [];
 }
 
@@ -1080,25 +1088,31 @@ function scaleFilter(profile) {
   return `scale=w='min(iw,${profile.width})':h='min(ih,${profile.height})':force_original_aspect_ratio=decrease:force_divisible_by=2`;
 }
 
-function videoEncodeArgs(profile, { lowLatency = false } = {}) {
-  if (!TRANSCODER) return [];
+function videoEncodeArgs(profile, { lowLatency = false, transcoder = TRANSCODER, safe = false } = {}) {
+  if (!transcoder) return [];
   const scale = scaleFilter(profile);
   const filters = [];
   if (scale) filters.push(scale);
-  if (TRANSCODER.kind === 'vaapi') filters.push('format=nv12', 'hwupload');
+  if (transcoder.kind === 'vaapi') filters.push('format=nv12', 'hwupload');
   const args = filters.length ? ['-vf', filters.join(',')] : [];
 
-  if (TRANSCODER.kind === 'nvenc') {
+  if (transcoder.kind === 'nvenc') {
     args.push('-c:v', 'h264_nvenc', '-preset', lowLatency ? 'p3' : 'p5',
       '-tune', lowLatency ? 'll' : 'hq', '-rc:v', 'vbr', '-cq:v', '22');
-  } else if (TRANSCODER.kind === 'qsv') {
+  } else if (transcoder.kind === 'qsv') {
     args.push('-c:v', 'h264_qsv', '-preset', lowLatency ? 'veryfast' : 'medium',
       '-global_quality:v', '22', '-look_ahead', '0');
-  } else if (TRANSCODER.kind === 'vaapi') {
+  } else if (transcoder.kind === 'vaapi') {
     args.push('-c:v', 'h264_vaapi', '-qp', '22');
   } else {
-    args.push('-c:v', 'libx264', '-preset', lowLatency ? 'veryfast' : 'medium', '-crf', '22');
+    // File conversions favour a quick, bounded-memory encode. Safe mode is a
+    // second attempt used after a signal/encoder failure and intentionally
+    // trades a little compression efficiency for much lower peak memory.
+    const preset = lowLatency ? 'veryfast' : (safe ? 'ultrafast' : 'veryfast');
+    args.push('-c:v', 'libx264', '-preset', preset, '-crf', safe ? '23' : '22',
+      '-threads:v', String(safe ? 1 : CONVERSION_THREADS));
     if (lowLatency) args.push('-tune', 'zerolatency');
+    else if (safe) args.push('-tune', 'fastdecode');
   }
   if (profile.bitrate !== '0') {
     args.push('-b:v', profile.bitrate, '-maxrate', profile.maxrate, '-bufsize', profile.bufsize);
@@ -1107,11 +1121,13 @@ function videoEncodeArgs(profile, { lowLatency = false } = {}) {
   return args;
 }
 
-function mediaOutputArgs(info, profile, { lowLatency = false, allowCopy = true } = {}) {
+function mediaOutputArgs(info, profile, {
+  lowLatency = false, allowCopy = true, transcoder = TRANSCODER, safe = false,
+} = {}) {
   const direct = allowCopy && profile.id === 'original' && info && info.videoOk;
   const video = direct
     ? ['-c:v', 'copy']
-    : videoEncodeArgs(profile, { lowLatency });
+    : videoEncodeArgs(profile, { lowLatency, transcoder, safe });
   const audio = info && info.audioOk ? ['-c:a', 'copy'] : ['-c:a', 'aac', '-b:a', '192k', '-ac', '2'];
   return { direct, args: [...video, ...audio] };
 }
@@ -2117,6 +2133,7 @@ function publicConversion(job) {
     id: job.id, status: job.status, rel: job.rel, outputRel: job.outputRel || null,
     quality: job.quality.label, progress: Math.max(0, Math.min(100, job.progress || 0)),
     encoder: job.encoder, direct: !!job.direct, error: job.error || '',
+    attempt: job.attempt || 0, retrying: !!job.retrying, signal: job.signal || null,
     replace: !!job.replace, sourceDeleted: !!job.sourceDeleted,
     created: job.created, finished: job.finished || null,
   };
@@ -2128,80 +2145,137 @@ function finishConversionSlot(job) {
   runNextConversion();
 }
 
+function conversionFailure(job, result) {
+  const clean = String(result.stderr || '')
+    .replace(job.full, path.basename(job.full)).replace(/\s+/g, ' ').trim().slice(0, 1200);
+  if (result.spawnError) return result.spawnError;
+  if (result.signal) {
+    const hint = result.signal === 'SIGKILL'
+      ? ' The server or container most likely reached its memory limit.' : '';
+    return `ffmpeg was terminated by ${result.signal}.${hint}`;
+  }
+  return clean || `ffmpeg exited with code ${result.code}`;
+}
+
+function runConversionAttempt(job, { safe = false } = {}) {
+  return new Promise((resolve) => {
+    const transcoder = safe && CPU_TRANSCODER ? CPU_TRANSCODER : TRANSCODER;
+    const output = mediaOutputArgs(job.info, job.quality, {
+      lowLatency: false, allowCopy: !safe, transcoder, safe,
+    });
+    job.attempt = safe ? 2 : 1;
+    job.retrying = safe;
+    job.signal = null;
+    job.stderr = '';
+    job.spawnError = '';
+    job.direct = output.direct;
+    job.encoder = output.direct ? 'stream copy'
+      : (safe ? 'CPU libx264 · safe retry' : transcoder.label);
+
+    const bounded = !output.direct && transcoder.kind === 'cpu';
+    const args = ['-nostdin', '-hide_banner', '-loglevel', 'error',
+      ...encoderInputArgs(transcoder),
+      ...(bounded ? ['-threads', String(safe ? 1 : CONVERSION_THREADS), '-filter_threads', '1'] : []),
+      '-i', job.full, '-map', '0:v:0', '-map', '0:a:0?', ...output.args,
+      '-sn', '-dn', '-map_metadata', '0', '-max_muxing_queue_size', '4096',
+      '-movflags', '+faststart', '-progress', 'pipe:1', '-nostats', '-y', job.tmp];
+
+    const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    job.child = child;
+    let progressText = '';
+    child.stdout.on('data', (chunk) => {
+      progressText += chunk.toString('utf8');
+      const lines = progressText.split(/\r?\n/);
+      progressText = lines.pop() || '';
+      for (const line of lines) {
+        const m = /^out_time_(?:us|ms)=(\d+)$/.exec(line);
+        if (m && job.info.duration) {
+          job.progress = Math.min(99.5, (+m[1] / 1e6) / job.info.duration * 100);
+        }
+      }
+    });
+    child.stderr.on('data', (chunk) => {
+      const remaining = 16 * 1024 - Buffer.byteLength(job.stderr);
+      if (remaining > 0) job.stderr += chunk.subarray(0, remaining).toString('utf8');
+    });
+    child.on('error', (error) => { job.spawnError = error.message || 'Could not start ffmpeg'; });
+    child.on('close', (code, signal) => {
+      job.signal = signal || null;
+      resolve({ code, signal: signal || null, stderr: job.stderr, spawnError: job.spawnError, direct: output.direct });
+    });
+  });
+}
+
 async function runConversion(job) {
   converting++;
   job.status = 'running';
-  const output = mediaOutputArgs(job.info, job.quality, { lowLatency: false, allowCopy: true });
-  job.direct = output.direct;
-  job.encoder = output.direct ? 'stream copy' : TRANSCODER.label;
-
-  const args = ['-nostdin', '-hide_banner', '-loglevel', 'error', ...encoderInputArgs(),
-    '-i', job.full, '-map', '0:v:0', '-map', '0:a:0?', ...output.args,
-    '-sn', '-dn', '-map_metadata', '0', '-max_muxing_queue_size', '4096',
-    '-movflags', '+faststart', '-progress', 'pipe:1', '-nostats', '-y', job.tmp];
-
-  const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-  job.child = child;
-  let progressText = '';
-  child.stdout.on('data', (chunk) => {
-    progressText += chunk.toString('utf8');
-    const lines = progressText.split(/\r?\n/);
-    progressText = lines.pop() || '';
-    for (const line of lines) {
-      const m = /^out_time_(?:us|ms)=(\d+)$/.exec(line);
-      if (m && job.info.duration) job.progress = Math.min(99.5, (+m[1] / 1e6) / job.info.duration * 100);
-    }
-  });
-  child.stderr.on('data', (chunk) => {
-    const remaining = 16 * 1024 - Buffer.byteLength(job.stderr);
-    if (remaining > 0) job.stderr += chunk.subarray(0, remaining).toString('utf8');
-  });
-  child.on('error', (error) => { job.spawnError = error.message || 'Could not start ffmpeg'; });
-  child.on('close', async (code) => {
-    try {
-      if (job.cancelled) {
-        job.status = 'cancelled';
-        job.finished = Date.now();
-        await fsp.rm(job.tmp, { force: true }).catch(() => {});
-        return;
-      }
-      if (code !== 0 || job.spawnError) {
-        const clean = job.stderr.replace(job.full, path.basename(job.full)).replace(/\s+/g, ' ').trim().slice(0, 1200);
-        job.status = 'failed';
-        job.error = job.spawnError || clean || `ffmpeg exited with code ${code}`;
-        job.finished = Date.now();
-        await fsp.rm(job.tmp, { force: true }).catch(() => {});
-        return;
-      }
-      const finalName = await uniqueName(job.destDir, job.desiredName);
-      const dest = path.join(job.destDir, finalName);
-      await fsp.rename(job.tmp, dest);
-      job.outputRel = path.relative(ROOT, dest).split(path.sep).join('/');
-      if (job.replace) {
-        // Destructive replacement is only allowed after ffmpeg succeeded, the
-        // MP4 was committed, and ffprobe independently confirmed a video
-        // stream. If verification fails both files are kept.
-        const verified = await probe(dest);
-        if (!verified || verified.inferred || !verified.video) {
-          throw new Error('The MP4 was created but could not be verified; the MKV was kept for safety');
-        }
-        await fsp.unlink(job.full);
-        probeCache.delete(job.full);
-        job.sourceDeleted = true;
-      }
-      job.progress = 100;
-      job.status = 'complete';
-      job.finished = Date.now();
-      note(job.user, job.replace ? 'convert-replace' : 'convert', `${job.rel} -> ${job.outputRel}`);
-    } catch (error) {
-      job.status = 'failed';
-      job.error = error.message || 'Could not save the converted MP4';
+  try {
+    let result = await runConversionAttempt(job);
+    if (job.cancelled) {
+      job.status = 'cancelled';
       job.finished = Date.now();
       await fsp.rm(job.tmp, { force: true }).catch(() => {});
-    } finally {
-      finishConversionSlot(job);
+      return;
     }
-  });
+
+    // A null code plus a signal is commonly an OOM kill in a Proxmox/LXC
+    // container. Hardware encoders can also fail after their startup probe.
+    // Retry once through conservative single-threaded libx264 before giving up.
+    if ((result.code !== 0 || result.spawnError) && !result.direct && CPU_TRANSCODER) {
+      const firstFailure = conversionFailure(job, result);
+      console.warn(`[media] conversion attempt 1 failed for ${job.rel}; retrying safely: ${firstFailure}`);
+      await fsp.rm(job.tmp, { force: true }).catch(() => {});
+      job.progress = 0;
+      job.error = '';
+      result = await runConversionAttempt(job, { safe: true });
+    }
+
+    if (job.cancelled) {
+      job.status = 'cancelled';
+      job.finished = Date.now();
+      await fsp.rm(job.tmp, { force: true }).catch(() => {});
+      return;
+    }
+    if (result.code !== 0 || result.spawnError) {
+      job.status = 'failed';
+      job.error = conversionFailure(job, result);
+      if (result.signal === 'SIGKILL') {
+        job.error += ' Safe mode also failed; raise the container memory limit or select 1080p.';
+      }
+      job.finished = Date.now();
+      await fsp.rm(job.tmp, { force: true }).catch(() => {});
+      return;
+    }
+
+    const finalName = await uniqueName(job.destDir, job.desiredName);
+    const dest = path.join(job.destDir, finalName);
+    await fsp.rename(job.tmp, dest);
+    job.outputRel = path.relative(ROOT, dest).split(path.sep).join('/');
+    if (job.replace) {
+      // Destructive replacement is only allowed after ffmpeg succeeded, the
+      // MP4 was committed, and ffprobe independently confirmed a video stream.
+      // If verification fails both files are kept.
+      const verified = await probe(dest);
+      if (!verified || verified.inferred || !verified.video) {
+        throw new Error('The MP4 was created but could not be verified; the MKV was kept for safety');
+      }
+      await fsp.unlink(job.full);
+      probeCache.delete(job.full);
+      job.sourceDeleted = true;
+    }
+    job.progress = 100;
+    job.retrying = false;
+    job.status = 'complete';
+    job.finished = Date.now();
+    note(job.user, job.replace ? 'convert-replace' : 'convert', `${job.rel} -> ${job.outputRel}`);
+  } catch (error) {
+    job.status = 'failed';
+    job.error = error.message || 'Could not save the converted MP4';
+    job.finished = Date.now();
+    await fsp.rm(job.tmp, { force: true }).catch(() => {});
+  } finally {
+    finishConversionSlot(job);
+  }
 }
 
 function runNextConversion() {
@@ -2241,7 +2315,8 @@ app.post('/api/convert/*', auth, shelfGate, async (req, res) => {
     id, user: req.user.name, rel: req.params[0], full, info, quality,
     destDir: path.dirname(full), desiredName,
     tmp: path.join(CONVERSION_DIR, `${id}.mp4`), status: 'queued', progress: 0,
-    encoder: TRANSCODER.label, direct: false, replace, sourceDeleted: false, stderr: '', error: '', created: Date.now(),
+    encoder: TRANSCODER.label, direct: false, replace, sourceDeleted: false, stderr: '', error: '',
+    attempt: 0, retrying: false, signal: null, created: Date.now(),
     finished: null, child: null, cancelled: false,
   };
   conversionJobs.set(id, job);
