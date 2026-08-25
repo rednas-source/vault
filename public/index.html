@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-mkv-cachefix-20260825">
+<meta name="vault-build" content="vault-mkv-direct-20260825">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1261,7 +1261,7 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
 
 const $ = (s) => document.querySelector(s);
 const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
-const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, artwork: false, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
 const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
@@ -1416,6 +1416,7 @@ async function load(){
   state.folders = Array.isArray(d.folders) ? d.folders : [];
   state.disk = d.disk;
   state.thumbs = !!d.thumbs;
+  state.mkvTranscode = !!d.mkvTranscode;
   state.artwork = !!d.artwork;
   if(Array.isArray(d.shelves)){
     SHELF_ORDER = d.shelves.map((x)=>x.id);
@@ -1975,10 +1976,26 @@ async function openViewer(f){
   // browser-compatible stream before promising anything.
   $('#vBody').innerHTML = `<div class="viewer-note"><p>Checking what's inside…</p></div>`;
   let info = {};
+  let mediaInfoError = '';
   try{
     const r = await fetch(url('mediainfo', f.rel), { cache:'no-store' });
+    if(!r.ok) throw new Error(`media inspection returned HTTP ${r.status}`);
     info = await r.json();
-  }catch{ /* fall through to the download note */ }
+  }catch(err){ mediaInfoError = err.message || 'media inspection failed'; }
+
+  // For an MKV, ffprobe is an optimisation rather than a requirement. When
+  // inspection fails (or returns unusable data), explicitly tell /api/media to
+  // skip it and let ffmpeg detect and convert the streams itself.
+  if(!info.remuxable && f.ext === 'mkv' && state.mkvTranscode){
+    info = {
+      duration: (f.watch && f.watch.dur) || 0,
+      video: 'unknown', audio: 'unknown', width: null, height: null,
+      remuxable: true, inferred: true, forceCompat: true,
+      inspectError: mediaInfoError || info.probeFailure || info.reason || '',
+    };
+  }else if(info.inferred){
+    info.forceCompat = true;
+  }
 
   // A failed metadata probe no longer blocks playback. The server can let
   // ffmpeg inspect the input directly and use its universal conversion path.
@@ -2119,7 +2136,9 @@ function mountPlayer(f, { src, native, info }){
   const start = (at) => {
     if(native){ v.currentTime = at; v.play().catch(()=>{}); return; }
     base = at;
-    v.src = `${url('media', f.rel)}?t=${at.toFixed(2)}`;
+    const params = new URLSearchParams({ t:at.toFixed(2) });
+    if(info && info.forceCompat) params.set('compat', '1');
+    v.src = `${url('media', f.rel)}?${params}`;
     v.play().catch(()=>{});
   };
 
@@ -2239,12 +2258,21 @@ function mountPlayer(f, { src, native, info }){
   };
 
   // ── errors
-  v.onerror = () => {
+  v.onerror = async () => {
     if(!alive()) return;
     const err = v.error;
     const decodeFail = err && (err.code === 3 || err.code === 4);
+    let serverError = '';
+    if(!native){
+      try{
+        const r = await fetch(url('media-status', f.rel), { cache:'no-store' });
+        const status = await r.json();
+        if(status && !status.ok) serverError = status.error || '';
+      }catch{ /* retain the browser-level error */ }
+    }
+    if(!alive()) return;
     $('#vBody').innerHTML = `<div class="viewer-note">
-      <p>${decodeFail
+      <p>${serverError ? `Conversion failed: ${esc(serverError)}` : decodeFail
           ? `Your browser can't decode ${esc((info && info.video) || 'this video')}${native ? '' : ', even after conversion'}.`
           : 'The stream stopped unexpectedly — the server may be busy.'}</p>
       <p>Download the file, or open this link in VLC:</p>

@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-mkv-cachefix-20260825';
+const BUILD_ID = 'vault-mkv-direct-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -852,14 +852,7 @@ const COPYABLE_AUDIO = ['aac'];
 const probeCache = new Map();      // rel -> { at, info }
 const PROBE_TTL = 10 * 60 * 1000;
 
-function inferredVideoInfo(file, reason, detail) {
-  const rel = path.relative(ROOT, file).replace(/[\r\n\t]/g, '?');
-  const why = String(detail || reason || 'unknown error').replace(/\s+/g, ' ').trim().slice(0, 800);
-  console.warn(`[media] ffprobe ${reason} for ${rel}${why ? `: ${why}` : ''}`);
-
-  // ffprobe is useful for choosing a cheap stream-copy path, but it should not
-  // be a single point of failure. ffmpeg performs its own input detection, so
-  // an unknown video can still take the universal H.264/AAC conversion path.
+function compatibilityVideoInfo(file, reason = 'forced-compatibility') {
   return {
     duration: null,
     video: 'unknown',
@@ -878,6 +871,17 @@ function inferredVideoInfo(file, reason, detail) {
     inferred: true,
     probeFailure: reason,
   };
+}
+
+function inferredVideoInfo(file, reason, detail) {
+  const rel = path.relative(ROOT, file).replace(/[\r\n\t]/g, '?');
+  const why = String(detail || reason || 'unknown error').replace(/\s+/g, ' ').trim().slice(0, 800);
+  console.warn(`[media] ffprobe ${reason} for ${rel}${why ? `: ${why}` : ''}`);
+
+  // ffprobe is useful for choosing a cheap stream-copy path, but it should not
+  // be a single point of failure. ffmpeg performs its own input detection, so
+  // an unknown video can still take the universal H.264/AAC conversion path.
+  return compatibilityVideoInfo(file, reason);
 }
 
 async function probe(file) {
@@ -941,6 +945,7 @@ async function probe(file) {
 // video conversion can be CPU-heavy, so keep a firm shared cap.
 const MAX_STREAMS = config.remuxStreams || 3;
 let streaming = 0;
+const streamFailures = new Map();  // full path -> { at, error }
 
 // ---------------------------------------------------------------- app
 
@@ -1268,7 +1273,8 @@ app.get('/api/files', auth, async (req, res) => {
   }
 
   res.json({
-    files: out, folders, disk, thumbs: HAS_FFMPEG, role: req.user.role, artwork: !!TMDB_KEY,
+    files: out, folders, disk, thumbs: HAS_FFMPEG, mkvTranscode: HAS_LIBX264,
+    role: req.user.role, artwork: !!TMDB_KEY,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
 });
@@ -1690,6 +1696,7 @@ function pipeRemux(req, res, full, info, t) {
 
   streaming++;
   const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  streamFailures.delete(full);
   let ffmpegError = '';
   child.stderr.on('data', (d) => {
     const remaining = 16 * 1024 - Buffer.byteLength(ffmpegError);
@@ -1721,18 +1728,42 @@ function pipeRemux(req, res, full, info, t) {
     ? (info.audioOk ? 'copy' : 'audio-aac')
     : 'video-h264');
 
+  const recordFailure = (fallback) => {
+    const clean = ffmpegError.replace(full, path.basename(full))
+      .replace(/\s+/g, ' ').trim().slice(0, 1200) || fallback;
+    if (streamFailures.size >= 200) streamFailures.delete(streamFailures.keys().next().value);
+    streamFailures.set(full, { at: Date.now(), error: clean });
+    return clean;
+  };
+
   child.stdout.pipe(res);
-  child.on('error', () => { cleanup(); res.destroy(); });
+  child.on('error', (e) => {
+    recordFailure(e.message || 'Could not start ffmpeg');
+    cleanup();
+    res.destroy();
+  });
   child.on('exit', (code) => {
     if (closed || code === 0) return;
     const rel = path.relative(ROOT, full).replace(/[\r\n\t]/g, '?');
-    const why = ffmpegError.replace(/\s+/g, ' ').trim().slice(0, 800) || `exit ${code}`;
+    const why = recordFailure(`ffmpeg exited with code ${code}`);
     console.warn(`[media] ffmpeg stream failed for ${rel}: ${why}`);
   });
   child.on('close', cleanup);
   res.on('close', cleanup);
   req.on('aborted', cleanup);
 }
+
+app.get('/api/media-status/*', auth, shelfGate, (req, res) => {
+  const full = safePath(req.params[0]);
+  if (!full) return res.status(400).json({ ok: false, error: 'Bad media path' });
+  const failure = streamFailures.get(full);
+  if (!failure) return res.json({ ok: true });
+  if (Date.now() - failure.at > 5 * 60 * 1000) {
+    streamFailures.delete(full);
+    return res.json({ ok: true });
+  }
+  res.json({ ok: false, error: failure.error });
+});
 
 app.get('/api/media/*', auth, shelfGate, async (req, res) => {
   if (!HAS_FFMPEG) return res.status(503).end();
@@ -1741,7 +1772,13 @@ app.get('/api/media/*', auth, shelfGate, async (req, res) => {
   if (!full) return res.status(400).end();
   try { await fsp.stat(full); } catch { return res.status(404).end(); }
 
-  const info = await probe(full);
+  // Compatibility mode deliberately bypasses ffprobe. ffmpeg performs its own
+  // demuxer/codec detection and converts the first video/audio streams to the
+  // browser-safe formats below. This keeps a broken metadata probe from being
+  // able to block playback a second time.
+  const info = req.query.compat === '1'
+    ? compatibilityVideoInfo(full)
+    : await probe(full);
   if (!info || !info.remuxable) return res.status(415).json({ error: 'No video stream found' });
   if (streaming >= MAX_STREAMS) {
     return res.status(503).json({ error: 'Too many streams running. Try again in a moment.' });
