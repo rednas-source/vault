@@ -1,5 +1,5 @@
 {
-  "name": "darkstar",
+  "name": "vault",
   "version": "1.0.0",
   "description": "Private file vault for you and your friends",
   "main": "server.js",
