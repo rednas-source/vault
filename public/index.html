@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-mkv-direct-20260825">
+<meta name="vault-build" content="vault-hls-20260825">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1256,6 +1256,7 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
 <input type="file" id="picker" multiple hidden>
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
+<script src="/vendor/hls.min.js?v=1.7.1"></script>
 <script>
 'use strict';
 
@@ -2019,12 +2020,9 @@ async function openViewer(f){
   playRemuxed(f, info);
 }
 
-/**
- * A live conversion can't answer byte-range requests, so the browser gives us no
- * seek bar. We know the duration from ffprobe, so the scrubber below simply
- * restarts the stream from the chosen point — the server seeks with `-ss`,
- * which is near-instant because nothing before it gets decoded.
- */
+/** Converted formats use short HLS segments so Cloudflare never has to proxy
+ * one endless response. Seeking starts a fresh segmented conversion at the
+ * requested timestamp. */
 function playRemuxed(f, info){
   mountPlayer(f, { native: false, info });
 }
@@ -2132,15 +2130,109 @@ function mountPlayer(f, { src, native, info }){
     || (f.watch && f.watch.dur)
     || (native && isFinite(v.duration) ? v.duration : 0);
   const alive = () => !!document.getElementById('pl') && !!$('#plPlay');
+  let hls = null;
+  let hlsId = '';
+  let streamVersion = 0;
+  let suppressStreamErrors = false;
+
+  const releaseHls = () => {
+    const oldId = hlsId;
+    hlsId = '';
+    suppressStreamErrors = true;
+    if(hls){ hls.destroy(); hls = null; }
+    if(!native){ v.pause(); v.removeAttribute('src'); v.load(); }
+    if(oldId){
+      fetch(`/api/hls/${encodeURIComponent(oldId)}`, {
+        method:'DELETE', keepalive:true,
+      }).catch(()=>{});
+    }
+  };
+
+  const showStreamError = async (fallback) => {
+    if(!alive() || suppressStreamErrors) return;
+    let serverError = '';
+    if(hlsId){
+      try{
+        const r = await fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`, { cache:'no-store' });
+        const status = await r.json();
+        if(status && !status.ok) serverError = status.error || '';
+      }catch{ /* use the HLS/browser error below */ }
+    }else if(!native){
+      try{
+        const r = await fetch(url('media-status', f.rel), { cache:'no-store' });
+        const status = await r.json();
+        if(status && !status.ok) serverError = status.error || '';
+      }catch{ /* use the browser error below */ }
+    }
+    if(!alive()) return;
+    const message = serverError || fallback || 'The video stream stopped unexpectedly.';
+    releaseHls();
+    $('#vBody').innerHTML = `<div class="viewer-note">
+      <p>Playback failed: ${esc(message)}</p>
+      <p>Download the file, or open this link in VLC:</p>
+      <p class="viewer-link">${location.origin}${url('stream', f.rel)}</p>
+    </div>`;
+  };
+
+  const startHls = async (at) => {
+    const version = ++streamVersion;
+    releaseHls();
+    base = at;
+    if($('#plBig')) $('#plBig').textContent = '…';
+    if($('#plNote')) $('#plNote').textContent = 'Preparing a Cloudflare-safe 1080p HLS stream…';
+
+    try{
+      const r = await fetch(`${url('hls/start', f.rel)}?t=${at.toFixed(2)}`, { method:'POST' });
+      const data = await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(data.error || `HLS preparation returned HTTP ${r.status}`);
+      if(version !== streamVersion || !alive()){
+        fetch(`/api/hls/${encodeURIComponent(data.id)}`, { method:'DELETE', keepalive:true }).catch(()=>{});
+        return;
+      }
+
+      hlsId = data.id;
+      if(window.Hls && Hls.isSupported()){
+        hls = new Hls({
+          enableWorker:true, lowLatencyMode:false,
+          backBufferLength:16, maxBufferLength:24,
+          liveSyncDurationCount:2, liveMaxLatencyDurationCount:6,
+        });
+        hls.on(Hls.Events.ERROR, (_event, detail) => {
+          if(version !== streamVersion || !detail.fatal) return;
+          suppressStreamErrors = false;
+          showStreamError(`HLS ${detail.type || 'stream'} error: ${detail.details || 'unknown failure'}`);
+        });
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          if(version === streamVersion) hls.loadSource(data.url);
+        });
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if(version !== streamVersion || !alive()) return;
+          suppressStreamErrors = false;
+          $('#plBig').textContent = '▶';
+          $('#plNote').textContent = 'Cloudflare-safe 1080p HLS · H.264 / AAC';
+          v.play().catch(()=>{});
+        });
+        hls.attachMedia(v);
+      }else if(v.canPlayType('application/vnd.apple.mpegurl')){
+        suppressStreamErrors = false;
+        v.src = data.url;
+        $('#plBig').textContent = '▶';
+        $('#plNote').textContent = 'Cloudflare-safe 1080p HLS · H.264 / AAC';
+        v.play().catch(()=>{});
+      }else{
+        throw new Error('This browser does not support HLS or Media Source playback');
+      }
+    }catch(err){
+      suppressStreamErrors = false;
+      if(version === streamVersion) showStreamError(err.message || 'Could not prepare HLS playback');
+    }
+  };
 
   const start = (at) => {
     if(native){ v.currentTime = at; v.play().catch(()=>{}); return; }
-    base = at;
-    const params = new URLSearchParams({ t:at.toFixed(2) });
-    if(info && info.forceCompat) params.set('compat', '1');
-    v.src = `${url('media', f.rel)}?${params}`;
-    v.play().catch(()=>{});
+    startHls(at);
   };
+  v.__destroyStream = () => { streamVersion++; releaseHls(); };
 
   // ── transport
   const setPlaying = (on) => {
@@ -2258,26 +2350,11 @@ function mountPlayer(f, { src, native, info }){
   };
 
   // ── errors
-  v.onerror = async () => {
-    if(!alive()) return;
+  v.onerror = () => {
+    if(suppressStreamErrors) return;
     const err = v.error;
-    const decodeFail = err && (err.code === 3 || err.code === 4);
-    let serverError = '';
-    if(!native){
-      try{
-        const r = await fetch(url('media-status', f.rel), { cache:'no-store' });
-        const status = await r.json();
-        if(status && !status.ok) serverError = status.error || '';
-      }catch{ /* retain the browser-level error */ }
-    }
-    if(!alive()) return;
-    $('#vBody').innerHTML = `<div class="viewer-note">
-      <p>${serverError ? `Conversion failed: ${esc(serverError)}` : decodeFail
-          ? `Your browser can't decode ${esc((info && info.video) || 'this video')}${native ? '' : ', even after conversion'}.`
-          : 'The stream stopped unexpectedly — the server may be busy.'}</p>
-      <p>Download the file, or open this link in VLC:</p>
-      <p class="viewer-link">${location.origin}${url('stream', f.rel)}</p>
-    </div>`;
+    const code = err ? `browser media error ${err.code}` : 'browser media error';
+    showStreamError(code);
   };
 
   // ── keyboard, scoped to the open player
@@ -2307,7 +2384,7 @@ function mountPlayer(f, { src, native, info }){
   const from = f.watch && f.watch.pos > 5 && (!total() || f.watch.pos < total() - 20) ? f.watch.pos : 0;
   if(native){ v.src = src; v.oncanplay = () => { v.oncanplay = null; if(from) v.currentTime = from; }; }
   start(from);
-  v.play().catch(()=>{});
+  if(native) v.play().catch(()=>{});
 }
 
 /** The part of an episode filename after the SxxExx marker, if there is one. */
@@ -2413,6 +2490,7 @@ function teardownViewer(){
   const v = $('#vBody').querySelector('video, audio');
   if(v){
     if(v.__report) v.__report();     // save the position before tearing down
+    if(v.__destroyStream) v.__destroyStream();
     v.onplay = v.onpause = v.ontimeupdate = v.onprogress = v.onerror = null;
     v.onclick = v.ondblclick = v.oncanplay = null;
     v.pause(); v.removeAttribute('src'); v.load();

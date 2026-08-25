@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-mkv-direct-20260825';
+const BUILD_ID = 'vault-hls-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -37,6 +37,7 @@ const MAX_BYTES = (config.maxFileGB || 64) * 1024 ** 3;
 // filesystem — that makes the finishing move an atomic rename, not a copy.
 const PARTS_DIR = path.join(ROOT, '.uploads');
 const THUMB_DIR = path.join(ROOT, '.thumbs');
+const HLS_DIR = path.join(ROOT, '.hls');
 
 const PART_TTL_MS = (config.partTtlHours || 24) * 3600 * 1000;
 
@@ -946,10 +947,98 @@ async function probe(file) {
 const MAX_STREAMS = config.remuxStreams || 3;
 let streaming = 0;
 const streamFailures = new Map();  // full path -> { at, error }
+const hlsSessions = new Map();     // id -> live segmented conversion
+const HLS_IDLE_MS = 2 * 60 * 1000;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function stopHlsSession(id) {
+  const session = hlsSessions.get(id);
+  if (!session) return;
+  hlsSessions.delete(id);
+  session.stopping = true;
+  if (session.child && session.child.exitCode === null) session.child.kill('SIGKILL');
+  // Let ffmpeg release its current segment before removing the private cache.
+  setTimeout(() => fsp.rm(session.dir, { recursive: true, force: true }).catch(() => {}), 750).unref();
+}
+
+async function sweepHlsSessions() {
+  const cutoff = Date.now() - HLS_IDLE_MS;
+  for (const [id, session] of hlsSessions) {
+    if (session.lastAccess < cutoff) await stopHlsSession(id);
+  }
+}
+
+async function waitForHls(session, timeoutMs = 75000) {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    if (session.error) return false;
+    try {
+      const playlist = await fsp.readFile(path.join(session.dir, 'index.m3u8'), 'utf8');
+      if (/seg-\d{6}\.ts/.test(playlist)) return true;
+    } catch { /* first segment is still being encoded */ }
+    await wait(250);
+  }
+  session.error = 'Timed out while preparing the first video segment';
+  return false;
+}
+
+async function startHlsConversion(full, user, startAt) {
+  const id = crypto.randomBytes(16).toString('hex');
+  const dir = path.join(HLS_DIR, id);
+  const session = {
+    id, dir, full, user, startAt, child: null, error: '', stderr: '',
+    created: Date.now(), lastAccess: Date.now(), stopping: false, finished: false,
+  };
+  await fsp.mkdir(dir, { recursive: true });
+  hlsSessions.set(id, session);
+
+  const args = ['-nostdin', '-hide_banner', '-loglevel', 'error'];
+  if (startAt > 0) args.push('-ss', startAt.toFixed(2));
+  // Pace file input like a live source; otherwise a fast CPU can generate and
+  // delete the sliding-window segments before the viewer reaches them.
+  args.push('-re', '-i', full, '-map', '0:v:0', '-map', '0:a:0?',
+    // 2160p HEVC is too expensive for dependable live software conversion.
+    // Cap output at 1080p while preserving aspect ratio and never stretching.
+    '-vf', "scale=w='min(1920,iw)':h=-2",
+    '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'zerolatency', '-crf', '23',
+    '-pix_fmt', 'yuv420p', '-profile:v', 'high',
+    '-force_key_frames', 'expr:gte(t,n_forced*4)',
+    '-c:a', 'aac', '-b:a', '160k', '-ac', '2',
+    '-sn', '-dn', '-map_metadata', '-1', '-max_muxing_queue_size', '4096',
+    '-avoid_negative_ts', 'make_zero',
+    '-f', 'hls', '-hls_time', '4', '-hls_list_size', '8',
+    '-hls_delete_threshold', '2', '-hls_allow_cache', '0',
+    '-hls_flags', 'delete_segments+independent_segments+temp_file',
+    '-hls_segment_filename', path.join(dir, 'seg-%06d.ts'),
+    path.join(dir, 'index.m3u8'));
+
+  streaming++;
+  const child = spawn('ffmpeg', args, { stdio: ['ignore', 'ignore', 'pipe'] });
+  session.child = child;
+  child.stderr.on('data', (d) => {
+    const remaining = 16 * 1024 - Buffer.byteLength(session.stderr);
+    if (remaining > 0) session.stderr += d.subarray(0, remaining).toString('utf8');
+  });
+  child.on('error', (e) => { session.error = e.message || 'Could not start ffmpeg'; });
+  child.on('close', (code) => {
+    streaming = Math.max(0, streaming - 1);
+    session.finished = code === 0;
+    if (!session.stopping && code !== 0) {
+      const clean = session.stderr.replace(full, path.basename(full))
+        .replace(/\s+/g, ' ').trim().slice(0, 1200);
+      session.error = clean || `ffmpeg exited with code ${code}`;
+      const rel = path.relative(ROOT, full).replace(/[\r\n\t]/g, '?');
+      console.warn(`[media] HLS conversion failed for ${rel}: ${session.error}`);
+    }
+  });
+  return session;
+}
 
 // ---------------------------------------------------------------- app
 
 const app = express();
+const HLS_JS_PATH = require.resolve('hls.js/dist/hls.min.js');
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: false }));
@@ -968,6 +1057,11 @@ app.use((req, res, next) => {
     res.setHeader('Cloudflare-CDN-Cache-Control', 'no-store');
   }
   next();
+});
+
+app.get('/vendor/hls.min.js', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  res.sendFile(HLS_JS_PATH);
 });
 
 app.post('/api/login', (req, res) => {
@@ -1646,6 +1740,7 @@ app.get('/api/health', async (req, res) => {
     freeMB: free,
     thumbnails: HAS_FFMPEG,
     mkvTranscode: HAS_LIBX264,
+    mkvTransport: HAS_LIBX264 ? 'hls' : null,
     uptimeSec: Math.round(process.uptime()),
   });
 });
@@ -1763,6 +1858,95 @@ app.get('/api/media-status/*', auth, shelfGate, (req, res) => {
     return res.json({ ok: true });
   }
   res.json({ ok: false, error: failure.error });
+});
+
+// Cloudflare Tunnel buffers a never-ending origin response. HLS avoids that
+// failure mode: ffmpeg writes short, complete segments and every HTTP request
+// finishes normally, while hls.js joins the segments in the browser.
+app.post('/api/hls/start/*', auth, shelfGate, async (req, res) => {
+  if (!HAS_LIBX264) return res.status(503).json({ error: 'ffmpeg has no libx264 encoder' });
+  if (streaming >= MAX_STREAMS) {
+    return res.status(503).json({ error: 'Too many streams running. Try again in a moment.' });
+  }
+
+  const full = safePath(req.params[0]);
+  if (!full || !THUMBABLE.includes(ext(full))) return res.status(400).json({ error: 'Bad video path' });
+  try { await fsp.stat(full); } catch { return res.status(404).json({ error: 'Video not found' }); }
+
+  const startAt = Math.max(0, Math.min(Number(req.query.t) || 0, 24 * 3600));
+  let session;
+  try {
+    session = await startHlsConversion(full, req.user.name, startAt);
+    const ready = await waitForHls(session);
+    if (!ready) {
+      const error = session.error || 'Could not prepare the first video segment';
+      await stopHlsSession(session.id);
+      return res.status(500).json({ error });
+    }
+  } catch (e) {
+    if (session) await stopHlsSession(session.id);
+    return res.status(500).json({ error: e.message || 'Could not start video conversion' });
+  }
+
+  session.lastAccess = Date.now();
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ id: session.id, url: `/api/hls/${session.id}/index.m3u8` });
+});
+
+const ownedHls = (req) => {
+  const session = hlsSessions.get(req.params.id);
+  return session && session.user === req.user.name ? session : null;
+};
+
+app.delete('/api/hls/:id', auth, async (req, res) => {
+  const session = ownedHls(req);
+  if (session) await stopHlsSession(session.id);
+  res.json({ ok: true });
+});
+
+app.get('/api/hls/:id/status', auth, (req, res) => {
+  const session = ownedHls(req);
+  if (!session) return res.status(404).json({ ok: false, error: 'Conversion session ended' });
+  session.lastAccess = Date.now();
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(session.error ? { ok: false, error: session.error } : { ok: true, finished: session.finished });
+});
+
+app.get('/api/hls/:id/index.m3u8', auth, async (req, res) => {
+  const session = ownedHls(req);
+  if (!session) return res.status(404).end();
+  session.lastAccess = Date.now();
+  try {
+    const raw = await fsp.readFile(path.join(session.dir, 'index.m3u8'), 'utf8');
+    // ffmpeg normally writes relative segment names; normalise defensively so
+    // an absolute filesystem path can never leak into the playlist URL.
+    const playlist = raw.split(/\r?\n/).map((line) => {
+      if (!line || line.startsWith('#')) return line;
+      return path.basename(line);
+    }).join('\n');
+    res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.send(playlist);
+  } catch {
+    res.status(session.error ? 500 : 404).end();
+  }
+});
+
+app.get('/api/hls/:id/:segment', auth, async (req, res) => {
+  const session = ownedHls(req);
+  if (!session || !/^seg-\d{6}\.ts$/.test(req.params.segment)) return res.status(404).end();
+  session.lastAccess = Date.now();
+  const segment = path.join(session.dir, req.params.segment);
+  try {
+    const st = await fsp.stat(segment);
+    if (!st.isFile()) return res.status(404).end();
+    res.setHeader('Content-Type', 'video/mp2t');
+    res.setHeader('Content-Length', st.size);
+    res.setHeader('Cache-Control', 'no-store');
+    fs.createReadStream(segment).pipe(res);
+  } catch {
+    res.status(404).end();
+  }
 });
 
 app.get('/api/media/*', auth, shelfGate, async (req, res) => {
@@ -2364,14 +2548,27 @@ app.use(express.static(path.join(__dirname, 'public'), {
   for (const id of shelfIds()) await fsp.mkdir(path.join(ROOT, id), { recursive: true });
   await fsp.mkdir(PARTS_DIR, { recursive: true });
   await fsp.mkdir(THUMB_DIR, { recursive: true });
+  // HLS sessions are disposable and process-bound; a restart invalidates all
+  // their URLs, so clear only this dedicated cache directory at boot.
+  await fsp.rm(HLS_DIR, { recursive: true, force: true });
+  await fsp.mkdir(HLS_DIR, { recursive: true });
 
   await sweepParts();
   setInterval(sweepParts, 3600 * 1000).unref();
+  setInterval(sweepHlsSessions, 30 * 1000).unref();
   setInterval(flushLog, 5000).unref();
   setInterval(flushProgress, 5000).unref();
   setInterval(pruneShares, 6 * 3600 * 1000).unref();
   for (const sig of ['SIGINT', 'SIGTERM']) {
-    process.on(sig, () => { flushLog(); flushProgress(); process.exit(0); });
+    process.on(sig, () => {
+      for (const session of hlsSessions.values()) {
+        session.stopping = true;
+        if (session.child && session.child.exitCode === null) session.child.kill('SIGKILL');
+      }
+      flushLog();
+      flushProgress();
+      process.exit(0);
+    });
   }
 
   app.listen(PORT, config.bind || '0.0.0.0', () => {

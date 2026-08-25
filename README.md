@@ -15,7 +15,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Real folders.** Create folders in a shelf, choose a whole folder, or drag one onto the page; nested paths are preserved.
 - **Accounts with per-shelf access.** Each member sees only the shelves you give them.
 - **API tokens and a CLI**, for moving files in and out from a terminal or a script.
-- **Plays MKV in the browser.** Compatible H.264 is repackaged without quality loss; incompatible video is converted live.
+- **Plays MKV in the browser.** Video is converted to a browser-safe 1080p H.264/AAC HLS stream, whose short segments work reliably through Cloudflare Tunnel.
 - **Hover a video tile** to scrub through nine frames from across its runtime.
 - **Episodes collapse into seasons** automatically, from the filename.
 - **Bulk select**, move, and delete.
@@ -47,7 +47,7 @@ Files on a machine you own, domain pointed at it through a Cloudflare Tunnel.
 
 A tunnel means no open ports on your router, your home IP never appears in public DNS, and you get a valid certificate without configuring one.
 
-**The one limitation to plan around:** Cloudflare's free and Pro plans refuse any single request body over 100 MB, and a tunnel can't be set to bypass the proxy. Chunked uploads work around this by slicing large files, so uploading through the domain works — but if you're on the same network, uploading directly to the server's LAN address is faster and skips the edge entirely. Downloads and streaming are never capped.
+**The one limitation to plan around:** Cloudflare's free and Pro plans refuse any single request body over 100 MB, and a tunnel can't be set to bypass the proxy. Chunked uploads work around this by slicing large files, so uploading through the domain works — but if you're on the same network, uploading directly to the server's LAN address is faster and skips the edge entirely. Downloads are not split; converted video uses short HLS requests so the tunnel does not have to buffer one endless response.
 
 ---
 
@@ -84,7 +84,7 @@ Create `config.json`:
 | `https` | `true` adds the `Secure` flag to the session cookie. Set `false` only for plain-HTTP testing on localhost. |
 | `thumbJobs` | Optional. Parallel ffmpeg processes, default 2. |
 | `partTtlHours` | Optional. How long an abandoned partial upload is kept, default 24. |
-| `remuxStreams` | Optional. Simultaneous live video preparations (remux or transcode), default 3. |
+| `remuxStreams` | Optional. Simultaneous live video conversions, default 3. |
 | `activityMax` | Optional. Activity entries retained, default 4000. |
 | `tmdbKey` | Optional. Enables poster art. Leave out to keep it off. |
 
