@@ -6,6 +6,9 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
+<link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
+<link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
+<link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -156,6 +159,10 @@ button{cursor:pointer}
 
 /* theme switch sits bottom-left on the gate, unobtrusive */
 .gate-theme{margin-top:30px}
+.gate-build{
+  margin-top:14px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  color:var(--faint);text-transform:uppercase;
+}
 
 /* ══════════════════════════════════ shell */
 #app{display:none;height:100%;position:relative;z-index:1}
@@ -338,6 +345,7 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   color:var(--faint);text-transform:uppercase;overflow:hidden;white-space:nowrap;
 }
 .rail .live{color:var(--star)}
+.rail-build{color:var(--star)}
 .rail-keys{color:var(--faint);cursor:pointer;transition:color .15s}
 .rail-keys:hover{color:var(--dim)}
 .rail .sp{flex:1}
@@ -1075,6 +1083,7 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
     </form>
     <div class="gate-error mono" id="gErr"></div>
     <div class="gate-theme"><button class="ghost" data-theme-toggle>Light</button></div>
+    <div class="gate-build" id="gateBuild">build checking…</div>
   </div>
 </div>
 
@@ -1142,6 +1151,7 @@ select.sort,.view-tog button{font-size:12px;min-height:38px}
     <span id="railCount">—</span>
     <span id="railDisk"></span>
     <span class="sp"></span>
+    <span class="rail-build" id="railBuild">build checking…</span>
     <span class="rail-keys">? for keys</span>
     <span id="railState" class="live">idle</span>
   </div>
@@ -1974,7 +1984,9 @@ async function openViewer(f){
           ? (info.video && info.transcodeAvailable === false
               ? 'This video needs conversion, but the server\'s ffmpeg build has no libx264 encoder.'
               : 'No playable video stream was found in this file.')
-          : `Vault could not inspect this .${esc(f.ext)} file. Make sure ffmpeg and ffprobe are installed on the server.`}</p>
+          : (info.reason === 'ffmpeg-missing'
+              ? `Vault cannot inspect this .${esc(f.ext)} file because ffmpeg or ffprobe is missing on the server.`
+              : `ffprobe could not read this .${esc(f.ext)} file's video metadata.`)}</p>
       <p>Download it, or open this link in VLC:</p>
       <p class="viewer-link">${location.origin}${src}</p>
     </div>`;
@@ -3364,6 +3376,11 @@ $('#tGroup').classList.add('accent');   // grouping is on by default
 (async () => {
   const r = await fetch('/api/session');
   const d = await r.json();
+  if(d.build){
+    const label = `build ${d.build}`;
+    $('#gateBuild').textContent = label;
+    $('#railBuild').textContent = label;
+  }
   if(d.user) enter(d.user, d.role); else $('#gUser').focus();
 })();
 </script>

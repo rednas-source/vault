@@ -23,6 +23,9 @@ try {
 }
 
 const PORT = process.env.PORT || config.port || 8420;
+// A deliberately visible deployment fingerprint. It is returned by both the
+// session and health endpoints so an operator can prove which process is live.
+const BUILD_ID = 'vault-lock-key-20260825';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -749,18 +752,28 @@ function releaseSlot() {
 }
 
 /** Arguments go as an array, never a shell string — the path is user data. */
-function run(cmd, args, timeoutMs = 25000) {
+function run(cmd, args, timeoutMs = 25000, maxOutputBytes = 64 * 1024) {
   return new Promise((resolve) => {
     let done = false;
     const child = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'ignore'] });
     let out = '';
+    let outputBytes = 0;
+    let overflow = false;
     const timer = setTimeout(() => { if (!done) { done = true; child.kill('SIGKILL'); resolve(null); } }, timeoutMs);
-    child.stdout.on('data', (d) => { if (out.length < 4096) out += d; });
+    child.stdout.on('data', (d) => {
+      outputBytes += d.length;
+      if (outputBytes > maxOutputBytes) {
+        overflow = true;
+        child.kill('SIGKILL');
+        return;
+      }
+      out += d;
+    });
     child.on('error', () => { if (!done) { done = true; clearTimeout(timer); resolve(null); } });
     child.on('close', (code) => {
       if (done) return;
       done = true; clearTimeout(timer);
-      resolve(code === 0 ? out.trim() : null);
+      resolve(code === 0 && !overflow ? out.trim() : null);
     });
   });
 }
@@ -823,6 +836,7 @@ async function probe(file) {
 
   const out = await run('ffprobe', [
     '-v', 'error', '-print_format', 'json',
+    '-show_entries', 'format=duration:stream=codec_type,codec_name,width,height,pix_fmt',
     '-show_format', '-show_streams', file,
   ], 20000);
   if (!out) return null;
@@ -908,7 +922,9 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/session', (req, res) => {
   const u = currentUser(req);
-  res.json(u ? { user: u.name, role: u.role, thumbs: HAS_FFMPEG } : { user: null });
+  res.json(u
+    ? { user: u.name, role: u.role, thumbs: HAS_FFMPEG, build: BUILD_ID }
+    : { user: null, build: BUILD_ID });
 });
 
 // ---------------------------------------------------------------- accounts API
@@ -1547,6 +1563,7 @@ app.get('/api/health', async (req, res) => {
   const ok = storage === 'ok';
   res.status(ok ? 200 : 503).json({
     ok,
+    build: BUILD_ID,
     storage,
     freeMB: free,
     thumbnails: HAS_FFMPEG,
@@ -1560,10 +1577,10 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/mediainfo/*', auth, shelfGate, async (req, res) => {
   const full = safePath(req.params[0]);
   if (!full) return res.status(400).end();
-  if (!HAS_FFMPEG) return res.json({ probed: false });
+  if (!HAS_FFMPEG) return res.json({ probed: false, reason: 'ffmpeg-missing' });
   try { await fsp.stat(full); } catch { return res.status(404).end(); }
   const info = await probe(full);
-  res.json(info ? { probed: true, ...info } : { probed: false });
+  res.json(info ? { probed: true, ...info } : { probed: false, reason: 'probe-failed' });
 });
 
 /**
@@ -1787,7 +1804,7 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
 
     if (ext(side) === 'vtt') return fs.createReadStream(side).pipe(res);
     if (!HAS_FFMPEG) return res.status(503).end();
-    const out = await run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-i', side, '-f', 'webvtt', 'pipe:1'], 20000);
+    const out = await run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-i', side, '-f', 'webvtt', 'pipe:1'], 20000, 8 * 1024 * 1024);
     return out === null ? res.status(500).end() : res.send(out);
   }
 
@@ -1795,7 +1812,7 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
   if (!m) return res.status(400).end();
   if (!HAS_FFMPEG) return res.status(503).end();
   const out = await run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-i', full,
-    '-map', `0:s:${m[1]}`, '-f', 'webvtt', 'pipe:1'], 30000);
+    '-map', `0:s:${m[1]}`, '-f', 'webvtt', 'pipe:1'], 30000, 8 * 1024 * 1024);
   if (out === null) return res.status(404).end();
   res.send(out);
 });
