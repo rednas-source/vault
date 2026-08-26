@@ -330,7 +330,7 @@ Browsers never shipped dependable Matroska support. Vault therefore produces two
 
 Auto mode tests the actual encoder rather than trusting ffmpeg's compiled encoder list. It prefers NVIDIA NVENC, then Intel Quick Sync, then VAAPI for Intel/AMD, and finally `libx264`. `/api/health` exposes both `transcoder` and `gpuTranscode`, so you can prove what the systemd process can access.
 
-Pause preserves the browser's downloaded segments and freezes the private ffmpeg/HLS process, so resuming uses the same buffer and encoder state. The paused encoder consumes no CPU and the server keeps the session alive while the player is open. Seeking, changing quality, closing the player, or leaving an abandoned paused session for 30 minutes releases it.
+Pause preserves the browser's downloaded segments and continues filling that same buffer to a five-minute ceiling. At the ceiling Vault stops HLS downloads and freezes the private ffmpeg process, so the paused encoder consumes no CPU and cannot grow the cache indefinitely. Resume starts immediately from the local buffer while ffmpeg wakes in the background. Seeking, changing quality, closing the player, or leaving an abandoned paused session for 30 minutes releases it.
 
 Choose **MP4** in a file row or player to create a durable copy. Compatible Original jobs are quick remuxes; other quality choices use the selected hardware encoder. Individual conversions can keep the MKV or replace it. Show and season actions use replacement mode: Vault writes the MP4 to scratch space, atomically commits it, verifies that it contains a readable video stream, and only then deletes the MKV. A failed conversion or verification keeps the source. If an MP4 with the same name already exists, replacement is refused instead of creating a duplicate or overwriting anything. One conversion runs at a time by default (`convertJobs`), while `remuxStreams` controls simultaneous viewers. CPU conversion threads are capped at two by default (`convertThreads`). If ffmpeg is killed by the container or an encoder fails, Vault reports the signal and automatically retries once with single-threaded, low-memory x264 instead of surfacing the old meaningless `code null` error.
 
@@ -359,7 +359,7 @@ Kept in `activity.log`, capped at 4000 entries (`activityMax`), written in batch
 `/api/health` needs no authentication and returns nothing sensitive — no paths, no account names, no file counts. Point an uptime monitor at it.
 
 ```json
-{ "ok": true, "build": "vault-buffer-ai-recovery-20260826", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
+{ "ok": true, "build": "vault-five-minute-pause-buffer-20260826", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
 ```
 
 It returns **503** when something is actually wrong. `storage` is the useful field:

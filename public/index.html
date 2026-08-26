@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-buffer-ai-recovery-20260826">
+<meta name="vault-build" content="vault-five-minute-pause-buffer-20260826">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -2843,7 +2843,9 @@ function mountPlayer(f, { src, native, info = {} }){
   else{stage.style.aspectRatio='16 / 9';video.addEventListener('loadedmetadata',function ratio(){if(this.videoWidth)stage.style.aspectRatio=`${this.videoWidth} / ${this.videoHeight}`;this.removeEventListener('loadedmetadata',ratio);});}
 
   let base=0,pausedAt=0,hls=null,hlsId='',version=0;
-  let suppress=false,wantsPlay=false,preparing=false,theater=false,chromeTimer=null,keyHandler=null,keepAliveTimer=null;
+  let suppress=false,wantsPlay=false,preparing=false,theater=false,chromeTimer=null,keyHandler=null,keepAliveTimer=null,pauseFillTimer=null;
+  let pausedBuffering=false,sessionFrozen=false,freezeInFlight=false,pauseCycle=0;
+  const PAUSE_BUFFER_SECONDS=300;
   const alive=()=>!!document.getElementById('pl')&&!!$('#plPlay');
   const now=()=>native?(video.currentTime||0):base+(video.currentTime||0);
   const total=()=>duration||(f.watch&&f.watch.dur)||(native&&isFinite(video.duration)?video.duration:0)||0;
@@ -2856,6 +2858,7 @@ function mountPlayer(f, { src, native, info = {} }){
     return (native?0:base)+video.buffered.end(video.buffered.length-1);
   };
   const bufferAhead=()=>Math.max(0,bufferedEnd()-now());
+  const pauseBufferTarget=()=>{const t=total();return t?Math.max(0,Math.min(PAUSE_BUFFER_SECONDS,t-now())):PAUSE_BUFFER_SECONDS;};
   const drawBuffer=()=>{
     if(!alive())return;const t=total(),at=now(),end=Math.max(at,bufferedEnd()),ahead=bufferAhead();
     if(t)$('#plBuf').style.width=`${Math.min(100,end/t*100)}%`;
@@ -2872,6 +2875,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const release=()=>{
     const old=hlsId;hlsId='';suppress=true;
     clearInterval(keepAliveTimer);keepAliveTimer=null;
+    clearInterval(pauseFillTimer);pauseFillTimer=null;pauseCycle++;pausedBuffering=false;sessionFrozen=false;freezeInFlight=false;
     if(hls){hls.destroy();hls=null;}
     if(!native){video.pause();video.removeAttribute('src');video.load();}
     if(old)fetch(`/api/hls/${encodeURIComponent(old)}`,{method:'DELETE',keepalive:true}).catch(()=>{});
@@ -2887,22 +2891,45 @@ function mountPlayer(f, { src, native, info = {} }){
     if(!alive())return;wantsPlay=false;preparing=false;release();
     $('#vBody').innerHTML=`<div class="viewer-note"><p>Playback failed: ${esc(server||message||'The stream stopped unexpectedly.')}</p><p>Download the file, or open this link in VLC:</p><p class="viewer-link">${location.origin}${url('stream',f.rel)}</p></div>`;
   };
-  const pauseConverted=async()=>{
+  const freezePausedSession=async()=>{
+    if(native||wantsPlay||!pausedBuffering||sessionFrozen||freezeInFlight||!hlsId)return;
+    clearInterval(pauseFillTimer);pauseFillTimer=null;if(hls)hls.stopLoad();freezeInFlight=true;const mine=pauseCycle;
+    try{
+      await controlSession('pause');
+      // A quick play click can race the pause request through the tunnel. Undo
+      // that late pause immediately so playback can never freeze underneath it.
+      if(mine!==pauseCycle||wantsPlay||!pausedBuffering){await controlSession('resume').catch(()=>{});if(hls)hls.startLoad(-1);return;}
+      sessionFrozen=true;drawBuffer();if($('#plNote'))$('#plNote').textContent=`Paused · ${pauseBufferTarget()<PAUSE_BUFFER_SECONDS-1?'remainder buffered':'five-minute buffer ready'} · transcoder sleeping`;
+    }catch(error){if($('#plNote'))$('#plNote').textContent=`Paused · ${fmtTime(bufferAhead())} buffered · ${error.message}`;}
+    finally{freezeInFlight=false;}
+  };
+  const fillPausedBuffer=()=>{
+    clearInterval(pauseFillTimer);pauseFillTimer=null;if(hls&&!sessionFrozen)hls.startLoad(-1);
+    const check=()=>{
+      if(!alive()||wantsPlay||!pausedBuffering){clearInterval(pauseFillTimer);pauseFillTimer=null;return;}
+      const ahead=bufferAhead(),target=pauseBufferTarget();drawBuffer();
+      if($('#plNote')&&!sessionFrozen)$('#plNote').textContent=`Paused · filling buffer ${fmtTime(Math.min(ahead,target))} / ${fmtTime(target)}`;
+      // HLS segments are two seconds long. Freeze one segment early so the
+      // final in-flight append lands at, rather than beyond, the chosen ceiling.
+      if(ahead>=Math.max(0,target-2))freezePausedSession();
+    };
+    check();if(!sessionFrozen)pauseFillTimer=setInterval(check,500);
+  };
+  const pauseConverted=()=>{
     if(native)return;pausedAt=now();if(video.__report)video.__report();wantsPlay=false;preparing=false;setPlaying(false);draw();
-    if(hls)hls.stopLoad();
-    const held=bufferAhead();
-    if($('#plNote'))$('#plNote').textContent=`Paused at ${fmtTime(pausedAt)} · ${fmtTime(held)} buffer preserved`;
-    if(hlsId){try{await controlSession('pause');}catch(error){if($('#plNote'))$('#plNote').textContent=`Paused · local buffer preserved · ${error.message}`;}}
+    if(!pausedBuffering){pausedBuffering=true;pauseCycle++;}
+    fillPausedBuffer();
   };
 
-  const resumeConverted=async()=>{
+  const resumeConverted=()=>{
     if(!hlsId)return startHls(pausedAt||now(),true);
-    wantsPlay=true;preparing=true;suppress=true;
-    if($('#plNote'))$('#plNote').textContent=`Resuming ${fmtTime(bufferAhead())} preserved buffer…`;
-    try{
-      await controlSession('resume');if(hls)hls.startLoad(-1);preparing=false;suppress=false;
-      video.play().catch((error)=>{wantsPlay=false;setPlaying(false);if($('#plNote'))$('#plNote').textContent=`Buffer preserved · press play to resume${error&&error.message?` · ${error.message}`:''}`;});
-    }catch{preparing=false;suppress=false;const at=pausedAt||now();release();startHls(at,true);}
+    const wasFrozen=sessionFrozen;pauseCycle++;pausedBuffering=false;sessionFrozen=false;clearInterval(pauseFillTimer);pauseFillTimer=null;
+    wantsPlay=true;preparing=false;suppress=false;if(hls)hls.startLoad(-1);
+    // Play the already-buffered media immediately. Waking ffmpeg is background
+    // maintenance and must not add a network round-trip to the play button.
+    video.play().catch((error)=>{wantsPlay=false;setPlaying(false);if($('#plNote'))$('#plNote').textContent=`Buffer preserved · press play to resume${error&&error.message?` · ${error.message}`:''}`;});
+    if($('#plNote'))$('#plNote').textContent=`Playing · ${fmtTime(bufferAhead())} buffered ahead`;
+    if(wasFrozen||freezeInFlight)controlSession('resume').then(()=>{freezeInFlight=false;if(hls)hls.startLoad(-1);}).catch(()=>{freezeInFlight=false;const at=now();release();startHls(at,true);});
   };
 
   const startHls=async(at,autoplay=true)=>{
@@ -2920,8 +2947,8 @@ function mountPlayer(f, { src, native, info = {} }){
         hls=new Hls({
           enableWorker:true,lowLatencyMode:false,startPosition:0,startFragPrefetch:true,
           backBufferLength:compactBuffer?30:90,
-          maxBufferLength:compactBuffer?75:180,
-          maxMaxBufferLength:compactBuffer?120:300,
+          maxBufferLength:PAUSE_BUFFER_SECONDS,
+          maxMaxBufferLength:PAUSE_BUFFER_SECONDS,
           maxBufferSize:compactBuffer?128*1024*1024:384*1024*1024,
           maxBufferHole:.35,highBufferWatchdogPeriod:2,nudgeMaxRetry:5,
         });
@@ -2976,7 +3003,7 @@ function mountPlayer(f, { src, native, info = {} }){
   document.addEventListener('keydown',keyHandler,true);trackProgress(video,f,()=>native?0:base,duration);reloadSubtitles();
   const from=f.watch&&f.watch.pos>5&&(!total()||f.watch.pos<total()-20)?f.watch.pos:0;pausedAt=from;base=native?0:from;
   if(native){video.src=src;go(from);}else startHls(from);
-  video.__destroyStream=()=>{version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearInterval(keepAliveTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater');release();};
+  video.__destroyStream=()=>{version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearInterval(keepAliveTimer);clearInterval(pauseFillTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater');release();};
 }
 
 /** The part of an episode filename after the SxxExx marker, if there is one. */
