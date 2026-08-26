@@ -4,7 +4,8 @@
   "description": "Private file vault for you and your friends",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js && node scripts/check-client.js"
   },
   "dependencies": {
     "express": "^4.19.2",

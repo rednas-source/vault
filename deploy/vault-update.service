@@ -1,0 +1,10 @@
+[Unit]
+Description=Pull and deploy the latest verified Vault release
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/vault-update
+TimeoutStartSec=15min
+

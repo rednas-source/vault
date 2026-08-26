@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-cinema-rails-convert-20260825';
+const BUILD_ID = 'vault-cinema-rails-player-deploy-20260826';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1044,6 +1044,7 @@ let streaming = 0;
 const streamFailures = new Map();  // full path -> { at, error }
 const hlsSessions = new Map();     // id -> live segmented conversion
 const HLS_IDLE_MS = 2 * 60 * 1000;
+const HLS_START_BUFFER_SECONDS = Math.max(2, Math.min(Number(config.hlsStartBufferSeconds) || 8, 30));
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -1070,7 +1071,12 @@ async function waitForHls(session, timeoutMs = 75000) {
     if (session.error) return false;
     try {
       const playlist = await fsp.readFile(path.join(session.dir, 'index.m3u8'), 'utf8');
-      if (/seg-\d{6}\.ts/.test(playlist)) return true;
+      const buffered = [...playlist.matchAll(/^#EXTINF:([\d.]+)/gm)]
+        .reduce((seconds, match) => seconds + (parseFloat(match[1]) || 0), 0);
+      // Start with a small runway instead of handing the player a single
+      // two-second segment and immediately risking a stall. Finished shorts
+      // are allowed through with whatever they contain.
+      if (buffered >= HLS_START_BUFFER_SECONDS || (session.finished && buffered > 0)) return true;
     } catch { /* first segment is still being encoded */ }
     await wait(250);
   }
@@ -1108,9 +1114,11 @@ function videoEncodeArgs(profile, { lowLatency = false, transcoder = TRANSCODER,
     // File conversions favour a quick, bounded-memory encode. Safe mode is a
     // second attempt used after a signal/encoder failure and intentionally
     // trades a little compression efficiency for much lower peak memory.
-    const preset = lowLatency ? 'veryfast' : (safe ? 'ultrafast' : 'veryfast');
-    args.push('-c:v', 'libx264', '-preset', preset, '-crf', safe ? '23' : '22',
-      '-threads:v', String(safe ? 1 : CONVERSION_THREADS));
+    const preset = lowLatency ? 'superfast' : (safe ? 'ultrafast' : 'veryfast');
+    args.push('-c:v', 'libx264', '-preset', preset, '-crf', safe ? '23' : '22');
+    // Live playback needs every available core to stay ahead of the viewer;
+    // the conservative cap applies only to durable background conversions.
+    if (!lowLatency) args.push('-threads:v', String(safe ? 1 : CONVERSION_THREADS));
     if (lowLatency) args.push('-tune', 'zerolatency');
     else if (safe) args.push('-tune', 'fastdecode');
   }
@@ -1766,14 +1774,34 @@ async function sendFile(req, res, { download }) {
 
   res.setHeader('Accept-Ranges', 'bytes');
   res.setHeader('Content-Type', type);
+  // Range responses are safe to keep in the signed-in browser cache. This is
+  // especially important when seeking in a large MP4 through Cloudflare: the
+  // browser can reuse bytes it already fetched instead of refetching them.
+  res.setHeader('Cache-Control', download ? 'private, no-cache' : 'private, max-age=3600');
+  res.setHeader('Last-Modified', st.mtime.toUTCString());
   res.setHeader('Content-Disposition',
     `${download ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(name)}`);
 
   const range = req.headers.range;
   if (range) {
-    const m = /bytes=(\d*)-(\d*)/.exec(range);
-    let start = m[1] ? parseInt(m[1], 10) : 0;
-    let end = m[2] ? parseInt(m[2], 10) : st.size - 1;
+    const m = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
+    if (!m || (!m[1] && !m[2])) {
+      res.setHeader('Content-Range', `bytes */${st.size}`);
+      return res.status(416).end();
+    }
+    let start;
+    let end;
+    if (!m[1]) {
+      // Suffix requests are used by browsers to fetch an MP4's moov atom when
+      // it was written at the end of the file. Serving bytes 0-N here (the old
+      // behaviour) made those files appear to buffer forever.
+      const suffix = parseInt(m[2], 10);
+      start = Math.max(0, st.size - suffix);
+      end = st.size - 1;
+    } else {
+      start = parseInt(m[1], 10);
+      end = m[2] ? parseInt(m[2], 10) : st.size - 1;
+    }
     if (isNaN(start) || isNaN(end) || start > end || end >= st.size) {
       res.setHeader('Content-Range', `bytes */${st.size}`);
       return res.status(416).end();
@@ -2111,7 +2139,9 @@ app.get('/api/hls/:id/:segment', auth, async (req, res) => {
     if (!st.isFile()) return res.status(404).end();
     res.setHeader('Content-Type', 'video/mp2t');
     res.setHeader('Content-Length', st.size);
-    res.setHeader('Cache-Control', 'no-store');
+    // A segment is immutable once ffmpeg's temp-file rename makes it visible.
+    // Let the browser retain it for back-seeks during this private session.
+    res.setHeader('Cache-Control', 'private, max-age=3600, immutable');
     fs.createReadStream(segment).pipe(res);
   } catch {
     res.status(404).end();
@@ -2584,7 +2614,16 @@ async function subtitleTracks(full) {
     const base = path.parse(name).name.toLowerCase();
     if (base !== stem && !base.startsWith(stem + '.')) continue;
     const tag = base.length > stem.length ? base.slice(stem.length + 1) : '';
-    out.push({ id: `file:${name}`, label: tag ? tag.toUpperCase() : 'Subtitles', source: 'file' });
+    const bits = tag.split('.').filter(Boolean);
+    const ai = bits[0] === 'ai';
+    const language = (ai ? bits.slice(1) : bits).join(' · ').toUpperCase();
+    out.push({
+      id: `file:${name}`,
+      label: ai ? `AI generated${language ? ` · ${language}` : ''}`
+        : `External${language ? ` · ${language}` : ''}`,
+      lang: (bits[bits.length - 1] || '').toLowerCase().slice(0, 8) || undefined,
+      source: ai ? 'ai' : 'file',
+    });
   }
 
   // embedded
@@ -2598,9 +2637,14 @@ async function subtitleTracks(full) {
           const tags = st.tags || {};
           const lang = (tags.language || '').toUpperCase();
           const title = tags.title || '';
+          // Bitmap subtitles (PGS/VobSub/DVD) cannot become WebVTT without
+          // OCR. Keep them out of a selector that would only lead to a broken
+          // track; AI CC remains available for those titles.
+          const textCodecs = new Set(['subrip', 'srt', 'ass', 'ssa', 'webvtt', 'mov_text', 'text']);
+          if (!textCodecs.has(String(st.codec_name || '').toLowerCase())) return;
           out.push({
             id: `embed:${i}`,
-            label: title || lang || `Track ${i + 1}`,
+            label: `Embedded · ${title || lang || `Track ${i + 1}`}`,
             lang: lang.toLowerCase().slice(0, 3) || undefined,
             source: 'embedded',
           });
@@ -2624,6 +2668,7 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
   const track = String(req.query.track || '');
 
   res.setHeader('Content-Type', 'text/vtt; charset=utf-8');
+  res.setHeader('Content-Disposition', 'inline');
   res.setHeader('Cache-Control', 'private, max-age=3600');
 
   if (track.startsWith('file:')) {
@@ -2636,7 +2681,7 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
 
     if (ext(side) === 'vtt') return fs.createReadStream(side).pipe(res);
     if (!HAS_FFMPEG) return res.status(503).end();
-    const out = await run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-i', side, '-f', 'webvtt', 'pipe:1'], 20000, 8 * 1024 * 1024);
+    const out = await run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-i', side, '-f', 'webvtt', 'pipe:1'], 60000, 16 * 1024 * 1024);
     return out === null ? res.status(500).end() : res.send(out);
   }
 
@@ -2644,7 +2689,7 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
   if (!m) return res.status(400).end();
   if (!HAS_FFMPEG) return res.status(503).end();
   const out = await run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-i', full,
-    '-map', `0:s:${m[1]}`, '-f', 'webvtt', 'pipe:1'], 30000, 8 * 1024 * 1024);
+    '-map', `0:s:${m[1]}`, '-f', 'webvtt', 'pipe:1'], 120000, 32 * 1024 * 1024);
   if (out === null) return res.status(404).end();
   res.send(out);
 });

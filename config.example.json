@@ -8,6 +8,7 @@
   "transcodeEncoder": "auto",
   "defaultTranscodeQuality": "1080",
   "remuxStreams": 3,
+  "hlsStartBufferSeconds": 8,
   "convertJobs": 1,
   "convertThreads": 2,
   "whisperModel": "medium",

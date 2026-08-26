@@ -289,7 +289,7 @@ Kept in `progress.json`, capped at 2000 entries per person.
 
 ## Subtitles
 
-Tracks embedded in the container and sidecar files beside it (`Film.srt`, `Film.en.srt`) both appear in the player's track menu, converted to WebVTT on demand.
+Text tracks embedded in the container and sidecar files beside it (`Film.srt`, `Film.en.srt`) both appear by name in the player's CC menu, converted to WebVTT on demand. Each track has a -10 to +10 second sync control: negative displays captions earlier, positive delays them, and the browser remembers the setting for that file and track. Bitmap-only PGS/VobSub tracks cannot be rendered as WebVTT; use AI CC for those.
 
 Sidecar files are hidden from the file listing when they belong to a video that's also there — they're part of that item, not separate library entries. An orphaned subtitle with no matching video is still listed, since that's a file you might want to find.
 
@@ -330,7 +330,7 @@ Auto mode tests the actual encoder rather than trusting ffmpeg's compiled encode
 
 Pause terminates the private ffmpeg/HLS session and stores the exact logical timestamp. Play, seek, or a quality change starts a new session at that point. This is intentional: it prevents a paused live playlist from advancing invisibly and frees the GPU immediately.
 
-Choose **MP4** in a file row or player to create a durable copy. Compatible Original jobs are quick remuxes; other quality choices use the selected hardware encoder. Individual conversions can keep the MKV or replace it. Show and season actions use replacement mode: Vault writes the MP4 to scratch space, atomically commits it, verifies that it contains a readable video stream, and only then deletes the MKV. A failed conversion or verification keeps the source. If an MP4 with the same name already exists, replacement is refused instead of creating a duplicate or overwriting anything. One conversion runs at a time by default (`convertJobs`), while `remuxStreams` controls simultaneous viewers.
+Choose **MP4** in a file row or player to create a durable copy. Compatible Original jobs are quick remuxes; other quality choices use the selected hardware encoder. Individual conversions can keep the MKV or replace it. Show and season actions use replacement mode: Vault writes the MP4 to scratch space, atomically commits it, verifies that it contains a readable video stream, and only then deletes the MKV. A failed conversion or verification keeps the source. If an MP4 with the same name already exists, replacement is refused instead of creating a duplicate or overwriting anything. One conversion runs at a time by default (`convertJobs`), while `remuxStreams` controls simultaneous viewers. CPU conversion threads are capped at two by default (`convertThreads`). If ffmpeg is killed by the container or an encoder fails, Vault reports the signal and automatically retries once with single-threaded, low-memory x264 instead of surfacing the old meaningless `code null` error.
 
 ---
 
@@ -357,7 +357,7 @@ Kept in `activity.log`, capped at 4000 entries (`activityMax`), written in batch
 `/api/health` needs no authentication and returns nothing sensitive — no paths, no account names, no file counts. Point an uptime monitor at it.
 
 ```json
-{ "ok": true, "build": "vault-cinema-metadata-ai-20260825", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
+{ "ok": true, "build": "vault-cinema-rails-player-deploy-20260826", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
 ```
 
 It returns **503** when something is actually wrong. `storage` is the useful field:
@@ -373,6 +373,38 @@ That `detached` case is the one worth having. If an NFS mount drops, the path re
 
 ---
 
+## Verified automatic deployment
+
+This follows the same release shape as the Padel app, adapted for Vault's existing non-Docker systemd service:
+
+1. A push to `main` runs `npm ci` plus server and browser syntax checks in GitHub Actions.
+2. Only a successful workflow promotes that exact commit to the mutable `production` branch.
+3. A systemd timer on the server checks `production` every five minutes (plus up to 20 seconds of jitter).
+4. A new commit is pulled with `--ff-only`, dependencies are installed, syntax is checked again, and `vault.service` is restarted.
+5. `/api/health` must become healthy within 90 seconds. Otherwise the checkout, dependencies, and service are rolled back to the previous commit.
+
+After pushing these files and letting the first GitHub workflow create the `production` branch, install the updater once on the server:
+
+```bash
+cd /root/vault
+git pull --ff-only
+sudo sh deploy/install-auto-update.sh
+```
+
+Check it at any time with:
+
+```bash
+systemctl status vault-update.timer --no-pager
+systemctl status vault-update.service --no-pager
+journalctl -u vault-update.service -n 100 --no-pager
+```
+
+The defaults match this server: `/root/vault`, `vault.service`, and `http://127.0.0.1:8420/api/health`. They can be overridden with `VAULT_REPO`, `VAULT_SERVICE`, `VAULT_DEPLOY_BRANCH`, and `VAULT_HEALTH_URL` in a systemd override. A private GitHub repository also needs a read-capable deploy key or credential configured for the checkout's `origin`. The updater refuses to touch a checkout with tracked local changes.
+
+If GitHub branch protection blocks the workflow from updating `production`, allow GitHub Actions to write repository contents or exempt that promotion branch. Do not point the timer at `main`: the `production` branch is the gate that ensures a failed check never reaches the server.
+
+---
+
 ## Day to day
 
 Drop files or whole folders anywhere on the page, or press **Upload** and choose **files** or **folder**. Folder structure is preserved. Use **New folder** inside a shelf to create an empty folder directly. Files over 80 MB automatically use the chunked path.
@@ -383,7 +415,7 @@ Video and audio stream with seeking. Images open inline. Tick the boxes to selec
 
 **Navigation.** Every panel and dialog is a history entry, so the browser's Back — including a mouse's back button — closes the top layer instead of leaving the site. Clicking the dimmed area outside a dialog or panel does the same, as does Escape. All three go through one path, so they can't fall out of step.
 
-**The player** is built for this rather than being the browser's default. Space or `k` plays and pauses, arrows skip ten seconds, `j` and `l` skip thirty, `m` mutes, `f` is fullscreen, `c` opens the subtitle menu. Volume is remembered between files. On a prepared MKV stream, seeking restarts from the chosen second; on a native file it seeks normally. Either way the bar behaves the same.
+**The player** is built for this rather than being the browser's default. Space or `k` plays and pauses, arrows skip ten seconds, `j` and `l` skip thirty, `m` mutes, `f` is fullscreen, `c` opens the subtitle menu. Volume, subtitle choice, and subtitle timing offset are remembered between files. The cyan bar behind playback shows how far the browser has buffered, while the control row reports the amount of playable time ahead. Converted streams target a three-minute desktop look-ahead (smaller on phones); on a prepared MKV stream, seeking restarts from the chosen second, while a native MP4 seeks normally.
 
 In grid view, hovering a video sweeps through nine frames from across its runtime — useful for telling two rips apart without opening either.
 

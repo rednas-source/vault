@@ -1,0 +1,12 @@
+[Unit]
+Description=Check for a verified Vault release every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=5min
+RandomizedDelaySec=20s
+Unit=vault-update.service
+
+[Install]
+WantedBy=timers.target
+
