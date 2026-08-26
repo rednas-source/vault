@@ -78,7 +78,7 @@ Create `config.json`:
   "defaultTranscodeQuality": "1080",
   "remuxStreams": 3,
   "convertJobs": 1,
-  "whisperModel": "medium",
+  "whisperModel": "small",
   "whisperDevice": "auto",
   "subtitleJobs": 1,
   "https": true
@@ -100,7 +100,7 @@ Create `config.json`:
 | `defaultTranscodeQuality` | Optional. `720`, `1080`, `2160`, or `original`; default `1080`. |
 | `convertJobs` | Optional. Simultaneous background MP4 conversions, default 1. |
 | `whisperPython` | Optional override. Vault automatically uses `/root/vault/.venv/bin/python` when installed by the included setup script, then falls back to `python3`. |
-| `whisperModel` | Optional. `tiny`, `base`, `small`, `medium`, or `large-v3`; default `medium`. |
+| `whisperModel` | Optional. `tiny`, `base`, `small`, `medium`, or `large-v3`; default `small` (the practical CPU balance). |
 | `whisperDevice` | Optional. `auto`, `cuda`, or `cpu`; default `auto`. |
 | `subtitleJobs` | Optional. Simultaneous AI subtitle jobs, default 1 and capped at 2. |
 | `activityMax` | Optional. Activity entries retained, default 4000. |
@@ -304,6 +304,8 @@ curl -s http://127.0.0.1:8420/api/health
 
 Vault detects that environment automatically. The health response reports `aiSubtitles: true` when it is ready and includes `aiSubtitleDiagnostics` when it is not. Generated tracks are stored next to the video as `Title.ai.vtt` (or `Title.ai.en.vtt` when a language is selected), so they are reusable and move with the library. `whisperDevice: "auto"` tries CUDA first and falls back to CPU; it works on CPU now and can use CUDA later when GPU passthrough is configured.
 
+The first generation with a model downloads that model once. Vault reports the loading and transcription phases in the activity rail, writes cues incrementally instead of holding an episode in memory, and refreshes the open player's CC list as soon as the WebVTT file is ready. CPU jobs default to the `small` model with greedy decoding. If a selected model or CUDA process fails, the same job automatically retries once with the lighter `base` CPU path and surfaces the exact final error if that also fails.
+
 ---
 
 ## Poster art
@@ -328,7 +330,7 @@ Browsers never shipped dependable Matroska support. Vault therefore produces two
 
 Auto mode tests the actual encoder rather than trusting ffmpeg's compiled encoder list. It prefers NVIDIA NVENC, then Intel Quick Sync, then VAAPI for Intel/AMD, and finally `libx264`. `/api/health` exposes both `transcoder` and `gpuTranscode`, so you can prove what the systemd process can access.
 
-Pause terminates the private ffmpeg/HLS session and stores the exact logical timestamp. Play, seek, or a quality change starts a new session at that point. This is intentional: it prevents a paused live playlist from advancing invisibly and frees the GPU immediately.
+Pause preserves the browser's downloaded segments and freezes the private ffmpeg/HLS process, so resuming uses the same buffer and encoder state. The paused encoder consumes no CPU and the server keeps the session alive while the player is open. Seeking, changing quality, closing the player, or leaving an abandoned paused session for 30 minutes releases it.
 
 Choose **MP4** in a file row or player to create a durable copy. Compatible Original jobs are quick remuxes; other quality choices use the selected hardware encoder. Individual conversions can keep the MKV or replace it. Show and season actions use replacement mode: Vault writes the MP4 to scratch space, atomically commits it, verifies that it contains a readable video stream, and only then deletes the MKV. A failed conversion or verification keeps the source. If an MP4 with the same name already exists, replacement is refused instead of creating a duplicate or overwriting anything. One conversion runs at a time by default (`convertJobs`), while `remuxStreams` controls simultaneous viewers. CPU conversion threads are capped at two by default (`convertThreads`). If ffmpeg is killed by the container or an encoder fails, Vault reports the signal and automatically retries once with single-threaded, low-memory x264 instead of surfacing the old meaningless `code null` error.
 
@@ -357,7 +359,7 @@ Kept in `activity.log`, capped at 4000 entries (`activityMax`), written in batch
 `/api/health` needs no authentication and returns nothing sensitive — no paths, no account names, no file counts. Point an uptime monitor at it.
 
 ```json
-{ "ok": true, "build": "vault-cinema-rails-player-deploy-20260826", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
+{ "ok": true, "build": "vault-buffer-ai-recovery-20260826", "storage": "ok", "thumbnails": true, "transcoder": "CPU libx264", "gpuTranscode": false, "aiSubtitles": true }
 ```
 
 It returns **503** when something is actually wrong. `storage` is the useful field:

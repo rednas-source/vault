@@ -11,7 +11,7 @@
   "hlsStartBufferSeconds": 8,
   "convertJobs": 1,
   "convertThreads": 2,
-  "whisperModel": "medium",
+  "whisperModel": "small",
   "whisperDevice": "auto",
   "subtitleJobs": 1,
   "https": true

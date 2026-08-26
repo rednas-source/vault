@@ -38,30 +38,56 @@ def load_model(name, requested_device):
         return WhisperModel(name, device="cpu", compute_type="int8"), "cpu"
 
 
-def transcribe_all(model, source, options):
+def transcribe_to_vtt(model, source, output, options):
     segments, info = model.transcribe(source, **options)
-    duration = float(getattr(info, "duration", 0) or 0)
-    collected = []
-    for segment in segments:
-        collected.append(segment)
-        progress = min(99.5, (float(segment.end) / duration * 100)) if duration else 0
-        emit(kind="progress", progress=progress, at=float(segment.end), duration=duration)
-    return collected, info, duration
+    duration = float(
+        getattr(info, "duration", 0)
+        or getattr(info, "duration_after_vad", 0)
+        or 0
+    )
+    temp = output + ".part"
+    emit(kind="phase", phase="transcribing", message="Decoding speech", progress=3,
+         language=getattr(info, "language", None))
+    try:
+        with open(temp, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write("WEBVTT\n\n")
+            for segment in segments:
+                text = " ".join(str(segment.text).strip().split())
+                if text:
+                    handle.write(
+                        f"{timestamp(segment.start)} --> {timestamp(segment.end)}\n{text}\n\n"
+                    )
+                    # Persist cues incrementally. This prevents a whole episode's
+                    # segment objects from sitting in memory until the very end.
+                    handle.flush()
+                progress = min(99.5, (float(segment.end) / duration * 100)) if duration else 3
+                emit(kind="progress", phase="transcribing", progress=max(3, progress),
+                     at=float(segment.end), duration=duration)
+        os.replace(temp, output)
+    finally:
+        if os.path.exists(temp):
+            os.remove(temp)
+    return info
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)
-    parser.add_argument("--model", default="medium")
+    parser.add_argument("--model", default="small")
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     parser.add_argument("--language", default="auto")
     args = parser.parse_args()
 
+    emit(kind="phase", phase="loading-model", message=f"Loading {args.model} model", progress=1,
+         model=args.model, device=args.device)
     model, device = load_model(args.model, args.device)
-    emit(kind="start", device=device, model=args.model)
+    emit(kind="start", phase="starting", progress=2, device=device, model=args.model)
     options = {
-        "beam_size": 5,
+        # Greedy decoding is dramatically faster for server-side captions and
+        # avoids the long apparent stall caused by a five-beam CPU search.
+        "beam_size": 1,
+        "best_of": 1,
         "vad_filter": True,
         "condition_on_previous_text": True,
     }
@@ -69,27 +95,14 @@ def main():
         options["language"] = args.language
 
     try:
-        segments, info, duration = transcribe_all(model, args.input, options)
+        info = transcribe_to_vtt(model, args.input, args.output, options)
     except Exception as error:
         if args.device != "auto" or device != "cuda":
             raise
         emit(kind="notice", message=f"CUDA transcription failed, retrying on CPU: {error}")
         model = WhisperModel(args.model, device="cpu", compute_type="int8")
         device = "cpu"
-        segments, info, duration = transcribe_all(model, args.input, options)
-    temp = args.output + ".part"
-    try:
-        with open(temp, "w", encoding="utf-8", newline="\n") as handle:
-            handle.write("WEBVTT\n\n")
-            for segment in segments:
-                text = " ".join(str(segment.text).strip().split())
-                if not text:
-                    continue
-                handle.write(f"{timestamp(segment.start)} --> {timestamp(segment.end)}\n{text}\n\n")
-        os.replace(temp, args.output)
-    finally:
-        if os.path.exists(temp):
-            os.remove(temp)
+        info = transcribe_to_vtt(model, args.input, args.output, options)
     emit(kind="complete", progress=100, language=getattr(info, "language", None), device=device)
 
 

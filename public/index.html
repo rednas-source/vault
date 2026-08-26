@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-cinema-rails-player-deploy-20260826">
+<meta name="vault-build" content="vault-buffer-ai-recovery-20260826">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1688,7 +1688,7 @@ async function load(){
   state.artwork = !!d.artwork;
   state.transcoder = d.transcoder || null;
   state.qualities = Array.isArray(d.qualities) ? d.qualities : [];
-  state.aiSubtitles = d.aiSubtitles || { available:false, model:'medium', device:'auto' };
+  state.aiSubtitles = d.aiSubtitles || { available:false, model:'small', device:'auto' };
   if(Array.isArray(d.shelves)){
     SHELF_ORDER = d.shelves.map((x)=>x.id);
     d.shelves.forEach((x)=>{ SHELF_LABEL[x.id] = x.label; });
@@ -1891,7 +1891,7 @@ function entertainmentTop(){
 
 function aiStatusStrip(){
   const ai=state.aiSubtitles||{};
-  return `<section class="ai-library-strip ${ai.available?'ready':'missing'}"><span class="ai-pulse"></span><div><b>${ai.available?'Local AI subtitles ready':'AI subtitles need one server setup step'}</b><small>${ai.available?`${esc(ai.model||'medium')} model · ${esc(ai.device||'auto')} device selection`:esc(ai.diagnostic||'faster-whisper is not available to Vault')}</small></div><button data-ai-setup>${ai.available?'Details':'Set up'}</button></section>`;
+  return `<section class="ai-library-strip ${ai.available?'ready':'missing'}"><span class="ai-pulse"></span><div><b>${ai.available?'Local AI subtitles ready':'AI subtitles need one server setup step'}</b><small>${ai.available?`${esc(ai.model||'small')} model · ${esc(ai.device||'auto')} device selection`:esc(ai.diagnostic||'faster-whisper is not available to Vault')}</small></div><button data-ai-setup>${ai.available?'Details':'Set up'}</button></section>`;
 }
 
 function movieCard(group,list){
@@ -2364,18 +2364,27 @@ function showAiSetup(){
 function askAiSubtitles(files,label){
   const videos=files.filter((f)=>VIDEO.includes(f.ext));if(!videos.length)return toast('No video files selected','bad');
   if(!state.aiSubtitles?.available)return showAiSetup();
-  let model=state.aiSubtitles.model||'medium',language='auto';
-  sheet(`<span class="tag">Generate AI subtitles</span><p>Transcribe ${videos.length} ${esc(label)} file${videos.length===1?'':'s'} locally. Vault creates WebVTT sidecars and automatically adds them to the CC menu.</p>
-    <div class="ai-options"><label>Model<select id="aiModel">${['tiny','base','small','medium','large-v3'].map((m)=>`<option ${m===model?'selected':''}>${m}</option>`).join('')}</select></label><label>Language<input id="aiLanguage" value="auto" placeholder="auto, en, no…"></label></div>
+  const configured=state.aiSubtitles.model||'small',device=state.aiSubtitles.device||'auto';
+  let model=device==='cuda'?configured:(['tiny','base','small'].includes(configured)?configured:'small'),language='auto';
+  const modelNames={tiny:'Tiny · fastest',base:'Base · fast',small:'Small · recommended',medium:'Medium · slower', 'large-v3':'Large v3 · slowest'};
+  sheet(`<span class="tag">Generate AI subtitles</span><p>Transcribe ${videos.length} ${esc(label)} file${videos.length===1?'':'s'} locally. Vault creates WebVTT sidecars and automatically adds them to the open player CC menu.</p>
+    <div class="ai-options"><label>Model<select id="aiModel">${['tiny','base','small','medium','large-v3'].map((m)=>`<option value="${m}" ${m===model?'selected':''}>${modelNames[m]}</option>`).join('')}</select></label><label>Language<input id="aiLanguage" value="auto" placeholder="auto, en, no…"></label></div>
+    <div class="setup-diagnostic">The first run downloads the selected model once. Progress then changes from loading model to decoding speech. If the process runs out of memory, Vault automatically retries with Base on CPU.</div>
     <div class="conversion-status" id="aiStatus"></div><div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Generate ${videos.length}</button></div>`);
   $('#no').onclick=closeSheet;$('#yes').onclick=async()=>{const button=$('#yes');button.disabled=true;model=$('#aiModel').value;language=$('#aiLanguage').value.trim()||'auto';const jobs=[];let failed=0;for(let n=0;n<videos.length;n++){if($('#aiStatus'))$('#aiStatus').textContent=`Queueing ${n+1} of ${videos.length}…`;try{const r=await fetch(url('ai-subtitles',videos[n].rel),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,language})});const job=await r.json();if(!r.ok)throw new Error(job.error);jobs.push(job.id);}catch{failed++;}}closeSheet();toast(`Queued ${jobs.length} subtitle job${jobs.length===1?'':'s'}${failed?` · ${failed} failed`:''}`,failed?'bad':'');if(jobs.length)pollSubtitleBatch(jobs,label);};
 }
 
 async function pollSubtitleBatch(ids,label){
-  const states=await Promise.all(ids.map((id)=>fetch(`/api/ai-subtitles/${encodeURIComponent(id)}`,{cache:'no-store'}).then((r)=>r.json()).catch(()=>({status:'failed'}))));
+  const states=await Promise.all(ids.map((id)=>fetch(`/api/ai-subtitles/${encodeURIComponent(id)}`,{cache:'no-store'}).then(async(r)=>{const job=await r.json().catch(()=>({}));return r.ok?job:{status:'failed',error:job.error||`Subtitle status returned HTTP ${r.status}`};}).catch((error)=>({status:'failed',error:error.message||'Lost subtitle status'}))));
   const complete=states.filter((j)=>j.status==='complete').length,failed=states.filter((j)=>['failed','cancelled'].includes(j.status)).length,active=states.find((j)=>j.status==='running');
-  $('#railState').textContent=`AI CC ${complete}/${ids.length}${active?` · ${Math.round(active.progress)}%`:''}`;
-  if(complete+failed===ids.length){$('#railState').textContent='idle';toast(`${label}: ${complete} subtitle file${complete===1?'':'s'} ready${failed?`, ${failed} failed`:''}`,failed?'bad':'');load();return;}
+  const phase=active?(active.message||active.phase||'working'):'';
+  $('#railState').textContent=`AI CC ${complete}/${ids.length}${active?` · ${Math.round(active.progress)}% · ${phase}`:''}`;
+  if(complete+failed===ids.length){
+    $('#railState').textContent='idle';toast(`${label}: ${complete} subtitle file${complete===1?'':'s'} ready${failed?`, ${failed} failed`:''}`,failed?'bad':'');
+    const errors=[...new Set(states.filter((job)=>job.error).map((job)=>job.error))];if(errors.length)notify(errors.slice(0,4).join('\n'));
+    const openVideo=$('#rmx');if(complete&&openVideo&&openVideo.__reloadSubtitles)await openVideo.__reloadSubtitles();
+    load();return;
+  }
   setTimeout(()=>pollSubtitleBatch(ids,label),2400);
 }
 
@@ -2794,9 +2803,9 @@ function playRemuxed(f, info){
 }
 
 /**
- * One player for native range streams and GPU-backed HLS. A converted stream
- * is disposable: pause records the exact logical timestamp and terminates
- * ffmpeg, while play/seek/quality starts a new session at that timestamp.
+ * One player for native range streams and GPU-backed HLS. Pause freezes the
+ * encoder and retains the browser buffer; only seek, quality, or close replaces
+ * the private session.
  */
 function mountPlayer(f, { src, native, info = {} }){
   $('#viewer').classList.add('playing');
@@ -2834,7 +2843,7 @@ function mountPlayer(f, { src, native, info = {} }){
   else{stage.style.aspectRatio='16 / 9';video.addEventListener('loadedmetadata',function ratio(){if(this.videoWidth)stage.style.aspectRatio=`${this.videoWidth} / ${this.videoHeight}`;this.removeEventListener('loadedmetadata',ratio);});}
 
   let base=0,pausedAt=0,hls=null,hlsId='',version=0;
-  let suppress=false,wantsPlay=false,preparing=false,theater=false,chromeTimer=null,keyHandler=null;
+  let suppress=false,wantsPlay=false,preparing=false,theater=false,chromeTimer=null,keyHandler=null,keepAliveTimer=null;
   const alive=()=>!!document.getElementById('pl')&&!!$('#plPlay');
   const now=()=>native?(video.currentTime||0):base+(video.currentTime||0);
   const total=()=>duration||(f.watch&&f.watch.dur)||(native&&isFinite(video.duration)?video.duration:0)||0;
@@ -2846,8 +2855,9 @@ function mountPlayer(f, { src, native, info = {} }){
     }
     return (native?0:base)+video.buffered.end(video.buffered.length-1);
   };
+  const bufferAhead=()=>Math.max(0,bufferedEnd()-now());
   const drawBuffer=()=>{
-    if(!alive())return;const t=total(),at=now(),end=Math.max(at,bufferedEnd()),ahead=Math.max(0,end-at);
+    if(!alive())return;const t=total(),at=now(),end=Math.max(at,bufferedEnd()),ahead=bufferAhead();
     if(t)$('#plBuf').style.width=`${Math.min(100,end/t*100)}%`;
     const stateEl=$('#plBufferState'),label=$('#plBuffer');if(!stateEl||!label)return;
     stateEl.classList.toggle('ready',ahead>=30);stateEl.classList.toggle('low',!video.paused&&ahead<8);
@@ -2861,9 +2871,15 @@ function mountPlayer(f, { src, native, info = {} }){
 
   const release=()=>{
     const old=hlsId;hlsId='';suppress=true;
+    clearInterval(keepAliveTimer);keepAliveTimer=null;
     if(hls){hls.destroy();hls=null;}
     if(!native){video.pause();video.removeAttribute('src');video.load();}
     if(old)fetch(`/api/hls/${encodeURIComponent(old)}`,{method:'DELETE',keepalive:true}).catch(()=>{});
+  };
+  const controlSession=async(action)=>{
+    if(!hlsId)return {ok:false};
+    const r=await fetch(`/api/hls/${encodeURIComponent(hlsId)}/control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})});
+    const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`Could not ${action} playback session`);return data;
   };
   const fail=async(message)=>{
     if(!alive()||suppress)return;
@@ -2871,20 +2887,34 @@ function mountPlayer(f, { src, native, info = {} }){
     if(!alive())return;wantsPlay=false;preparing=false;release();
     $('#vBody').innerHTML=`<div class="viewer-note"><p>Playback failed: ${esc(server||message||'The stream stopped unexpectedly.')}</p><p>Download the file, or open this link in VLC:</p><p class="viewer-link">${location.origin}${url('stream',f.rel)}</p></div>`;
   };
-  const pauseConverted=()=>{
-    if(native)return;pausedAt=now();if(video.__report)video.__report();wantsPlay=false;preparing=false;version++;base=pausedAt;release();setPlaying(false);draw();
-    if($('#plNote'))$('#plNote').textContent=`Paused at ${fmtTime(pausedAt)} · server transcode stopped`;
+  const pauseConverted=async()=>{
+    if(native)return;pausedAt=now();if(video.__report)video.__report();wantsPlay=false;preparing=false;setPlaying(false);draw();
+    if(hls)hls.stopLoad();
+    const held=bufferAhead();
+    if($('#plNote'))$('#plNote').textContent=`Paused at ${fmtTime(pausedAt)} · ${fmtTime(held)} buffer preserved`;
+    if(hlsId){try{await controlSession('pause');}catch(error){if($('#plNote'))$('#plNote').textContent=`Paused · local buffer preserved · ${error.message}`;}}
   };
 
-  const startHls=async(at)=>{
-    const mine=++version;release();base=Math.max(0,at||0);pausedAt=base;wantsPlay=true;preparing=true;suppress=true;draw();
+  const resumeConverted=async()=>{
+    if(!hlsId)return startHls(pausedAt||now(),true);
+    wantsPlay=true;preparing=true;suppress=true;
+    if($('#plNote'))$('#plNote').textContent=`Resuming ${fmtTime(bufferAhead())} preserved buffer…`;
+    try{
+      await controlSession('resume');if(hls)hls.startLoad(-1);preparing=false;suppress=false;
+      video.play().catch((error)=>{wantsPlay=false;setPlaying(false);if($('#plNote'))$('#plNote').textContent=`Buffer preserved · press play to resume${error&&error.message?` · ${error.message}`:''}`;});
+    }catch{preparing=false;suppress=false;const at=pausedAt||now();release();startHls(at,true);}
+  };
+
+  const startHls=async(at,autoplay=true)=>{
+    const mine=++version;release();base=Math.max(0,at||0);pausedAt=base;wantsPlay=autoplay;preparing=true;suppress=true;draw();
     $('#plBig').textContent='…';$('#plNote').textContent=`Preparing ${names[quality]} · ${state.transcoder?state.transcoder.label:'H.264 encoder'}…`;
     try{
       const r=await fetch(`${url('hls/start',f.rel)}?t=${base.toFixed(2)}&quality=${encodeURIComponent(quality)}`,{method:'POST'});const data=await r.json().catch(()=>({}));
       if(!r.ok)throw new Error(data.error||`HLS preparation returned HTTP ${r.status}`);
       if(mine!==version||!alive()){fetch(`/api/hls/${encodeURIComponent(data.id)}`,{method:'DELETE',keepalive:true}).catch(()=>{});return;}
       hlsId=data.id;
-      const ready=()=>{if(mine!==version||!alive())return;preparing=false;suppress=false;$('#plBig').textContent='▶';$('#plNote').textContent=`${data.qualityLabel||names[quality]} · ${data.direct?'direct stream copy':data.encoder||'H.264 / AAC'}`;if(wantsPlay)video.play().catch(()=>{});};
+      clearInterval(keepAliveTimer);keepAliveTimer=setInterval(()=>{if(hlsId)fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`,{cache:'no-store'}).catch(()=>{});},45000);
+      const ready=()=>{if(mine!==version||!alive())return;preparing=false;suppress=false;$('#plBig').textContent='▶';$('#plNote').textContent=`${data.qualityLabel||names[quality]} · ${data.direct?'direct stream copy':data.encoder||'H.264 / AAC'}`;if(wantsPlay)video.play().catch(()=>{});else pauseConverted();};
       if(window.Hls&&Hls.isSupported()){
         const compactBuffer=matchMedia('(max-width:760px)').matches;
         hls=new Hls({
@@ -2906,10 +2936,10 @@ function mountPlayer(f, { src, native, info = {} }){
     if(!native)return startHls(at);
     const play=()=>{try{video.currentTime=at;}catch{}video.play().catch(()=>{});};video.readyState?play():video.addEventListener('loadedmetadata',play,{once:true});
   };
-  const toggle=()=>{if(native){video.paused?video.play().catch(()=>{}):video.pause();return;}if(wantsPlay){video.paused?pauseConverted():video.pause();}else startHls(pausedAt||now());};
-  const jump=(seconds)=>{const at=Math.max(0,Math.min(total()?total()-.25:1e9,now()+seconds));if(native)video.currentTime=at;else if(wantsPlay)startHls(at);else{base=pausedAt=at;draw();}};
+  const toggle=()=>{if(native){video.paused?video.play().catch(()=>{}):video.pause();return;}if(!video.paused){video.pause();return;}if(preparing&&wantsPlay){pauseConverted();return;}resumeConverted();};
+  const jump=(seconds)=>{const at=Math.max(0,Math.min(total()?total()-.25:1e9,now()+seconds));if(native)video.currentTime=at;else startHls(at,!video.paused);};
 
-  video.onplay=()=>{wantsPlay=true;setPlaying(true);drawBuffer();};video.onpause=()=>{setPlaying(false);drawBuffer();if(!native&&wantsPlay&&!suppress)pauseConverted();};video.ontimeupdate=draw;
+  video.onplay=()=>{wantsPlay=true;setPlaying(true);drawBuffer();};video.onpause=()=>{setPlaying(false);drawBuffer();if(!native&&!suppress)pauseConverted();};video.ontimeupdate=draw;
   video.onprogress=drawBuffer;video.onwaiting=drawBuffer;video.oncanplay=drawBuffer;
   video.onerror=()=>{if(!suppress)fail(video.error?`browser media error ${video.error.code}`:'browser media error');};
   $('#plPlay').onclick=toggle;$('#plBig').onclick=toggle;video.onclick=toggle;$('#plBack').onclick=()=>jump(-10);$('#plFwd').onclick=()=>jump(10);$('#plClose').onclick=closeViewer;
@@ -2918,7 +2948,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const trackPos=(e)=>{const r=track.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));};
   const preview=(p)=>{const t=total();$('#plFill').style.width=`${p*100}%`;$('#plKnob').style.left=`${p*100}%`;if(t){$('#plAt').textContent=fmtTime(p*t);$('#plRem').textContent=`-${fmtTime(t-p*t)}`;}};
   track.onpointerdown=(e)=>{if(!total())return;drag=true;track.setPointerCapture(e.pointerId);preview(trackPos(e));};track.onpointermove=(e)=>{if(drag)preview(trackPos(e));};
-  track.onpointerup=(e)=>{if(!drag)return;drag=false;const at=trackPos(e)*total();if(!native&&!wantsPlay){base=pausedAt=at;draw();}else go(at);};
+  track.onpointerup=(e)=>{if(!drag)return;drag=false;const at=trackPos(e)*total();if(native)go(at);else startHls(at,!video.paused);};
 
   const savedVol=(()=>{try{return parseFloat(localStorage.getItem('vault-vol'));}catch{return NaN;}})();video.volume=isFinite(savedVol)?savedVol:1;
   const drawVol=()=>{if(!alive())return;const n=video.muted?0:video.volume;$('#plVolFill').style.width=`${n*100}%`;$('#plVolKnob').style.left=`${n*100}%`;$('#plMute').textContent=n===0?'🔇':n<.5?'🔉':'🔊';};
@@ -2931,14 +2961,22 @@ function mountPlayer(f, { src, native, info = {} }){
   $('#plFull').onclick=full;$('#plTheater').onclick=theaterMode;$('#plConvert').onclick=()=>askConvert(f);$('#plAI').onclick=()=>askAiSubtitles([f],'episode');
   $('#plPip').onclick=()=>{if(!document.pictureInPictureEnabled)return toast('This browser has no picture-in-picture','bad');document.pictureInPictureElement?document.exitPictureInPicture().catch(()=>{}):video.requestPictureInPicture().catch(()=>toast('Picture-in-picture unavailable','bad'));};
   $('#plGear').onclick=()=>{const menu=$('#plSpeed'),open=menu.hidden;closeMenus();menu.innerHTML=[.5,.75,1,1.25,1.5,2].map((r)=>`<button data-r="${r}" class="${video.playbackRate===r?'on':''}">${r===1?'Normal':r+'×'}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{video.playbackRate=+b.dataset.r;menu.hidden=true;$('#plGear').classList.toggle('on',video.playbackRate!==1);});menu.hidden=!open;showChrome();};
-  if(!native)$('#plQuality').onclick=()=>{const menu=$('#plQualityMenu'),open=menu.hidden;closeMenus();menu.innerHTML=[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original / direct']].map(([id,label])=>`<button data-q="${id}" class="${quality===id?'on':''}">${label}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{const at=now(),playing=wantsPlay;quality=b.dataset.q;$('#plQualityLabel').textContent=names[quality];try{localStorage.setItem('vault-quality',quality);}catch{}menu.hidden=true;if(playing)startHls(at);else $('#plNote').textContent=`${names[quality]} selected · press play to prepare`;});menu.hidden=!open;showChrome();};
+  if(!native)$('#plQuality').onclick=()=>{const menu=$('#plQualityMenu'),open=menu.hidden;closeMenus();menu.innerHTML=[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original / direct']].map(([id,label])=>`<button data-q="${id}" class="${quality===id?'on':''}">${label}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{const at=now(),playing=!video.paused;quality=b.dataset.q;$('#plQualityLabel').textContent=names[quality];try{localStorage.setItem('vault-quality',quality);}catch{}menu.hidden=true;startHls(at,playing);});menu.hidden=!open;showChrome();};
 
   player.onpointermove=scheduleChrome;player.onmouseleave=()=>{if(theater&&!video.paused)scheduleChrome();};
   keyHandler=(e)=>{if(!alive()){document.removeEventListener('keydown',keyHandler,true);return;}if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;const stop=()=>{e.preventDefault();e.stopPropagation();};switch(e.key){case ' ':case 'k':stop();toggle();break;case 'ArrowRight':stop();jump(10);break;case 'ArrowLeft':stop();jump(-10);break;case 'l':stop();jump(30);break;case 'j':stop();jump(-30);break;case 'ArrowUp':stop();video.volume=Math.min(1,video.volume+.1);video.muted=false;drawVol();break;case 'ArrowDown':stop();video.volume=Math.max(0,video.volume-.1);drawVol();break;case 'm':stop();video.muted=!video.muted;drawVol();break;case 'f':stop();full();break;case 't':stop();theaterMode();break;case 'c':stop();if(!$('#plCC').hidden)$('#plCC').click();break;default:return;}};
-  document.addEventListener('keydown',keyHandler,true);trackProgress(video,f,()=>native?0:base,duration);attachSubtitles(video,f).then((tracks)=>buildCCMenu(video,f,tracks));
+  const reloadSubtitles=async()=>{
+    if(!alive())return [];
+    video.querySelectorAll('track[data-vault-track]').forEach((track)=>track.remove());
+    const tracks=await attachSubtitles(video,f);
+    if(alive())buildCCMenu(video,f,tracks);
+    return tracks;
+  };
+  video.__reloadSubtitles=reloadSubtitles;
+  document.addEventListener('keydown',keyHandler,true);trackProgress(video,f,()=>native?0:base,duration);reloadSubtitles();
   const from=f.watch&&f.watch.pos>5&&(!total()||f.watch.pos<total()-20)?f.watch.pos:0;pausedAt=from;base=native?0:from;
   if(native){video.src=src;go(from);}else startHls(from);
-  video.__destroyStream=()=>{version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater');release();};
+  video.__destroyStream=()=>{version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearInterval(keepAliveTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater');release();};
 }
 
 /** The part of an episode filename after the SxxExx marker, if there is one. */
@@ -2967,7 +3005,8 @@ function buildCCMenu(v,f,entries=[]){
   const btn = $('#plCC'), menu = $('#plMenu');
   // Subtitles arrive asynchronously — the viewer may already be gone.
   if(!btn || !menu || !document.contains(v)) return;
-  if(!entries.length) return;
+  if(v.__ccUpdatedHandler)v.removeEventListener('vault-subtitles-updated',v.__ccUpdatedHandler);
+  if(!entries.length){btn.hidden=true;btn.classList.remove('on');menu.hidden=true;menu.innerHTML='';const name=$('#plCCName');if(name)name.textContent='Off';return;}
   const tracks=entries.map((entry)=>entry.track);
   btn.hidden = false;
   menu.classList.add('cc-menu');
@@ -3020,10 +3059,11 @@ function buildCCMenu(v,f,entries=[]){
     const sp = $('#plSpeed'), qm = $('#plQualityMenu'); if(sp) sp.hidden = true; if(qm) qm.hidden = true;
     draw(); menu.hidden = !menu.hidden;
   };
-  v.addEventListener('vault-subtitles-updated',()=>{
+  v.__ccUpdatedHandler=()=>{
     const active=tracks.findIndex((t)=>t.mode==='showing');if(active>=0)applySubtitleOffset(entries[active],entries[active].offset||0);
     if(!menu.hidden)draw();
-  });
+  };
+  v.addEventListener('vault-subtitles-updated',v.__ccUpdatedHandler);
   draw();
 }
 
@@ -3063,7 +3103,7 @@ function trackProgress(video, f, baseOf, knownDur){
 /** Attach any subtitle tracks the server can produce for this file. */
 async function attachSubtitles(video, f){
   try{
-    const r = await fetch(url('subs', f.rel));
+    const r = await fetch(url('subs', f.rel),{cache:'no-store'});
     if(!r.ok) return;
     const { tracks } = await r.json();
     if(!tracks || !tracks.length) return;
@@ -3071,9 +3111,10 @@ async function attachSubtitles(video, f){
     tracks.forEach((t) => {
       const el = document.createElement('track');
       el.kind = 'subtitles';
+      el.dataset.vaultTrack = '1';
       el.label = t.label;
       if(t.lang) el.srclang = t.lang;
-      el.src = `${url('sub', f.rel)}?track=${encodeURIComponent(t.id)}`;
+      el.src = `${url('sub', f.rel)}?track=${encodeURIComponent(t.id)}&v=${Date.now()}`;
       const entry={id:t.id,label:t.label,source:t.source,element:el,track:el.track,loading:true,failed:false,offset:0};
       el.addEventListener('load',()=>{entry.loading=false;entry.failed=false;if(entry.track.mode==='hidden')entry.track.mode='disabled';video.dispatchEvent(new Event('vault-subtitles-updated'));});
       el.addEventListener('error',()=>{entry.loading=false;entry.failed=true;video.dispatchEvent(new Event('vault-subtitles-updated'));});

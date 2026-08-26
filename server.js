@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-cinema-rails-player-deploy-20260826';
+const BUILD_ID = 'vault-buffer-ai-recovery-20260826';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1044,6 +1044,7 @@ let streaming = 0;
 const streamFailures = new Map();  // full path -> { at, error }
 const hlsSessions = new Map();     // id -> live segmented conversion
 const HLS_IDLE_MS = 2 * 60 * 1000;
+const HLS_PAUSED_IDLE_MS = 30 * 60 * 1000;
 const HLS_START_BUFFER_SECONDS = Math.max(2, Math.min(Number(config.hlsStartBufferSeconds) || 8, 30));
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -1059,9 +1060,9 @@ async function stopHlsSession(id) {
 }
 
 async function sweepHlsSessions() {
-  const cutoff = Date.now() - HLS_IDLE_MS;
   for (const [id, session] of hlsSessions) {
-    if (session.lastAccess < cutoff) await stopHlsSession(id);
+    const idleFor = Date.now() - session.lastAccess;
+    if (idleFor > (session.paused ? HLS_PAUSED_IDLE_MS : HLS_IDLE_MS)) await stopHlsSession(id);
   }
 }
 
@@ -1151,7 +1152,7 @@ async function startHlsConversion(full, user, startAt, requestedQuality) {
     qualityLabel: quality.label, direct: output.direct,
     encoder: output.direct ? 'stream copy' : TRANSCODER.label,
     child: null, error: '', stderr: '',
-    created: Date.now(), lastAccess: Date.now(), stopping: false, finished: false,
+    created: Date.now(), lastAccess: Date.now(), stopping: false, finished: false, paused: false,
   };
   await fsp.mkdir(dir, { recursive: true });
   hlsSessions.set(id, session);
@@ -1160,7 +1161,7 @@ async function startHlsConversion(full, user, startAt, requestedQuality) {
   if (startAt > 0) args.push('-ss', startAt.toFixed(2));
   // Event HLS keeps every completed segment until the private session ends.
   // That lets a GPU prepare ahead at full speed without racing a sliding
-  // window, while pause/close still kills the process and clears the cache.
+  // window. Pause freezes this process in place; close still clears the cache.
   args.push('-i', full, '-map', '0:v:0', '-map', '0:a:0?',
     ...output.args,
     ...(output.direct ? [] : ['-force_key_frames', 'expr:gte(t,n_forced*2)']),
@@ -1529,7 +1530,7 @@ app.get('/api/files', auth, async (req, res) => {
     files: out, folders, disk, thumbs: HAS_FFMPEG, mkvTranscode: HAS_H264_ENCODER,
     transcoder: TRANSCODER ? { label: TRANSCODER.label, hardware: TRANSCODER.hardware } : null,
     qualities: Object.values(QUALITY_PROFILES).map(({ id, label }) => ({ id, label })),
-    aiSubtitles: { available: HAS_AI_SUBTITLES, model: config.whisperModel || 'medium', device: config.whisperDevice || 'auto', diagnostic: AI_SUBTITLE_STATUS.diagnostic },
+    aiSubtitles: { available: HAS_AI_SUBTITLES, model: config.whisperModel || 'small', device: config.whisperDevice || 'auto', diagnostic: AI_SUBTITLE_STATUS.diagnostic },
     role: req.user.role, artwork: !!TMDB_KEY,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
@@ -2101,12 +2102,34 @@ app.delete('/api/hls/:id', auth, async (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/hls/:id/control', auth, (req, res) => {
+  const session = ownedHls(req);
+  if (!session) return res.status(404).json({ error: 'Conversion session ended' });
+  const action = String((req.body || {}).action || '');
+  if (!['pause', 'resume'].includes(action)) return res.status(400).json({ error: 'Unknown playback action' });
+  session.lastAccess = Date.now();
+
+  // SIGSTOP preserves ffmpeg's completed HLS segments and exact encoder state
+  // without consuming CPU or growing the on-disk cache while the viewer is
+  // paused. SIGCONT resumes the same process and therefore the same buffer.
+  if (session.child && session.child.exitCode === null && process.platform !== 'win32') {
+    try {
+      session.child.kill(action === 'pause' ? 'SIGSTOP' : 'SIGCONT');
+    } catch (error) {
+      return res.status(500).json({ error: error.message || `Could not ${action} transcoder` });
+    }
+  }
+  session.paused = action === 'pause';
+  res.json({ ok: true, paused: session.paused, finished: session.finished });
+});
+
 app.get('/api/hls/:id/status', auth, (req, res) => {
   const session = ownedHls(req);
   if (!session) return res.status(404).json({ ok: false, error: 'Conversion session ended' });
   session.lastAccess = Date.now();
   res.setHeader('Cache-Control', 'no-store');
-  res.json(session.error ? { ok: false, error: session.error } : { ok: true, finished: session.finished });
+  res.json(session.error ? { ok: false, error: session.error }
+    : { ok: true, finished: session.finished, paused: session.paused });
 });
 
 app.get('/api/hls/:id/index.m3u8', auth, async (req, res) => {
@@ -2498,7 +2521,9 @@ let subtitling = 0;
 function publicSubtitleJob(job) {
   return {
     id: job.id, rel: job.rel, status: job.status, progress: Math.max(0, Math.min(100, job.progress || 0)),
-    model: job.model, device: job.actualDevice || job.device, language: job.detectedLanguage || job.language,
+    model: job.activeModel || job.model, requestedModel: job.model,
+    device: job.actualDevice || job.activeDevice || job.device, language: job.detectedLanguage || job.language,
+    phase: job.phase || job.status, message: job.message || '', retrying: !!job.retrying,
     outputRel: job.outputRel || null, error: job.error || '', created: job.created, finished: job.finished || null,
   };
 }
@@ -2511,11 +2536,37 @@ function runNextSubtitle() {
   }
 }
 
-function runSubtitleJob(job) {
-  subtitling++;
-  job.status = 'running';
+function finishSubtitleSlot(job) {
+  job.finished = Date.now();
+  job.child = null;
+  subtitling = Math.max(0, subtitling - 1);
+  runNextSubtitle();
+}
+
+function subtitleFailure(job, code, signal) {
+  const clean = job.stderr.replace(job.full, path.basename(job.full))
+    .replace(/\s+/g, ' ').trim().slice(0, 1200);
+  if (job.error) return job.error;
+  if (job.spawnError) return job.spawnError;
+  if (signal) return `AI subtitle process was terminated by ${signal}${signal === 'SIGKILL' ? ' (usually the container memory limit)' : ''}`;
+  return clean || `subtitle process exited with code ${code}`;
+}
+
+function spawnSubtitleAttempt(job, { model, device, safe = false }) {
+  job.activeModel = model;
+  job.activeDevice = device;
+  job.actualDevice = '';
+  job.retrying = safe;
+  job.phase = safe ? 'safe-retry' : 'loading-model';
+  job.message = safe ? `Retrying with the lighter ${model} CPU model` : `Loading ${model} model`;
+  job.stderr = '';
+  job.spawnError = '';
+  job.error = '';
+  job.updated = Date.now();
+  if (safe) job.progress = 1;
+
   const args = [WHISPER_SCRIPT, '--input', job.full, '--output', job.output,
-    '--model', job.model, '--device', job.device, '--language', job.language];
+    '--model', model, '--device', device, '--language', job.language];
   const child = spawn(WHISPER_PYTHON, args, { stdio: ['ignore', 'pipe', 'pipe'] });
   job.child = child;
   let lines = '';
@@ -2526,9 +2577,13 @@ function runSubtitleJob(job) {
       try {
         const event = JSON.parse(line);
         if (Number.isFinite(event.progress)) job.progress = event.progress;
+        if (event.phase) job.phase = event.phase;
+        if (event.message) job.message = event.message;
+        if (event.model) job.activeModel = event.model;
         if (event.device) job.actualDevice = event.device;
         if (event.language) job.detectedLanguage = event.language;
         if (event.kind === 'error' && event.message) job.error = event.message;
+        job.updated = Date.now();
       } catch { /* diagnostic line from a dependency */ }
     }
   });
@@ -2537,28 +2592,44 @@ function runSubtitleJob(job) {
     if (remaining > 0) job.stderr += chunk.subarray(0, remaining).toString('utf8');
   });
   child.on('error', (error) => { job.spawnError = error.message || 'Could not start AI subtitles'; });
-  child.on('close', async (code) => {
+  child.on('close', async (code, signal) => {
     try {
       if (job.cancelled) {
         job.status = 'cancelled';
         await fsp.rm(`${job.output}.part`, { force: true }).catch(() => {});
       } else if (code !== 0 || job.spawnError) {
-        job.status = 'failed';
-        job.error = job.error || job.spawnError || job.stderr.replace(job.full, path.basename(job.full)).replace(/\s+/g, ' ').trim().slice(0, 1200) || `subtitle process exited with code ${code}`;
+        const firstFailure = subtitleFailure(job, code, signal);
         await fsp.rm(`${job.output}.part`, { force: true }).catch(() => {});
+        // Medium/large models and CUDA can be killed by a small container even
+        // when faster-whisper itself is installed correctly. One automatic
+        // CPU/base retry favours a finished caption file over a dead job.
+        if (!safe && (model !== 'base' || device !== 'cpu')) {
+          console.warn(`[media] AI subtitles failed for ${job.rel}; retrying safely: ${firstFailure}`);
+          spawnSubtitleAttempt(job, { model: 'base', device: 'cpu', safe: true });
+          return;
+        }
+        job.status = 'failed';
+        job.phase = 'failed';
+        job.error = firstFailure;
       } else {
         const stat = await fsp.stat(job.output);
         if (!stat.size) throw new Error('AI subtitle file was empty');
-        job.status = 'complete'; job.progress = 100;
+        job.status = 'complete'; job.phase = 'complete'; job.message = 'WebVTT subtitles ready'; job.progress = 100;
         job.outputRel = path.relative(ROOT, job.output).split(path.sep).join('/');
         note(job.user, 'ai-subtitles', job.rel);
       }
     } catch (error) {
-      job.status = 'failed'; job.error = error.message || 'Could not save AI subtitles';
+      job.status = 'failed'; job.phase = 'failed'; job.error = error.message || 'Could not save AI subtitles';
     } finally {
-      job.finished = Date.now(); job.child = null; subtitling = Math.max(0, subtitling - 1); runNextSubtitle();
+      if (job.status !== 'running') finishSubtitleSlot(job);
     }
   });
+}
+
+function runSubtitleJob(job) {
+  subtitling++;
+  job.status = 'running';
+  spawnSubtitleAttempt(job, { model: job.model, device: job.device });
 }
 
 app.post('/api/ai-subtitles/*', auth, shelfGate, async (req, res) => {
@@ -2567,8 +2638,8 @@ app.post('/api/ai-subtitles/*', auth, shelfGate, async (req, res) => {
   const full = safePath(req.params[0]);
   if (!full || !THUMBABLE.includes(ext(full))) return res.status(400).json({ error: 'Bad video path' });
   try { await fsp.stat(full); } catch { return res.status(404).json({ error: 'Video not found' }); }
-  const model = WHISPER_MODELS.has(String(req.body.model || config.whisperModel || 'medium'))
-    ? String(req.body.model || config.whisperModel || 'medium') : 'medium';
+  const model = WHISPER_MODELS.has(String(req.body.model || config.whisperModel || 'small'))
+    ? String(req.body.model || config.whisperModel || 'small') : 'small';
   const requestedLanguage = String(req.body.language || 'auto').toLowerCase();
   const language = requestedLanguage === 'auto' || /^[a-z]{2,8}(?:-[a-z]{2,8})?$/.test(requestedLanguage)
     ? requestedLanguage : 'auto';
@@ -2579,7 +2650,8 @@ app.post('/api/ai-subtitles/*', auth, shelfGate, async (req, res) => {
   const id = crypto.randomBytes(16).toString('hex');
   const job = { id, user: req.user.name, rel: req.params[0], full, output, model, language, device,
     status: 'queued', progress: 0, error: '', stderr: '', created: Date.now(), finished: null,
-    child: null, cancelled: false, actualDevice: '', detectedLanguage: '', outputRel: '' };
+    child: null, cancelled: false, actualDevice: '', detectedLanguage: '', outputRel: '',
+    activeModel: model, activeDevice: device, phase: 'queued', message: 'Waiting for subtitle worker', retrying: false };
   subtitleJobs.set(id, job); subtitleQueue.push(id); runNextSubtitle();
   res.status(202).json(publicSubtitleJob(job));
 });
@@ -3218,6 +3290,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
     console.log(`Vault: ${ROOT}`);
     console.log(`Thumbnails: ${HAS_FFMPEG ? 'on' : 'off (ffmpeg not found)'}`);
     console.log(`Media transcoder: ${TRANSCODER ? TRANSCODER.label : 'off (no usable H.264 encoder)'}`);
-    console.log(`AI subtitles: ${HAS_AI_SUBTITLES ? `${config.whisperModel || 'medium'} via ${config.whisperDevice || 'auto'}` : `off (${AI_SUBTITLE_STATUS.diagnostic})`}`);
+    console.log(`AI subtitles: ${HAS_AI_SUBTITLES ? `${config.whisperModel || 'small'} via ${config.whisperDevice || 'auto'}` : `off (${AI_SUBTITLE_STATUS.diagnostic})`}`);
   });
 })();
