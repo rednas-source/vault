@@ -6,13 +6,11 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-five-minute-pause-buffer-20260826">
+<meta name="vault-build" content="vault-chromatic-production-20260901">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/vendor/phosphor/style.css?v=2.1.2">
 <style>
 /* ══════════════════════════════════ theme
    Dark is the default. Light isn't an inversion — the ice-blue accent is
@@ -316,13 +314,8 @@ tr:hover .acts,tr:focus-within .acts{opacity:1}
   position:absolute;inset:0;opacity:0;transition:opacity .35s ease;
 }
 .tile-art img.thumb.ready{opacity:1}
-/* hairline graph paper behind file-type tiles, so they aren't dead rectangles */
-.tile-art.blank{
-  background:
-    linear-gradient(var(--grid) 1px,transparent 1px) 0 0/100% 15px,
-    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/15px 100%,
-    var(--raise);
-}
+/* File-type tiles stay quiet when no preview artwork exists. */
+.tile-art.blank{background:var(--raise)}
 .tile-art .ph{
   font-family:var(--mono);font-size:17px;font-weight:300;letter-spacing:.26em;
   color:var(--faint);text-indent:.26em;transition:color .15s;
@@ -1146,7 +1139,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 .movie-library-hero,.movie-detail-hero{overflow:hidden;min-height:clamp(500px,68vh,780px);background-image:linear-gradient(90deg,#090908 2%,rgba(9,9,8,.91) 35%,rgba(9,9,8,.14) 74%),linear-gradient(0deg,#090908,transparent 50%),var(--hero)}
 .movie-detail-hero{min-height:clamp(560px,76vh,850px);margin-bottom:0}.movie-library-hero .media-hero-copy,.movie-detail-hero .media-hero-copy{position:relative;z-index:3}.movie-library-hero h2,.movie-detail-hero h2{font-family:Georgia,'Times New Roman',serif;font-size:clamp(54px,7vw,108px);line-height:.91;letter-spacing:-.055em;max-width:10ch}.movie-frame{position:absolute;z-index:2;inset:0;pointer-events:none;border:1px solid rgba(235,191,118,.11);border-width:0 1px}.movie-frame::before,.movie-frame::after{content:'';position:absolute;top:0;bottom:0;width:1px;background:linear-gradient(transparent,rgba(234,190,113,.35),transparent)}.movie-frame::before{left:9%}.movie-frame::after{right:9%}.movie-frame i{position:absolute;width:5px;height:5px;border-radius:50%;background:#e7bb72;box-shadow:0 0 20px #d69848}.movie-frame i:nth-child(1){right:8.8%;top:24%}.movie-frame i:nth-child(2){left:8.8%;top:61%}.movie-frame i:nth-child(3){right:29%;bottom:9%;opacity:.5}.movie-card .media-art{border-radius:7px;border-color:rgba(255,255,255,.1);box-shadow:0 18px 45px rgba(0,0,0,.35)}.movie-card:hover{transform:translateY(-9px) scale(1.03)}.movie-card:hover .media-art{border-color:rgba(229,181,105,.52);box-shadow:0 24px 58px rgba(0,0,0,.48),0 0 38px rgba(196,132,47,.11)}.movie-card .media-play{width:auto;height:auto;padding:10px 14px;border-radius:999px;background:rgba(10,9,7,.76);border:1px solid rgba(238,202,140,.34);font:10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.movie-card .media-card-copy b{font-family:Georgia,'Times New Roman',serif;font-size:17px}.movie-card .media-card-copy small{color:#948d82}
 .ai-library-strip{display:flex;align-items:center;gap:13px;margin:0 0 34px;padding:14px 16px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.025)}.ai-library-strip .ai-pulse{width:9px;height:9px;border-radius:50%;background:#ff8b70;box-shadow:0 0 18px #ff795b}.ai-library-strip.ready .ai-pulse{background:#6ce7b4;box-shadow:0 0 18px #50d9a0}.ai-library-strip>div{flex:1;min-width:0}.ai-library-strip b,.ai-library-strip small{display:block}.ai-library-strip b{font-size:13px}.ai-library-strip small{margin-top:3px;color:#8f9ba4;font:9.5px/1.35 var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ai-library-strip button{padding:8px 11px;border:1px solid rgba(255,255,255,.13);border-radius:5px;color:#b9c4cc;font:9px/1 var(--mono);text-transform:uppercase;letter-spacing:.09em}.ai-library-strip button:hover{color:#fff;border-color:#6ce7b4}
-.setup-code{display:block;white-space:pre-wrap;word-break:break-word;margin:14px 0;padding:13px 14px;border:1px solid var(--line);border-radius:5px;background:#080a0d;color:#aee9ff;font:11px/1.65 var(--mono);user-select:all}.setup-diagnostic{margin-top:10px;padding:9px 11px;border-left:2px solid var(--flare);background:rgba(255,106,88,.06);color:var(--dim);font:10px/1.5 var(--mono)}
+.setup-code{display:block;white-space:pre-wrap;word-break:break-word;margin:14px 0;padding:13px 14px;border:1px solid var(--line);border-radius:5px;background:#080a0d;color:#aee9ff;font:11px/1.65 var(--mono);user-select:all}.setup-diagnostic{margin-top:10px;padding:9px 11px;border:1px solid rgba(255,106,88,.28);border-radius:5px;background:rgba(255,106,88,.06);color:var(--dim);font:10px/1.5 var(--mono)}
 .movie-facts{margin-top:-42px}.movie-facts>div:first-child b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.movie-versions{margin:44px 0}.movie-versions>article{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,auto);gap:8px;align-items:center;padding:12px 14px;border-top:1px solid rgba(255,255,255,.09)}.movie-versions>article:last-child{border-bottom:1px solid rgba(255,255,255,.09)}.movie-versions b,.movie-versions small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.movie-versions b{font-size:13px}.movie-versions small{margin-top:4px;color:#7f8b94;font:9px/1 var(--mono)}.movie-versions button{padding:8px 10px;border-radius:4px;color:#9eabb4;font:9px/1 var(--mono)}.movie-versions button:hover{color:#fff;background:rgba(255,255,255,.07)}
 
 /* ══════════════════════════════════ Cinema Cut — Shows
@@ -1318,8 +1311,10 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
+<link rel="stylesheet" href="/chromatic.css?v=vault-chromatic-production-20260901">
 </head>
 <body>
+<!-- DIRECTION CONTRACT: THESIS: a private archive with a premium entertainment layer, not a generic drive and not a streaming clone. OWN-WORLD: Chromatic Vault — near-black mineral surfaces, warm orange signal color, compact local mono metadata, calm editorial type, cinematic image fields, and a precise file workspace. STORY: enter through one command surface; work in Library, lean back in Watch, focus in Listen, and keep owner controls in the same visual language. FIRST VIEWPORT: a 68px command bar leads into the existing shelf navigator and functional file library; Watch and Listen are equally visible spaces rather than hidden alternate pages. FORM: user-pinned code-led replacement derived from the approved Chromatic Vault prototype. SEED KEY: incumbent-selected. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
 
 <!-- ─────────────────────────── gate -->
 <div id="gate">
@@ -1342,13 +1337,19 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <div id="app">
   <header>
     <div class="brand"><i></i><span>VAULT</span></div>
+    <nav class="space-nav" aria-label="Vault spaces">
+      <button class="on" data-space="library" aria-current="page">Library</button>
+      <button data-space="watch">Watch</button>
+      <button data-space="listen">Listen</button>
+    </nav>
     <label class="search">
+      <span>Search</span>
       <input id="q" placeholder="Search the vault" autocomplete="off">
       <kbd>/</kbd>
     </label>
     <div class="head-right">
       <button class="ghost accent" id="btnUpload">Upload</button>
-      <button class="ghost" id="btnUsers" hidden>Accounts</button>
+      <button class="ghost" id="btnUsers" aria-label="Accounts" title="Accounts" hidden><i class="ph ph-users" aria-hidden="true"></i><span>Accounts</span></button>
       <button class="ghost" id="btnShelves" hidden>Shelves</button>
       <button class="ghost" id="btnActivity" hidden>Activity</button>
       <button class="ghost" data-theme-toggle>Light</button>
@@ -1370,6 +1371,14 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
     </aside>
 
     <div class="content">
+      <section class="library-atmosphere" id="libraryAtmosphere" aria-labelledby="libraryAtmosphereTitle">
+        <div class="library-atmosphere-art" id="libraryAtmosphereArt" aria-hidden="true"></div>
+        <div class="library-atmosphere-copy">
+          <h2 id="libraryAtmosphereTitle">Your private horizon.</h2>
+          <p>Working files stay precise. Entertainment keeps its own room.</p>
+        </div>
+        <div class="recent-stack" id="recentStack" aria-label="Recently changed files"></div>
+      </section>
       <div class="resume" id="resume"></div>
       <div class="spectrum">
         <div class="spectrum-bar" id="spectrum"></div>
@@ -1410,11 +1419,11 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   </div>
 
   <div class="music-dock" id="musicDock">
-    <div class="music-now-art" id="musicNowArt">♪</div>
+    <div class="music-now-art" id="musicNowArt"><i class="ph ph-waveform"></i></div>
     <div class="music-now-copy"><b id="musicNowTitle">Nothing playing</b><small id="musicNowAlbum">Music</small></div>
-    <button id="musicPrev" title="Previous">◀</button><button class="music-main-play" id="musicPlay" title="Play / pause">▶</button><button id="musicNext" title="Next">▶</button>
+    <button id="musicPrev" title="Previous" aria-label="Previous track"><i class="ph ph-skip-back"></i></button><button class="music-main-play" id="musicPlay" title="Play / pause" aria-label="Play or pause"><i class="ph-fill ph-play"></i></button><button id="musicNext" title="Next" aria-label="Next track"><i class="ph ph-skip-forward"></i></button>
     <span class="music-dock-time" id="musicAt">0:00</span><input type="range" id="musicSeek" min="0" max="1000" value="0"><span class="music-dock-time" id="musicDur">0:00</span>
-    <button id="musicMute" title="Mute">🔊</button><input type="range" id="musicVolume" min="0" max="100" value="100">
+    <button id="musicMute" title="Mute" aria-label="Mute"><i class="ph ph-speaker-high"></i></button><input type="range" id="musicVolume" min="0" max="100" value="100" aria-label="Music volume">
     <audio id="musicAudio" preload="metadata"></audio>
   </div>
 </div>
@@ -1441,14 +1450,18 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 
 <div class="viewer" id="admin">
   <div class="viewer-head">
-    <b>Accounts</b>
+    <div><span class="viewer-kicker">Vault administration</span><b>Accounts and access</b></div>
     <span class="sp"></span>
-    <button class="ghost" id="aClose">Close</button>
+    <button class="ghost icon-action" id="aClose" aria-label="Close accounts"><i class="ph ph-x"></i></button>
   </div>
   <div class="admin-body">
     <div class="admin-inner">
+      <section class="admin-intro">
+        <div><h2>The people inside your Vault.</h2><p>Accounts, shelf permissions, access tokens and session security in one controlled surface.</p></div>
+        <div class="admin-stats" aria-label="Account summary"><span><b id="adminMemberCount">0</b> active</span><span><b id="adminAdminCount">0</b> admins</span><span><b id="adminTokenCount">0</b> tokens</span></div>
+      </section>
       <form class="new-acct" id="newAcct">
-        <span class="tag">Add an account</span>
+        <div class="admin-form-copy"><span class="tag">Add an account</span><p>Create a named identity, then decide exactly which shelves it may enter.</p></div>
         <div class="new-grid">
           <label class="field"><span>name</span><input id="nName" placeholder="marcus" autocomplete="off"></label>
           <label class="field"><span>pass</span><input id="nPass" placeholder="at least 8 characters" autocomplete="new-password"></label>
@@ -1456,7 +1469,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
             <option value="member">Member</option>
             <option value="admin">Admin</option>
           </select>
-          <button class="ghost accent" type="submit">Create</button>
+          <button class="ghost accent" type="submit"><i class="ph ph-user-plus"></i> Create account</button>
         </div>
         <div class="gate-error mono" id="nErr"></div>
       </form>
@@ -1467,9 +1480,9 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 
 <div class="viewer" id="shelfAdmin">
   <div class="viewer-head">
-    <b>Shelves</b>
+    <div><span class="viewer-kicker">Vault administration</span><b>Shelves and routing</b></div>
     <span class="sp"></span>
-    <button class="ghost" id="shClose">Close</button>
+    <button class="ghost icon-action" id="shClose" aria-label="Close shelves"><i class="ph ph-x"></i></button>
   </div>
   <div class="admin-body">
     <div class="admin-inner">
@@ -1504,10 +1517,10 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 
 <div class="viewer" id="activity">
   <div class="viewer-head">
-    <b>Activity</b>
+    <div><span class="viewer-kicker">Vault administration</span><b>Activity journal</b></div>
     <span class="sp"></span>
-    <button class="ghost" id="actReload">Refresh</button>
-    <button class="ghost" id="actClose">Close</button>
+    <button class="ghost" id="actReload"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+    <button class="ghost icon-action" id="actClose" aria-label="Close activity"><i class="ph ph-x"></i></button>
   </div>
   <div class="admin-body"><div class="admin-inner"><div id="actList"></div></div></div>
 </div>
@@ -1523,7 +1536,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 
 const $ = (s) => document.querySelector(s);
 const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
-const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', mode: 'files', showDetail: null, movieDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set() };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', mode: 'files', showDetail: null, movieDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, musicMetadata: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set(), featureCycle: { movies:0, series:0 } };
 const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
@@ -1559,6 +1572,23 @@ document.addEventListener('click', (e) => {
   if(btn) applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
 });
 
+document.querySelectorAll('[data-space]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const space = button.dataset.space;
+    if(space === 'library'){
+      state.mode = 'files';
+      if(['movies','series','music'].includes(state.shelf)) state.shelf = 'all';
+    }else if(space === 'listen'){
+      state.mode = 'entertainment'; state.shelf = 'music';
+    }else{
+      state.mode = 'entertainment';
+      if(!['movies','series'].includes(state.shelf)) state.shelf = 'movies';
+    }
+    state.folder='';state.showDetail=null;state.movieDetail=null;state.q='';state.picked.clear();
+    $('#q').value='';render();$('#scroll').scrollTop=0;
+  });
+});
+
 /* ── format helpers */
 function bytes(n){
   if(!n) return '0 B';
@@ -1577,6 +1607,7 @@ function ago(ms){
 }
 const esc = (s) => s.replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const url = (kind, rel) => `/api/${kind}/${rel.split('/').map(encodeURIComponent).join('/')}`;
+const icon = (name, extra = '') => `<i class="ph${extra?' '+extra:''} ph-${name}" aria-hidden="true"></i>`;
 
 /* ══════════════════════════════════ overlay history
  * Every panel and dialog is a layer. Opening one pushes a history entry, so
@@ -1669,6 +1700,7 @@ let everLoaded = false;
 let spectrumDrawn = false;
 let pulseShelf = null;      // shelf to flare on the next render
 const mediaMetaCache = new Map();
+const musicMetaCache = new Map();
 
 async function fetchMediaMeta(endpoint){
   if(!mediaMetaCache.has(endpoint)) mediaMetaCache.set(endpoint, fetch(endpoint).then((r)=>r.json()).catch(()=>({found:false})));
@@ -1686,6 +1718,7 @@ async function load(){
   state.thumbs = !!d.thumbs;
   state.mkvTranscode = !!d.mkvTranscode;
   state.artwork = !!d.artwork;
+  state.musicMetadata = !!d.musicMetadata;
   state.transcoder = d.transcoder || null;
   state.qualities = Array.isArray(d.qualities) ? d.qualities : [];
   state.aiSubtitles = d.aiSubtitles || { available:false, model:'small', device:'auto' };
@@ -1820,13 +1853,13 @@ function mediaCard(f, i, { music = false, order = 0 } = {}){
   const isVideo = VIDEO.includes(f.ext);
   const art = isVideo && state.thumbs
     ? `<img src="${url('thumb',f.rel)}" alt="" loading="lazy" onerror="this.remove()">`
-    : `<span class="media-ph">${music ? '♪' : esc((f.ext || 'FILE').toUpperCase())}</span>`;
+    : `<span class="media-ph">${music ? icon('music-notes') : esc((f.ext || 'FILE').toUpperCase())}</span>`;
   const w = f.watch;
   const pct = w && w.dur ? Math.min(100, w.pos/w.dur*100) : 0;
   const title = music === 'album' && f.dir ? f.dir.split('/').pop() : cleanMediaTitle(f.name);
   const meta = state.artwork && isVideo ? `data-meta="${esc(url('meta',f.rel))}"` : '';
   return `<button class="media-card ${music?'music-card':''}" data-act="open" data-i="${i}" ${meta} style="--card-order:${order}">
-    <span class="media-art">${art}<span class="media-play">▶</span>
+    <span class="media-art">${art}<span class="media-play">${icon('play','ph-fill')}<span class="sr-only">Play</span></span>
       ${pct>0?`<span class="watch-bar"><i style="width:${pct.toFixed(1)}%"></i></span>`:''}</span>
     <span class="media-card-copy"><b>${esc(title)}</b>
       <small>${music?(music==='album'?'Album':(f.dir||'Track')):`${f.watch&&f.watch.done?'Watched · ':''}${ago(f.modified)}`}</small></span>
@@ -1844,7 +1877,7 @@ function mediaHero(f, i, kind){
     <div class="media-hero-copy"><span class="media-kicker">${kind === 'series' ? 'Featured episode' : kind === 'music' ? 'Now in your collection' : 'Featured'}</span>
       <h2>${esc(title)}</h2><p class="media-hero-meta">${esc(subtitle)}</p>
       <p class="media-overview">Your private library, ready whenever you are.</p>
-      <div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">▶ Play</button>
+      <div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">${icon('play','ph-fill')} Play</button>
       ${f.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">Convert to MP4</button>`:''}</div>
     </div>
   </section>`;
@@ -1855,7 +1888,7 @@ function episodeMediaCard(f,i,order=0){
   const code=ep?`S${String(ep.season).padStart(2,'0')}E${String(ep.episode).padStart(2,'0')}`:'NEW';
   const rest=[-1.15,.8,-.45,1.05][order%4];
   return `<article class="media-card episode-card cinema-card transmission-card" ${meta} style="--card-order:${order};--rest:${rest}deg;--accent-hue:${190+(order%5)*18}">
-    <button class="transmission-card-main" data-act="open" data-i="${i}"><span class="media-art">${state.thumbs?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy">`:''}<span class="card-scan" aria-hidden="true"></span><span class="transmission-index">${String(order+1).padStart(2,'0')}</span><span class="episode-code">${code}</span><span class="media-play"><i>▶</i><small>Play transmission</small></span></span>
+    <button class="transmission-card-main" data-act="open" data-i="${i}"><span class="media-art">${state.thumbs?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy">`:''}<span class="card-scan" aria-hidden="true"></span><span class="transmission-index">${String(order+1).padStart(2,'0')}</span><span class="episode-code">${code}</span><span class="media-hover"><span class="media-hover-meta"><b>${code}</b><b>${bytes(f.size)}</b></span><p>${esc(epTitle(f.name)||'Episode ready in your private collection.')}</p></span><span class="media-play">${icon('play','ph-fill')}<small>Play</small></span></span>
     <span class="media-card-copy"><span class="card-eyebrow">Fresh transmission</span><b>${esc(title)}</b><small>${ep?esc(ep.show):'Recently added'} · ${ago(f.modified)}</small></span></button>
     <span class="cinema-card-actions"><button data-act="open" data-i="${i}">Play</button>${f.watch&&!f.watch.done?`<button data-watch="clear" data-i="${i}">Remove progress</button>`:''}<button data-watch="done" data-i="${i}">Watched</button>${f.ext==='mkv'?`<button data-act="convert" data-i="${i}">MP4</button>`:''}</span></article>`;
 }
@@ -1865,14 +1898,14 @@ function continueMediaCard(f,i,order=0){
   const meta=state.artwork?`data-meta="${esc(url('meta',f.rel))}"`:'';
   const rest=[-.75,.65,-.35,.85][order%4];
   return `<article class="media-card episode-card cinema-card continue-card" ${meta} style="--card-order:${order};--rest:${rest}deg;--accent-hue:${188+(order%4)*24};--pct:${pct}"><button class="continue-card-main" data-act="open" data-i="${i}">
-    <span class="media-art">${state.thumbs?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy">`:''}<span class="card-scan" aria-hidden="true"></span><span class="resume-orbit"><i>${Math.round(pct)}%</i></span><span class="media-play"><i>▶</i><small>Resume signal</small></span><span class="watch-bar"><i style="width:${pct}%"></i></span></span>
+    <span class="media-art">${state.thumbs?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy">`:''}<span class="card-scan" aria-hidden="true"></span><span class="resume-orbit"><i>${Math.round(pct)}%</i></span><span class="media-hover"><span class="media-hover-meta"><b>${Math.round(pct)}% watched</b><b>${Math.max(0,Math.round(100-pct))}% left</b></span><p>${esc(epTitle(f.name)||'Continue from your saved position.')}</p></span><span class="media-play">${icon('play','ph-fill')}<small>Resume</small></span><span class="watch-bar"><i style="width:${pct}%"></i></span></span>
     <span class="media-card-copy"><span class="card-eyebrow">Continue signal · ${Math.max(0,Math.round(100-pct))}% left</span><b>${esc(epTitle(f.name)||cleanMediaTitle(f.name))}</b><small>${ep?`${esc(ep.show)} · S${String(ep.season).padStart(2,'0')}E${String(ep.episode).padStart(2,'0')}`:'Continue episode'}</small></span></button>
     <span class="continue-actions cinema-card-actions"><button data-watch="clear" data-i="${i}">Remove</button><button data-watch="done" data-i="${i}">Mark watched</button>${f.ext==='mkv'?`<button data-act="convert" data-i="${i}">MP4</button>`:''}</span></article>`;
 }
 
 function cinemaRail(title,count,cards,type){
   const kicker={continue:'Resume the signal',storyworld:'Enter a complete world',fresh:'Newly decoded'}[type]||'From your collection';
-  return `<section class="media-row-section cinema-rail ${type}-rail" data-cinema-rail><div class="media-row-head cinema-rail-head"><div><span class="rail-kicker">${kicker}</span><h3>${esc(title)}</h3></div><span class="rail-count">${esc(String(count))}</span><div class="rail-nav"><button data-rail-step="-1" aria-label="Previous ${esc(title)}">←</button><button data-rail-step="1" aria-label="Next ${esc(title)}">→</button></div></div><div class="rail-window"><div class="media-row-cards" data-rail-track>${cards}</div></div><div class="rail-meter"><i></i></div></section>`;
+  return `<section class="media-row-section cinema-rail ${type}-rail" data-cinema-rail><div class="media-row-head cinema-rail-head"><div><span class="rail-kicker">${kicker}</span><h3>${esc(title)}</h3></div><span class="rail-count">${esc(String(count))}</span><div class="rail-nav"><button data-rail-step="-1" aria-label="Previous ${esc(title)}">${icon('arrow-left')}</button><button data-rail-step="1" aria-label="Next ${esc(title)}">${icon('arrow-right')}</button></div></div><div class="rail-window"><div class="media-row-cards" data-rail-track>${cards}</div></div><div class="rail-meter"><i></i></div></section>`;
 }
 
 function mediaRow(title, items, list, options = {}){
@@ -1885,8 +1918,8 @@ function mediaRow(title, items, list, options = {}){
 function entertainmentTop(){
   return `<div class="ent-top"><button class="ent-home" data-ent="movies"><span>VAULT</span> Entertainment</button>
     <nav>${[['movies','Movies'],['series','Shows'],['music','Music']].map(([id,label])=>`<button data-ent="${id}" class="${state.shelf===id?'on':''}">${label}</button>`).join('')}</nav>
-    ${state.showDetail||state.movieDetail?`<button class="ent-back" data-library-back>← ${state.showDetail?'All shows':'All movies'}</button>`:''}
-    <label class="ent-search"><span>⌕</span><input id="entSearch" value="${esc(state.q)}" placeholder="Search ${state.shelf==='series'?'shows and episodes':state.shelf}"></label></div>`;
+    ${state.showDetail||state.movieDetail?`<button class="ent-back" data-library-back>${icon('arrow-left')} ${state.showDetail?'All shows':'All movies'}</button>`:''}
+    <label class="ent-search"><span>${icon('magnifying-glass')}</span><input id="entSearch" value="${esc(state.q)}" placeholder="Search ${state.shelf==='series'?'shows and episodes':state.shelf}"></label></div>`;
 }
 
 function aiStatusStrip(){
@@ -1897,17 +1930,21 @@ function aiStatusStrip(){
 function movieCard(group,list){
   const file=group.representative,i=list.indexOf(file),meta=state.artwork?`data-meta="${esc(url('meta',file.rel))}"`:'';
   const pct=file.watch&&file.watch.dur?Math.min(100,file.watch.pos/file.watch.dur*100):0;
-  return `<button class="media-card movie-card" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}" ${meta}><span class="media-art">${state.thumbs?`<img src="${url('thumb',file.rel)}" alt="" loading="lazy">`:''}<span class="media-play">Explore</span>${pct?`<span class="watch-bar"><i style="width:${pct}%"></i></span>`:''}</span><span class="media-card-copy"><b>${esc(group.label)}</b><small>${group.year?`${esc(group.year)} · `:''}${file.watch?.done?'Watched':file.watch&&!file.watch.done?'Continue watching':ago(file.modified)}</small></span></button>`;
+  return `<button class="media-card movie-card" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}" ${meta}><span class="media-art">${state.thumbs?`<img src="${url('thumb',file.rel)}" alt="" loading="lazy">`:''}<span class="media-hover"><span class="media-hover-meta"><b data-hover-year>${esc(group.year||file.ext.toUpperCase())}</b><b data-hover-rating>${file.watch?.done?'Watched':file.watch&&!file.watch.done?`${Math.round(pct)}% watched`:'In library'}</b></span><p data-hover-overview>Feature details appear here automatically.</p><span class="media-hover-genres" data-hover-genres></span></span><span class="media-play">${icon('play','ph-fill')}</span>${pct?`<span class="watch-bar"><i style="width:${pct}%"></i></span>`:''}</span><span class="media-card-copy"><b>${esc(group.label)}</b><small>${group.year?`${esc(group.year)} · `:''}${file.watch?.done?'Watched':file.watch&&!file.watch.done?'Continue watching':ago(file.modified)}</small></span></button>`;
+}
+async function fetchMusicMeta(endpoint){
+  if(!musicMetaCache.has(endpoint))musicMetaCache.set(endpoint,fetch(endpoint).then((r)=>r.json()).catch(()=>({found:false})));
+  return musicMetaCache.get(endpoint);
 }
 
 function movieHero(group,list){
   const file=group.representative,i=list.indexOf(file),meta=state.artwork?`data-meta="${esc(url('meta',file.rel))}"`:'';
-  return `<section class="media-hero movie-library-hero" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy"><span class="media-kicker">Feature presentation</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">One clean feature from your private cinema, with release noise and auxiliary files kept out of the spotlight.</p><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">▶ ${file.watch&&!file.watch.done?'Continue':'Play'}</button><button class="media-secondary" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}">Movie details</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">MP4</button>`:''}</div></div></section>`;
+  return `<section class="media-hero movie-library-hero" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy"><span class="media-kicker">Feature presentation</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">One clean feature from your private cinema, with release noise and auxiliary files kept out of the spotlight.</p><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">${icon('play','ph-fill')} ${file.watch&&!file.watch.done?'Continue':'Play'}</button><button class="media-secondary" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}">Movie details</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">MP4</button>`:''}</div></div></section>`;
 }
 
 function movieDetailView(group,list){
   const file=group.representative,i=list.indexOf(file),meta=state.artwork?`data-meta="${esc(url('meta',file.rel))}"`:'';const done=!!file.watch?.done;
-  return `<div class="media-library movie-detail">${entertainmentTop()}<section class="media-hero movie-detail-hero" data-detail-meta="${esc(url('meta',file.rel))}" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy"><span class="media-kicker">Vault feature</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">Metadata is loading for this feature.</p><div class="show-genres"></div><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">▶ ${file.watch&&!file.watch.done?'Continue':'Play movie'}</button><button class="media-secondary" data-ai-file data-i="${i}">Generate AI subtitles</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">Convert to MP4</button>`:''}<button class="media-secondary" data-watch="${done?'clear':'done'}" data-i="${i}">${done?'Mark unwatched':'Mark watched'}</button></div></div></section>
+  return `<div class="media-library movie-detail">${entertainmentTop()}<section class="media-hero movie-detail-hero" data-detail-meta="${esc(url('meta',file.rel))}" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy"><span class="media-kicker">Vault feature</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">Metadata is loading for this feature.</p><div class="show-genres"></div><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">${icon('play','ph-fill')} ${file.watch&&!file.watch.done?'Continue':'Play movie'}</button><button class="media-secondary" data-ai-file data-i="${i}">Generate AI subtitles</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">Convert to MP4</button>`:''}<button class="media-secondary" data-watch="${done?'clear':'done'}" data-i="${i}">${done?'Mark unwatched':'Mark watched'}</button></div></div></section>
   <section class="show-command-bar movie-facts"><div><span>File</span><b>${esc(file.name)}</b></div><div><span>Rating</span><b id="showRating">—</b></div><div><span>Status</span><b id="showStatus">In library</b></div><div><span>Runtime</span><b id="showRuntime">—</b></div></section>${aiStatusStrip()}
   ${group.files.length>1?`<section class="movie-versions"><div class="media-row-head"><h3>Available versions</h3><span>${group.files.length}</span></div>${group.files.map((version)=>{const at=list.indexOf(version);return `<article><div><b>${esc(version.name)}</b><small>${version.ext.toUpperCase()} · ${bytes(version.size)}</small></div><button data-act="open" data-i="${at}">Play</button>${version.ext==='mkv'?`<button data-act="convert" data-i="${at}">MP4</button>`:''}<button data-act="get" data-i="${at}">Get</button></article>`;}).join('')}</section>`:''}
   <section class="cast-section" id="showCast" hidden><div class="media-row-head"><h3>Cast</h3></div><div class="cast-row"></div></section><section class="related-section" id="showRelated" hidden><div class="media-row-head"><h3>Because you chose this</h3></div><div class="related-row"></div></section></div>`;
@@ -1931,7 +1968,7 @@ function showCard(group,list,order=0){
   const f=group.representative,i=list.indexOf(f);const meta=state.artwork?`data-meta="${esc(url('meta',f.rel))}"`:'';
   const rest=[-.8,.55,-.35,.7][order%4];
   return `<button class="media-card show-card cinema-card world-card" data-act="show" data-i="${i}" data-show="${esc(group.key)}" ${meta} style="--card-order:${order};--rest:${rest}deg;--accent-hue:${230+(order%4)*18}">
-    <span class="media-art">${state.thumbs?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy">`:''}<span class="world-grid" aria-hidden="true"></span><span class="world-number">${String(order+1).padStart(2,'0')}</span><span class="world-signal"><i></i> World online</span><span class="media-play">Enter world <i>→</i></span></span>
+    <span class="media-art">${state.thumbs?`<img src="${url('thumb',f.rel)}" alt="" loading="lazy">`:''}<span class="world-grid" aria-hidden="true"></span><span class="world-number">${String(order+1).padStart(2,'0')}</span><span class="world-signal"><i></i> World online</span><span class="media-hover"><span class="media-hover-meta"><b>${group.seasons.length} season${group.seasons.length===1?'':'s'}</b><b>${group.files.length} episodes</b><b data-hover-rating>In library</b></span><p data-hover-overview>Series details appear here automatically.</p><span class="media-hover-genres" data-hover-genres></span></span><span class="media-play">${icon('arrow-right')}</span></span>
     <span class="media-card-copy"><span class="card-eyebrow">Storyworld ${String(order+1).padStart(2,'0')}</span><b>${esc(group.label)}</b><small>${group.seasons.length} season${group.seasons.length===1?'':'s'} · ${group.files.length} episodes</small></span></button>`;
 }
 
@@ -1949,7 +1986,7 @@ function showHomeHero(group,list,number){
     <p class="media-overview">A complete world in your private collection. Enter the show to explore every season, story and signal.</p>
     <div class="show-signal"><i></i><span>${f.watch&&!f.watch.done?'Continue signal acquired':'Ready to begin'}</span></div>
     <div class="media-hero-actions"><button class="media-primary" data-act="show" data-i="${i}" data-show="${esc(group.key)}">Explore show</button>
-    <button class="media-secondary" data-act="open" data-i="${i}">▶ ${f.watch&&!f.watch.done?'Continue':'Play next'}</button></div></div>
+    <button class="media-secondary" data-act="open" data-i="${i}">${icon('play','ph-fill')} ${f.watch&&!f.watch.done?'Continue':'Play next'}</button></div></div>
   </section>`;
 }
 
@@ -1962,14 +1999,14 @@ function showDetailView(group,list){
     <section class="show-detail-hero media-hero" data-detail-meta="${esc(url('meta',f.rel))}" ${meta} style="--hero:url('${url('thumb',f.rel)}')">${cinemaLayer('∞')}
       <div class="media-hero-copy"><span class="cinema-kicker">Now entering the storyworld</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.seasons.length} seasons · ${group.files.length} episodes · ${completion}% complete</p>
       <p class="media-overview">Every episode in your private collection, organised as one living story.</p><div class="show-genres"></div><div class="show-signal"><i></i><span>${continueFile.watch&&!continueFile.watch.done?'Resume point synchronised':'Storyworld ready'}</span></div>
-      <div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${list.indexOf(continueFile)}">▶ ${continueFile.watch&&!continueFile.watch.done?'Continue':'Play'}</button>
+      <div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${list.indexOf(continueFile)}">${icon('play','ph-fill')} ${continueFile.watch&&!continueFile.watch.done?'Continue':'Play'}</button>
       <button class="media-secondary" data-mass-convert="show">Convert show to MP4</button><button class="media-secondary" data-ai-scope="show">AI subtitles</button></div></div>
     </section>
     <section class="show-command-bar"><div class="show-next"><span>Up next</span><b>${esc(nextEp?`S${String(nextEp.season).padStart(2,'0')}E${String(nextEp.episode).padStart(2,'0')} · ${epTitle(continueFile.name)||'Continue the story'}`:cleanMediaTitle(continueFile.name))}</b></div><div><span>Signal rating</span><b id="showRating">—</b></div><div><span>Series status</span><b id="showStatus">In library</b></div><div><span>Runtime</span><b id="showRuntime">—</b></div></section>
     <section class="show-episodes"><div class="media-row-head"><h3>Episode storyboards</h3><span>${group.files.length}</span></div>
       ${[...seasons.entries()].sort((a,b)=>a[0]-b[0]).map(([season,episodes])=>`<div class="season-block"><div class="season-head"><h4>${season?`Season ${season}`:'Specials'}</h4><span>${episodes.length} episodes</span><button data-mass-convert="season" data-season="${season}">Replace MKVs with MP4</button><button data-ai-scope="season" data-season="${season}">Generate AI subtitles</button></div>
       <div class="episode-list">${episodes.map((file)=>{const ep=episodeOf(file.name),idx=list.indexOf(file),pct=file.watch&&file.watch.dur?Math.min(100,file.watch.pos/file.watch.dur*100):0;const done=!!file.watch?.done;const partial=!!file.watch&&!done;return `<article class="show-episode ${done?'watched':''}">
-        <button class="episode-still" data-act="open" data-i="${idx}" aria-label="Play ${esc(epTitle(file.name)||file.name)}">${state.thumbs?`<img src="${url('thumb',file.rel)}" alt="" loading="lazy">`:''}<span class="episode-number">${ep?`EP ${String(ep.episode).padStart(2,'0')}`:'SPECIAL'}</span><i style="width:${pct}%"></i><span class="episode-launch">▶</span></button>
+        <button class="episode-still" data-act="open" data-i="${idx}" aria-label="Play ${esc(epTitle(file.name)||file.name)}">${state.thumbs?`<img src="${url('thumb',file.rel)}" alt="" loading="lazy">`:''}<span class="episode-number">${ep?`EP ${String(ep.episode).padStart(2,'0')}`:'SPECIAL'}</span><i style="width:${pct}%"></i><span class="episode-launch">${icon('play','ph-fill')}</span></button>
         <span class="episode-copy"><b>${esc(epTitle(file.name)||cleanMediaTitle(file.name))}</b><small>${done?'<span class="watch-state">Watched</span> · ':partial?`<span class="watch-state">${Math.round(pct)}% watched</span> · `:''}${bytes(file.size)} · ${ago(file.modified)}</small></span>
         <span class="episode-actions"><button data-act="open" data-i="${idx}">Play</button>${partial?`<button data-watch="clear" data-i="${idx}">Clear progress</button>`:''}<button class="episode-done" data-watch="${done?'clear':'done'}" data-i="${idx}">${done?'Mark unwatched':'Mark watched'}</button><button data-ai-file data-i="${idx}">AI CC</button><button data-act="get" data-i="${idx}">Get</button>${file.ext==='mkv'?`<button class="episode-convert" data-act="convert" data-i="${idx}">MP4</button>`:''}</span>
       </article>`;}).join('')}</div></div>`).join('')}
@@ -1980,16 +2017,17 @@ function showDetailView(group,list){
 }
 
 function musicTrackRow(f,i,n){
-  return `<button class="spotify-track" data-act="music" data-i="${i}"><span class="track-no">${n}</span><span class="track-eq">▶</span><span class="track-title"><b>${esc(cleanMediaTitle(f.name))}</b><small>${esc(f.dir||'Vault Music')}</small></span><span class="track-album">${esc((f.dir||'Loose tracks').split('/').pop())}</span><span class="track-added">${ago(f.modified)}</span><span class="track-type">${esc(f.ext.toUpperCase())}</span></button>`;
+  const musicMeta=state.musicMetadata?`data-music-meta="${esc(url('music-meta',f.rel))}"`:'';
+  return `<button class="spotify-track" data-act="music" data-i="${i}" ${musicMeta}><span class="track-no">${n}</span><span class="track-eq">${icon('play','ph-fill')}</span><span class="track-title"><b>${esc(cleanMediaTitle(f.name))}</b><small>${esc(f.dir||'Vault Music')}</small></span><span class="track-album">${esc((f.dir||'Loose tracks').split('/').pop())}</span><span class="track-added">${ago(f.modified)}</span><span class="track-type">${esc(f.ext.toUpperCase())}</span></button>`;
 }
 
 function musicView(files,list,folders){
   const albums=new Map();for(const f of files){const key=f.dir||'Loose tracks';if(!albums.has(key))albums.set(key,[]);albums.get(key).push(f);}
   const feature=files[0];const featureAlbum=(feature.dir||'Your music').split('/').pop();
   return `<div class="media-library spotify-library">${entertainmentTop()}
-    <section class="spotify-hero"><div class="spotify-disc">♪</div><div><span class="media-kicker">Private music collection</span><h2>${esc(featureAlbum)}</h2><p>${files.length} tracks · ${albums.size} albums · lossless and original files welcome</p><button class="spotify-play-all" data-music-all>▶ Play all</button></div></section>
-    ${folders.length?`<div class="media-folders">${folders.map((f)=>`<button data-act="folder" data-i="${list.indexOf(f)}"><span>▰</span>${esc(f.name)}</button>`).join('')}</div>`:''}
-    <section class="spotify-albums"><div class="media-row-head"><h3>Albums & folders</h3><span>${albums.size}</span></div><div class="spotify-album-grid">${[...albums.entries()].map(([name,tracks],n)=>{const f=tracks[0];return `<button class="spotify-album" data-act="music" data-i="${list.indexOf(f)}"><span class="album-cover" style="--album-hue:${(n*47)%360}">♪<i>▶</i></span><b>${esc(name.split('/').pop())}</b><small>${tracks.length} tracks</small></button>`;}).join('')}</div></section>
+    <section class="spotify-hero" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',feature.rel))}"`:''}><div class="spotify-disc">${icon('waveform')}</div><div><span class="media-kicker">Private music collection</span><h2>${esc(featureAlbum)}</h2><p><span data-music-artist>Private collection</span> · ${files.length} tracks · ${albums.size} albums</p><button class="spotify-play-all" data-music-all>${icon('play','ph-fill')} Play all</button></div></section>
+    ${folders.length?`<div class="media-folders">${folders.map((f)=>`<button data-act="folder" data-i="${list.indexOf(f)}"><span>${icon('folder')}</span>${esc(f.name)}</button>`).join('')}</div>`:''}
+    <section class="spotify-albums"><div class="media-row-head"><h3>Albums & folders</h3><span>${albums.size}</span></div><div class="spotify-album-grid">${[...albums.entries()].map(([name,tracks],n)=>{const f=tracks[0];return `<button class="spotify-album" data-act="music" data-i="${list.indexOf(f)}" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',f.rel))}"`:''}><span class="album-cover" style="--album-hue:${(n*47)%360}">${icon('vinyl-record')}<span class="album-play">${icon('play','ph-fill')}</span></span><b>${esc(name.split('/').pop())}</b><small>${tracks.length} tracks</small></button>`;}).join('')}</div></section>
     <section class="spotify-tracks"><div class="media-row-head"><h3>Tracks</h3><span>${files.length}</span></div><div class="spotify-track-head"><span>#</span><span>Title</span><span>Album</span><span>Added</span><span>Type</span></div>${files.map((f,n)=>musicTrackRow(f,list.indexOf(f),n+1)).join('')}</section>
   </div>`;
 }
@@ -2001,11 +2039,12 @@ function mediaView(list){
   const feature = files.find((f)=>f.watch && !f.watch.done) || files[0];
   const featureIndex = list.indexOf(feature);
   const folderStrip = folders.length ? `<div class="media-folders">${folders.map((f)=>
-    `<button data-act="folder" data-i="${list.indexOf(f)}"><span>▰</span>${esc(f.name)}</button>`).join('')}</div>` : '';
+    `<button data-act="folder" data-i="${list.indexOf(f)}"><span>${icon('folder')}</span>${esc(f.name)}</button>`).join('')}</div>` : '';
 
   if(state.shelf === 'movies'){
     const movies=movieGroups(files);const detail=state.movieDetail&&movies.find((movie)=>movie.key===state.movieDetail);if(detail)return movieDetailView(detail,list);
-    const featured=movies.find((movie)=>movie.representative.watch&&!movie.representative.watch.done)||movies[0];
+    const lead=movies.find((movie)=>movie.representative.watch&&!movie.representative.watch.done);const rotation=lead?[lead,...movies.filter((movie)=>movie!==lead)]:movies;
+    const featured=rotation[state.featureCycle.movies%rotation.length];
     const watching=movies.filter((movie)=>movie.representative.watch&&!movie.representative.watch.done).slice(0,12);
     return `<div class="media-library movies-library">${entertainmentTop()}${movieHero(featured,list)}${aiStatusStrip()}${folderStrip}
       ${watching.length?`<section class="media-row-section"><div class="media-row-head"><h3>Continue watching</h3><span>${watching.length}</span></div><div class="media-row-cards">${watching.map((movie)=>movieCard(movie,list)).join('')}</div></section>`:''}
@@ -2020,7 +2059,8 @@ function mediaView(list){
     const detail=state.showDetail&&shows.find((show)=>show.key===state.showDetail);
     if(detail)return showDetailView(detail,list);
     const watching=files.filter((f)=>f.watch&&!f.watch.done).slice(0,16);
-    const featured=shows.find((show)=>show.files.some((f)=>f.watch&&!f.watch.done))||shows[0];
+    const lead=shows.find((show)=>show.files.some((f)=>f.watch&&!f.watch.done));const rotation=lead?[lead,...shows.filter((show)=>show!==lead)]:shows;
+    const featured=rotation[state.featureCycle.series%rotation.length];
     return `<div class="media-library series-library">${entertainmentTop()}${showHomeHero(featured,list,shows.indexOf(featured)+1)}${folderStrip}
       ${mediaRow('Continue watching', watching, list, {episode:true,continue:true})}
       ${cinemaRail('Storyworlds',`${shows.length} show${shows.length===1?'':'s'}`,shows.map((show,order)=>showCard(show,list,order)).join(''),'storyworld')}
@@ -2028,6 +2068,20 @@ function mediaView(list){
   }
 
   return musicView(files,list,folders);
+}
+
+let featureTimer=null;
+function scheduleFeatureRotation(){
+  clearTimeout(featureTimer);featureTimer=null;
+  if(state.mode!=='entertainment'||!['movies','series'].includes(state.shelf)||state.showDetail||state.movieDetail||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const shelf=state.shelf;const count=shelf==='movies'?movieGroups(state.files.filter((f)=>f.shelf==='movies'&&VIDEO.includes(f.ext))).length:seriesGroups(state.files.filter((f)=>f.shelf==='series'&&VIDEO.includes(f.ext))).length;
+  if(count<2)return;
+  featureTimer=setTimeout(()=>{
+    const scroll=$('#scroll');
+    if(document.hidden||scroll.scrollTop>120||scroll.matches(':hover')||scroll.matches(':focus-within')){scheduleFeatureRotation();return;}
+    scroll.classList.add('feature-changing');
+    setTimeout(()=>{if(state.shelf!==shelf)return;const y=scroll.scrollTop;state.featureCycle[shelf]=(state.featureCycle[shelf]+1)%count;render();$('#scroll').scrollTop=y;},300);
+  },11000);
 }
 
 function openFolder(folder){
@@ -2060,8 +2114,19 @@ function renderBreadcrumbs(){
   });
 }
 
+function renderLibraryAtmosphere(){
+  const surface=$('#libraryAtmosphere'),stack=$('#recentStack'),art=$('#libraryAtmosphereArt');
+  if(!surface||!stack||!art)return;
+  const recent=state.files.filter((f)=>f.kind!=='folder').sort((a,b)=>b.modified-a.modified).slice(0,3);
+  stack.innerHTML=recent.length?recent.map((f)=>`<button data-recent-rel="${esc(f.rel)}">${icon(playable(f)?(VIDEO.includes(f.ext)?'play':'file'):'download-simple')}<span><b>${esc(f.name)}</b><small>${esc(f.dir||SHELF_LABEL[f.shelf]||f.shelf)}</small></span><em>${ago(f.modified)}</em></button>`).join(''):'<span class="recent-empty">New files will appear here.</span>';
+  stack.querySelectorAll('[data-recent-rel]').forEach((button)=>button.onclick=()=>{const file=state.files.find((f)=>f.rel===button.dataset.recentRel);if(!file)return;playable(file)?openViewer(file):(location.href=url('download',file.rel));});
+  const visual=recent.find((f)=>VIDEO.includes(f.ext));
+  art.style.backgroundImage=visual&&state.thumbs?`url("${url('thumb',visual.rel)}")`:'linear-gradient(120deg,#101916,#24120d 58%,#080a09)';
+}
+
 /* ── render */
 function render(){
+  $('#scroll').classList.remove('feature-changing');
   const counts = {};
   const sizes = {};
   let total = 0;
@@ -2070,6 +2135,13 @@ function render(){
     sizes[f.shelf] = (sizes[f.shelf]||0)+f.size;
     total += f.size;
   }
+
+  document.querySelectorAll('[data-space]').forEach((button)=>{
+    const active=button.dataset.space==='library'?state.mode==='files':button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
+    button.classList.toggle('on',active);button.toggleAttribute('aria-current',active);
+  });
+  $('#q').placeholder=state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
+  renderLibraryAtmosphere();
 
   // sidebar
   const rows = [`<button class="shelf ${state.mode==='files'&&state.shelf==='all'?'on':''}" data-shelf="all"><b>All files</b><em>${state.files.length}</em></button>`];
@@ -2081,7 +2153,7 @@ function render(){
     b.onclick = () => { state.mode='files';state.showDetail=null;state.movieDetail=null;state.shelf = b.dataset.shelf; state.folder = ''; state.q='';$('#q').value='';state.picked.clear(); render(); $('#scroll').scrollTop = 0; };
   });
   const entertainmentShelves=[['movies','Movies'],['series','Shows'],['music','Music']].filter(([id])=>SHELF_ORDER.includes(id));
-  $('#entertainment').innerHTML=entertainmentShelves.map(([id,label])=>`<button class="ent-side ${state.mode==='entertainment'&&state.shelf===id?'on':''}" data-ent-side="${id}"><span>${id==='movies'?'◆':id==='series'?'▣':'♪'}</span><b>${label}</b><em>${counts[id]||0}</em></button>`).join('');
+  $('#entertainment').innerHTML=entertainmentShelves.map(([id,label])=>`<button class="ent-side ${state.mode==='entertainment'&&state.shelf===id?'on':''}" data-ent-side="${id}"><span>${icon(id==='movies'?'film-slate':id==='series'?'television-simple':'music-notes')}</span><b>${label}</b><em>${counts[id]||0}</em></button>`).join('');
   $('#entertainment').querySelectorAll('[data-ent-side]').forEach((b)=>b.onclick=()=>{state.mode='entertainment';state.shelf=b.dataset.entSide;state.folder='';state.showDetail=null;state.movieDetail=null;state.q='';$('#q').value='';state.picked.clear();render();$('#scroll').scrollTop=0;});
 
   // disk
@@ -2229,7 +2301,7 @@ function listView(list){
     rows.push(`<tr class="grp ${open?'open':''}" data-grp="${esc(id)}">
       <td>
         <div class="f-name">
-          <div class="grp-caret">${open?'▾':'▸'}</div>
+          <div class="grp-caret">${icon(open?'caret-down':'caret-right')}</div>
           <div class="glyph grp-glyph">${g.files.length}</div>
           <b title="${esc(g.show)}">${esc(g.show)}<span class="grp-sub">Season ${g.season} · ${g.files.length} episodes</span></b>
         </div>
@@ -2256,7 +2328,7 @@ function listView(list){
 function folderRow(folder, i){
   return `<tr data-i="${i}" data-rel="${esc(folder.rel)}" class="folder-row">
     <td class="col-pick"></td>
-    <td><div class="f-name"><div class="glyph folder-glyph">▰</div>
+    <td><div class="f-name"><div class="glyph folder-glyph">${icon('folder')}</div>
       <b title="${esc(folder.name)}">${esc(folder.name)}<span class="folder-sub">Folder</span></b></div></td>
     <td class="f-meta">—</td>
     <td class="f-shelf col-shelf">${esc(SHELF_LABEL[folder.shelf]||'')}</td>
@@ -2290,7 +2362,7 @@ function fileRow(f, i, nested){
 function gridView(list){
   return `<div class="tiles">${list.map((f,i)=>{
     if(f.kind === 'folder') return `<button class="tile folder-tile" data-act="folder" data-i="${i}">
-      <div class="tile-art blank"><span class="ph">▰</span></div>
+      <div class="tile-art blank"><span class="ph">${icon('folder')}</span></div>
       <div class="tile-body"><b title="${esc(f.name)}">${esc(f.name)}</b><small>Folder · ${ago(f.modified)}</small></div>
     </button>`;
     const isImg = IMAGE.includes(f.ext);
@@ -2331,7 +2403,7 @@ function currentShowFiles(scope, season){
 function renderRecommendations(meta,targetId='entRecommendations'){
   const target=$('#'+targetId);if(!target||!meta.recommendations?.length)return;
   target.hidden=false;const row=target.querySelector('.related-row');
-  row.innerHTML=meta.recommendations.map((item)=>`<article class="related-card">${item.poster?`<img src="${item.poster}" alt="" loading="lazy">`:'<span>◆</span>'}<div><b>${esc(item.title||'Untitled')}</b><small>${[item.year,item.rating?`★ ${item.rating}`:''].filter(Boolean).join(' · ')}</small><p>${esc(item.overview||'')}</p></div></article>`).join('');
+  row.innerHTML=meta.recommendations.map((item)=>`<article class="related-card">${item.poster?`<img src="${item.poster}" alt="" loading="lazy">`:`<span>${icon('image-square')}</span>`}<div><b>${esc(item.title||'Untitled')}</b><small>${[item.year,item.rating?`★ ${item.rating}`:''].filter(Boolean).join(' · ')}</small><p>${esc(item.overview||'')}</p></div></article>`).join('');
 }
 
 async function askMassConvert(files,label){
@@ -2391,17 +2463,18 @@ async function pollSubtitleBatch(ids,label){
 let musicQueue=[],musicIndex=-1;
 function playMusic(f,queue){
   musicQueue=(queue&&queue.length?queue:state.files.filter((x)=>x.shelf==='music'&&AUDIO.includes(x.ext)));musicIndex=Math.max(0,musicQueue.findIndex((x)=>x.rel===f.rel));
-  const audio=$('#musicAudio');audio.src=url('stream',f.rel);$('#musicNowTitle').textContent=cleanMediaTitle(f.name);$('#musicNowAlbum').textContent=f.dir||'Vault Music';$('#musicDock').classList.add('on');audio.play().catch(()=>{});
+  const audio=$('#musicAudio');audio.dataset.rel=f.rel;audio.src=url('stream',f.rel);$('#musicNowTitle').textContent=cleanMediaTitle(f.name);$('#musicNowAlbum').textContent=f.dir||'Vault Music';$('#musicNowArt').style.backgroundImage='';$('#musicNowArt').innerHTML=icon('waveform');$('#musicDock').classList.add('on');audio.play().catch(()=>{});
+  if(state.musicMetadata)fetchMusicMeta(url('music-meta',f.rel)).then((meta)=>{if(!meta.found||audio.dataset.rel!==f.rel)return;if(meta.title)$('#musicNowTitle').textContent=meta.title;$('#musicNowAlbum').textContent=[meta.artist,meta.album].filter(Boolean).join(' · ')||f.dir||'Vault Music';if(meta.cover){$('#musicNowArt').style.backgroundImage=`url("${meta.cover}")`;$('#musicNowArt').innerHTML='';}});
 }
 function musicStep(delta){if(!musicQueue.length)return;musicIndex=(musicIndex+delta+musicQueue.length)%musicQueue.length;playMusic(musicQueue[musicIndex],musicQueue);}
 const musicAudio=$('#musicAudio');
 $('#musicPrev').onclick=()=>musicStep(-1);$('#musicNext').onclick=()=>musicStep(1);$('#musicPlay').onclick=()=>musicAudio.paused?musicAudio.play().catch(()=>{}):musicAudio.pause();
-musicAudio.onplay=()=>{$('#musicPlay').textContent='❚❚';};musicAudio.onpause=()=>{$('#musicPlay').textContent='▶';};musicAudio.onended=()=>musicStep(1);
+musicAudio.onplay=()=>{$('#musicPlay').innerHTML=icon('pause','ph-fill');};musicAudio.onpause=()=>{$('#musicPlay').innerHTML=icon('play','ph-fill');};musicAudio.onended=()=>musicStep(1);
 musicAudio.ontimeupdate=()=>{const d=isFinite(musicAudio.duration)?musicAudio.duration:0;$('#musicAt').textContent=fmtTime(musicAudio.currentTime);$('#musicDur').textContent=fmtTime(d);if(d)$('#musicSeek').value=Math.round(musicAudio.currentTime/d*1000);};
 $('#musicSeek').oninput=()=>{if(isFinite(musicAudio.duration))musicAudio.currentTime=+$('#musicSeek').value/1000*musicAudio.duration;};
 const musicVolume=(()=>{try{return parseFloat(localStorage.getItem('vault-music-vol')||'1');}catch{return 1;}})();musicAudio.volume=Math.max(0,Math.min(1,musicVolume));$('#musicVolume').value=Math.round(musicAudio.volume*100);
 $('#musicVolume').oninput=()=>{musicAudio.volume=+$('#musicVolume').value/100;musicAudio.muted=false;try{localStorage.setItem('vault-music-vol',String(musicAudio.volume));}catch{}};
-$('#musicMute').onclick=()=>{musicAudio.muted=!musicAudio.muted;$('#musicMute').textContent=musicAudio.muted?'🔇':'🔊';};
+$('#musicMute').onclick=()=>{musicAudio.muted=!musicAudio.muted;$('#musicMute').innerHTML=icon(musicAudio.muted?'speaker-slash':'speaker-high');};
 
 async function setEpisodeWatch(file,action){
   try{
@@ -2546,10 +2619,14 @@ function wire(){
     });
 
     $('#scroll').querySelectorAll('.media-card[data-meta]').forEach(async(card)=>{
-      const m=await fetchMediaMeta(card.dataset.meta);const wide=card.classList.contains('show-card')||card.classList.contains('episode-card');const artwork=wide?(m.backdrop||m.poster):m.poster;if(!m.found||!artwork||!card.isConnected)return;
-      const img=document.createElement('img');img.className='media-poster';img.loading='lazy';img.src=artwork;
-      img.onload=()=>img.classList.add('ready');img.onerror=()=>img.remove();card.querySelector('.media-art').appendChild(img);
+      const m=await fetchMediaMeta(card.dataset.meta);if(!m.found||!card.isConnected)return;
+      const wide=card.classList.contains('show-card')||card.classList.contains('episode-card');const artwork=wide?(m.backdrop||m.poster):m.poster;
+      if(artwork){const img=document.createElement('img');img.className='media-poster';img.loading='lazy';img.src=artwork;img.onload=()=>img.classList.add('ready');img.onerror=()=>img.remove();card.querySelector('.media-art').appendChild(img);}
       const title=card.querySelector('.media-card-copy b');if(title&&m.title)title.textContent=m.title+(m.year?` (${m.year})`:'');
+      const year=card.querySelector('[data-hover-year]');if(year&&m.year)year.textContent=m.year;
+      const rating=card.querySelector('[data-hover-rating]');if(rating&&m.rating)rating.textContent=`Rated ${m.rating}`;
+      const overview=card.querySelector('[data-hover-overview]');if(overview&&m.overview)overview.textContent=m.overview;
+      const genres=card.querySelector('[data-hover-genres]');if(genres&&m.genres?.length)genres.innerHTML=m.genres.slice(0,3).map((genre)=>`<span>${esc(genre)}</span>`).join('');
     });
     $('#scroll').querySelectorAll('.media-hero[data-meta]').forEach(async(hero)=>{
       const m=await fetchMediaMeta(hero.dataset.meta);if(!m.found||!hero.isConnected)return;
@@ -2566,9 +2643,28 @@ function wire(){
       const overview=detail.querySelector('.media-overview');if(overview&&m.overview)overview.textContent=m.overview;
       const genres=detail.querySelector('.show-genres');if(genres)genres.innerHTML=(m.genres||[]).map((g)=>`<span>${esc(g)}</span>`).join('');
       if($('#showRating'))$('#showRating').textContent=m.rating?`★ ${m.rating}`:'—';if($('#showStatus'))$('#showStatus').textContent=m.status||'In library';if($('#showRuntime'))$('#showRuntime').textContent=m.runtime?`${m.runtime} min`:'—';
-      if(m.cast?.length){const cast=$('#showCast');cast.hidden=false;cast.querySelector('.cast-row').innerHTML=m.cast.map((p)=>`<article class="cast-card">${p.photo?`<img src="${p.photo}" alt="" loading="lazy">`:'<span>◇</span>'}<b>${esc(p.name)}</b><small>${esc(p.character||'')}</small></article>`).join('');}
+      if(m.cast?.length){const cast=$('#showCast');cast.hidden=false;cast.querySelector('.cast-row').innerHTML=m.cast.map((p)=>`<article class="cast-card">${p.photo?`<img src="${p.photo}" alt="" loading="lazy">`:`<span>${icon('user')}</span>`}<b>${esc(p.name)}</b><small>${esc(p.character||'')}</small></article>`).join('');}
       if(m.recommendations?.length)renderRecommendations(m,'showRelated');
     })();
+  }
+
+  if(state.musicMetadata){
+    $('#scroll').querySelectorAll('[data-music-meta]').forEach(async(element)=>{
+      const meta=await fetchMusicMeta(element.dataset.musicMeta);if(!meta.found||!element.isConnected)return;
+      if(element.classList.contains('spotify-hero')){
+        if(meta.cover)element.querySelector('.spotify-disc')?.style.setProperty('--album-art',`url("${meta.cover}")`);
+        const heading=element.querySelector('h2');if(heading&&meta.album)heading.textContent=meta.album;
+        const artist=element.querySelector('[data-music-artist]');if(artist)artist.textContent=[meta.artist,meta.year].filter(Boolean).join(' · ')||'Private collection';
+      }else if(element.classList.contains('spotify-album')){
+        if(meta.cover)element.querySelector('.album-cover')?.style.setProperty('--album-art',`url("${meta.cover}")`);
+        const heading=element.querySelector(':scope > b');if(heading&&meta.album)heading.textContent=meta.album;
+        const detail=element.querySelector(':scope > small');if(detail&&meta.artist)detail.textContent=[meta.artist,detail.textContent].filter(Boolean).join(' · ');
+      }else if(element.classList.contains('spotify-track')){
+        const title=element.querySelector('.track-title b');if(title&&meta.title)title.textContent=meta.title;
+        const artist=element.querySelector('.track-title small');if(artist&&meta.artist)artist.textContent=meta.artist;
+        const album=element.querySelector('.track-album');if(album&&meta.album)album.textContent=meta.album;
+      }
+    });
   }
 
   // ── hover scrubbing: one strip of nine frames, positioned by cursor x
@@ -2629,6 +2725,7 @@ function wire(){
   $('#scroll').querySelectorAll('[data-ai-setup]').forEach((button)=>button.onclick=showAiSetup);
   initCinemaField();
   initCinemaRails();
+  scheduleFeatureRotation();
 }
 
 /* ── bulk actions */
@@ -2818,20 +2915,21 @@ function mountPlayer(f, { src, native, info = {} }){
   const names = {720:'720p',1080:'1080p',2160:'4K',original:'Original'};
   let quality = native ? 'original' : (()=>{try{return localStorage.getItem('vault-quality')||'1080';}catch{return '1080';}})();
   if(!names[quality]) quality='1080';
+  const episodeChoices=ep?state.files.filter((item)=>{const candidate=episodeOf(item.name);return item.shelf==='series'&&VIDEO.includes(item.ext)&&candidate&&candidate.show.toLowerCase()===ep.show.toLowerCase();}).sort((a,b)=>{const ea=episodeOf(a.name),eb=episodeOf(b.name);return (ea.season-eb.season)||(ea.episode-eb.episode);}).slice(0,30):[];
 
   $('#vBody').innerHTML=`<div class="player" id="pl">
-    <div class="pl-head"><div class="pl-titles"><b>${esc(heading)}</b><small>${esc(subheading)}</small></div><button class="pl-x" id="plClose" title="Close (Esc)">✕</button></div>
-    <div class="pl-stage" id="plStage"><video id="rmx" playsinline preload="auto"></video><div class="pl-veil"><button class="pl-big" id="plBig">▶</button></div></div>
+    <div class="pl-head"><div class="pl-titles"><b>${esc(heading)}</b><small>${esc(subheading)}</small></div>${episodeChoices.length?`<nav class="pl-episode-strip" aria-label="Episodes">${episodeChoices.map((item)=>{const itemEp=episodeOf(item.name);const index=state.files.indexOf(item);return `<button class="${item.rel===f.rel?'on':''}" data-player-index="${index}" title="Play ${esc(epTitle(item.name)||item.name)}"><b>S${String(itemEp.season).padStart(2,'0')}E${String(itemEp.episode).padStart(2,'0')}</b><span>${esc(epTitle(item.name)||'Episode')}</span></button>`;}).join('')}</nav>`:''}<button class="pl-x" id="plClose" title="Close player" aria-label="Close player">${icon('x')}</button></div>
+    <div class="pl-stage" id="plStage"><video id="rmx" playsinline preload="auto"></video><div class="pl-veil"><button class="pl-big" id="plBig" title="Play" aria-label="Play">${icon('play','ph-fill')}</button></div><div class="pl-buffer-overlay on" id="plBufferOverlay" aria-live="polite"><div class="buffer-signal"><span class="buffer-orbit" aria-hidden="true"></span><b id="plBufferTitle">Preparing playback</b><span id="plBufferDetail">Reading the local stream</span></div></div></div>
     <div class="pl-bar">
       <div class="pl-scrub"><div class="pl-time" id="plAt">0:00</div><div class="pl-track" id="plTrack"><div class="pl-buf" id="plBuf"></div><div class="pl-fill" id="plFill"></div><div class="pl-knob" id="plKnob"></div></div><div class="pl-time pl-rem" id="plRem">-0:00</div></div>
       <div class="pl-row">
-        <button class="pl-btn pl-play" id="plPlay" title="Play / pause (space)">▶</button>
-        <button class="pl-btn" id="plBack" title="Back 10s (←)"><span class="pl-skip">↺<i>10</i></span></button><button class="pl-btn" id="plFwd" title="Forward 10s (→)"><span class="pl-skip">↻<i>10</i></span></button><div class="pl-sep"></div>
-        <button class="pl-btn" id="plMute" title="Mute (m)">🔊</button><div class="pl-vol" id="plVol"><div class="pl-vol-track"></div><div class="pl-vol-fill" id="plVolFill"></div><div class="pl-vol-knob" id="plVolKnob"></div></div><span class="pl-buffer-state" id="plBufferState"><i></i><span id="plBuffer">Buffering…</span></span><div class="pl-gap"></div>
-        <button class="pl-btn pl-cc-btn" id="plCC" title="Subtitles (c)" hidden><span class="cc-mark">CC</span><span id="plCCName">Off</span></button>
-        <button class="pl-btn pl-quality" id="plQuality" title="Transcode quality" ${native?'hidden':''}><span id="plQualityLabel">${names[quality]}</span></button>
-        <button class="pl-btn" id="plGear" title="Playback speed">⚙</button><button class="pl-btn" id="plAI" title="Generate AI subtitles">AI CC</button><button class="pl-btn" id="plConvert" title="Convert this MKV to MP4" ${f.ext==='mkv'?'':'hidden'}>MP4</button>
-        <button class="pl-btn" id="plPip" title="Picture in picture">⧉</button><button class="pl-btn" id="plTheater" title="Theater mode (t)">▣</button><button class="pl-btn" id="plFull" title="Browser fullscreen (f)">⛶</button>
+        <button class="pl-btn pl-play" id="plPlay" title="Play or pause" aria-label="Play or pause">${icon('play','ph-fill')}</button>
+        <button class="pl-btn" id="plBack" title="Back 10 seconds" aria-label="Back 10 seconds"><span class="pl-skip">${icon('arrow-counter-clockwise')}<i>10</i></span></button><button class="pl-btn" id="plFwd" title="Forward 10 seconds" aria-label="Forward 10 seconds"><span class="pl-skip">${icon('arrow-clockwise')}<i>10</i></span></button><div class="pl-sep"></div>
+        <button class="pl-btn" id="plMute" title="Mute" aria-label="Mute">${icon('speaker-high')}</button><div class="pl-vol" id="plVol" role="slider" aria-label="Volume" aria-valuemin="0" aria-valuemax="100"><div class="pl-vol-track"></div><div class="pl-vol-fill" id="plVolFill"></div><div class="pl-vol-knob" id="plVolKnob"></div></div><span class="pl-buffer-state" id="plBufferState"><i></i><span id="plBuffer">Starting</span></span><div class="pl-gap"></div>
+        <button class="pl-btn pl-cc-btn" id="plCC" title="Subtitles" aria-label="Subtitles" hidden>${icon('closed-captioning')}<span id="plCCName" class="sr-only">Off</span></button>
+        <button class="pl-btn pl-quality" id="plQuality" title="Stream quality" ${native?'hidden':''}>${icon('monitor-play')}<span id="plQualityLabel">${names[quality]}</span></button>
+        <button class="pl-btn" id="plGear" title="Playback speed" aria-label="Playback speed">${icon('speedometer')}</button><button class="pl-btn" id="plAI" title="Generate AI subtitles" aria-label="Generate AI subtitles">${icon('sparkle')}</button><button class="pl-btn" id="plConvert" title="Convert to MP4" aria-label="Convert to MP4" ${f.ext==='mkv'?'':'hidden'}>${icon('film-reel')}</button>
+        <button class="pl-btn" id="plPip" title="Picture in picture" aria-label="Picture in picture">${icon('picture-in-picture')}</button><button class="pl-btn" id="plTheater" title="Theatre mode" aria-label="Theatre mode">${icon('corners-in')}</button><button class="pl-btn" id="plFull" title="Fullscreen" aria-label="Fullscreen">${icon('corners-out')}</button>
       </div>
     </div>
     <div class="pl-menu" id="plMenu" hidden></div><div class="pl-menu" id="plSpeed" hidden></div><div class="pl-menu" id="plQualityMenu" hidden></div>
@@ -2847,6 +2945,7 @@ function mountPlayer(f, { src, native, info = {} }){
   let pausedBuffering=false,sessionFrozen=false,freezeInFlight=false,pauseCycle=0;
   const PAUSE_BUFFER_SECONDS=300;
   const alive=()=>!!document.getElementById('pl')&&!!$('#plPlay');
+  const setBuffering=(on,title='Buffering',detail='Preparing the next frames')=>{const overlay=$('#plBufferOverlay');if(!overlay)return;overlay.classList.toggle('on',!!on);const heading=$('#plBufferTitle'),copy=$('#plBufferDetail');if(heading)heading.textContent=title;if(copy)copy.textContent=detail;};
   const now=()=>native?(video.currentTime||0):base+(video.currentTime||0);
   const total=()=>duration||(f.watch&&f.watch.dur)||(native&&isFinite(video.duration)?video.duration:0)||0;
   const bufferedEnd=()=>{
@@ -2870,7 +2969,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const closeMenus=()=>['plMenu','plSpeed','plQualityMenu'].forEach((id)=>{const el=$('#'+id);if(el)el.hidden=true;});
   const showChrome=()=>{if(!alive())return;clearTimeout(chromeTimer);player.classList.remove('chrome-hidden');};
   const scheduleChrome=()=>{showChrome();chromeTimer=setTimeout(()=>{if(alive()&&theater&&!video.paused&&!['plMenu','plSpeed','plQualityMenu'].some((id)=>!$('#'+id).hidden))player.classList.add('chrome-hidden');},2200);};
-  const setPlaying=(on)=>{if(!alive())return;$('#plPlay').textContent=on?'❚❚':'▶';player.classList.toggle('playing',on);on?scheduleChrome():showChrome();};
+  const setPlaying=(on)=>{if(!alive())return;$('#plPlay').innerHTML=icon(on?'pause':'play','ph-fill');player.classList.toggle('playing',on);if(on)setBuffering(false);on?scheduleChrome():showChrome();};
 
   const release=()=>{
     const old=hlsId;hlsId='';suppress=true;
@@ -2888,7 +2987,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const fail=async(message)=>{
     if(!alive()||suppress)return;
     let server='';if(hlsId){try{const r=await fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`,{cache:'no-store'});const d=await r.json();if(d&&!d.ok)server=d.error||'';}catch{}}
-    if(!alive())return;wantsPlay=false;preparing=false;release();
+    if(!alive())return;wantsPlay=false;preparing=false;setBuffering(false);release();
     $('#vBody').innerHTML=`<div class="viewer-note"><p>Playback failed: ${esc(server||message||'The stream stopped unexpectedly.')}</p><p>Download the file, or open this link in VLC:</p><p class="viewer-link">${location.origin}${url('stream',f.rel)}</p></div>`;
   };
   const freezePausedSession=async()=>{
@@ -2934,14 +3033,14 @@ function mountPlayer(f, { src, native, info = {} }){
 
   const startHls=async(at,autoplay=true)=>{
     const mine=++version;release();base=Math.max(0,at||0);pausedAt=base;wantsPlay=autoplay;preparing=true;suppress=true;draw();
-    $('#plBig').textContent='…';$('#plNote').textContent=`Preparing ${names[quality]} · ${state.transcoder?state.transcoder.label:'H.264 encoder'}…`;
+    setBuffering(true,'Preparing playback',`${names[quality]} · ${state.transcoder?state.transcoder.label:'H.264 encoder'}`);$('#plNote').textContent=`Preparing ${names[quality]} · ${state.transcoder?state.transcoder.label:'H.264 encoder'}`;
     try{
       const r=await fetch(`${url('hls/start',f.rel)}?t=${base.toFixed(2)}&quality=${encodeURIComponent(quality)}`,{method:'POST'});const data=await r.json().catch(()=>({}));
       if(!r.ok)throw new Error(data.error||`HLS preparation returned HTTP ${r.status}`);
       if(mine!==version||!alive()){fetch(`/api/hls/${encodeURIComponent(data.id)}`,{method:'DELETE',keepalive:true}).catch(()=>{});return;}
       hlsId=data.id;
       clearInterval(keepAliveTimer);keepAliveTimer=setInterval(()=>{if(hlsId)fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`,{cache:'no-store'}).catch(()=>{});},45000);
-      const ready=()=>{if(mine!==version||!alive())return;preparing=false;suppress=false;$('#plBig').textContent='▶';$('#plNote').textContent=`${data.qualityLabel||names[quality]} · ${data.direct?'direct stream copy':data.encoder||'H.264 / AAC'}`;if(wantsPlay)video.play().catch(()=>{});else pauseConverted();};
+      const ready=()=>{if(mine!==version||!alive())return;preparing=false;suppress=false;setBuffering(false);$('#plNote').textContent=`${data.qualityLabel||names[quality]} · ${data.direct?'direct stream copy':data.encoder||'H.264 / AAC'}`;if(wantsPlay)video.play().catch(()=>{});else pauseConverted();};
       if(window.Hls&&Hls.isSupported()){
         const compactBuffer=matchMedia('(max-width:760px)').matches;
         hls=new Hls({
@@ -2967,7 +3066,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const jump=(seconds)=>{const at=Math.max(0,Math.min(total()?total()-.25:1e9,now()+seconds));if(native)video.currentTime=at;else startHls(at,!video.paused);};
 
   video.onplay=()=>{wantsPlay=true;setPlaying(true);drawBuffer();};video.onpause=()=>{setPlaying(false);drawBuffer();if(!native&&!suppress)pauseConverted();};video.ontimeupdate=draw;
-  video.onprogress=drawBuffer;video.onwaiting=drawBuffer;video.oncanplay=drawBuffer;
+  video.onprogress=drawBuffer;video.onwaiting=()=>{drawBuffer();if(!video.paused)setBuffering(true,'Buffering','Holding the frame while the stream catches up');};video.onstalled=()=>setBuffering(true,'Reconnecting','The local stream is taking longer than expected');video.onseeking=()=>setBuffering(true,'Seeking','Finding the requested frame');video.oncanplay=()=>{drawBuffer();if(!preparing)setBuffering(false);};video.onseeked=()=>{if(!preparing)setBuffering(false);};
   video.onerror=()=>{if(!suppress)fail(video.error?`browser media error ${video.error.code}`:'browser media error');};
   $('#plPlay').onclick=toggle;$('#plBig').onclick=toggle;video.onclick=toggle;$('#plBack').onclick=()=>jump(-10);$('#plFwd').onclick=()=>jump(10);$('#plClose').onclick=closeViewer;
 
@@ -2978,7 +3077,7 @@ function mountPlayer(f, { src, native, info = {} }){
   track.onpointerup=(e)=>{if(!drag)return;drag=false;const at=trackPos(e)*total();if(native)go(at);else startHls(at,!video.paused);};
 
   const savedVol=(()=>{try{return parseFloat(localStorage.getItem('vault-vol'));}catch{return NaN;}})();video.volume=isFinite(savedVol)?savedVol:1;
-  const drawVol=()=>{if(!alive())return;const n=video.muted?0:video.volume;$('#plVolFill').style.width=`${n*100}%`;$('#plVolKnob').style.left=`${n*100}%`;$('#plMute').textContent=n===0?'🔇':n<.5?'🔉':'🔊';};
+  const drawVol=()=>{if(!alive())return;const n=video.muted?0:video.volume;$('#plVolFill').style.width=`${n*100}%`;$('#plVolKnob').style.left=`${n*100}%`;$('#plVol').setAttribute('aria-valuenow',String(Math.round(n*100)));$('#plMute').innerHTML=icon(n===0?'speaker-slash':n<.5?'speaker-low':'speaker-high');};
   $('#plMute').onclick=()=>{video.muted=!video.muted;drawVol();};const vol=$('#plVol');let volDrag=false;
   const setVol=(e)=>{const r=vol.getBoundingClientRect();video.volume=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));video.muted=false;try{localStorage.setItem('vault-vol',String(video.volume));}catch{}drawVol();};
   vol.onpointerdown=(e)=>{volDrag=true;vol.setPointerCapture(e.pointerId);setVol(e);};vol.onpointermove=(e)=>{if(volDrag)setVol(e);};vol.onpointerup=()=>{volDrag=false;};drawVol();
@@ -3004,6 +3103,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const from=f.watch&&f.watch.pos>5&&(!total()||f.watch.pos<total()-20)?f.watch.pos:0;pausedAt=from;base=native?0:from;
   if(native){video.src=src;go(from);}else startHls(from);
   video.__destroyStream=()=>{version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearInterval(keepAliveTimer);clearInterval(pauseFillTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater');release();};
+  player.querySelectorAll('[data-player-index]').forEach((button)=>button.onclick=()=>{const next=state.files[+button.dataset.playerIndex];if(!next||next.rel===f.rel)return;if(video.__report)video.__report();video.__destroyStream();video.pause();video.removeAttribute('src');video.load();$('#viewer').classList.remove('playing','theater');openViewer(next);});
 }
 
 /** The part of an episode filename after the SxxExx marker, if there is one. */
@@ -3396,6 +3496,8 @@ async function loadUsers(){
   const r = await fetch('/api/users');
   if(!r.ok) return;
   const d = await r.json();
+  const active=d.users.filter((u)=>!u.disabled);const admins=active.filter((u)=>u.role==='admin');const tokenCount=d.users.reduce((sum,u)=>sum+(u.tokens?.length||0),0);
+  if($('#adminMemberCount'))$('#adminMemberCount').textContent=active.length;if($('#adminAdminCount'))$('#adminAdminCount').textContent=admins.length;if($('#adminTokenCount'))$('#adminTokenCount').textContent=tokenCount;
   $('#userList').innerHTML = d.users.map((u) => {
     const self = u.name === d.you;
     return `<div class="u-row ${self?'self':''}">

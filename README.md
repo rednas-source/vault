@@ -25,7 +25,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Share links** — hand someone a URL for one file, no account needed.
 - **Resume where you left off**, per person, with a Continue watching rail.
 - **Subtitles**, embedded or sidecar, converted on the fly.
-- **Poster art** from TMDB, optional.
+- **Automatic media metadata.** Movies and shows use TMDB when configured; music reads embedded tags first, then fills album, artist, year, and cover art from MusicBrainz and Cover Art Archive.
 - **Entertainment libraries.** Movies and Shows get a streaming-service browser; Music gets its own Spotify-inspired library and persistent player.
 - **Local AI subtitles.** Generate WebVTT sidecars with faster-whisper, on GPU when CUDA is available or CPU otherwise.
 - **Light and dark themes.**
@@ -81,6 +81,7 @@ Create `config.json`:
   "whisperModel": "small",
   "whisperDevice": "auto",
   "subtitleJobs": 1,
+  "musicbrainzUserAgent": "Vault/1.0 (https://your-domain.example)",
   "https": true
 }
 ```
@@ -105,6 +106,7 @@ Create `config.json`:
 | `subtitleJobs` | Optional. Simultaneous AI subtitle jobs, default 1 and capped at 2. |
 | `activityMax` | Optional. Activity entries retained, default 4000. |
 | `tmdbKey` | Optional. Enables poster art. Leave out to keep it off. |
+| `musicbrainzUserAgent` | Optional but recommended. A meaningful app/version/contact string sent to MusicBrainz, for example `Vault/1.0 (https://vault.example.com)`. |
 
 **Create the first account.** Add a temporary block to `config.json`:
 
@@ -189,7 +191,7 @@ Each shelf has a **name** you can change freely and an **id** — the folder nam
 
 Shelves live in `shelves.json`. If that file is missing or unreadable, the app rebuilds the defaults.
 
-The normal Movies, Series, and Music shelves remain ordinary file views. A separate **Entertainment** group below Shelves opens the richer library experience without changing where files live or how permissions work. Shows use the reactive Cinema Cut interface: layered artwork, a lightweight Canvas signal field, show detail pages, seasons, episode storyboards, cast, related titles, recent additions, and continue-watching state. Every episode has quick controls for playback, clearing progress, marking watched/unwatched, download, AI subtitles, and individual MP4 replacement. Music opens a Spotify-inspired album/folder browser with a player that stays docked while browsing.
+The normal Movies, Series, and Music shelves remain ordinary file views. **Library**, **Watch**, and **Listen** in the command bar open the richer experiences without changing where files live or how permissions work. Watch groups movies, shows, seasons, alternate cuts, episode progress, cast, and related titles; its featured title rotates quietly while the page is idle. Hover or focus a title to reveal its rating, genres, and overview. Every episode keeps quick controls for playback, progress, download, AI subtitles, and MP4 replacement. Listen reads embedded audio tags automatically and uses MusicBrainz plus Cover Art Archive as a cached, rate-limited fallback for albums and artwork. The music player stays docked while browsing.
 
 ---
 

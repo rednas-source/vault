@@ -25,7 +25,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-five-minute-pause-buffer-20260826';
+const BUILD_ID = 'vault-chromatic-production-20260901';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1199,6 +1199,7 @@ async function startHlsConversion(full, user, startAt, requestedQuality) {
 
 const app = express();
 const HLS_JS_PATH = require.resolve('hls.js/dist/hls.min.js');
+const PHOSPHOR_DIR = path.join(__dirname, 'node_modules', '@phosphor-icons', 'web', 'src', 'regular');
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: false }));
@@ -1223,6 +1224,12 @@ app.get('/vendor/hls.min.js', (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.sendFile(HLS_JS_PATH);
 });
+
+app.use('/vendor/phosphor', express.static(PHOSPHOR_DIR, {
+  immutable: true,
+  maxAge: '1y',
+  fallthrough: false,
+}));
 
 app.post('/api/login', (req, res) => {
   const ip = req.ip;
@@ -1531,7 +1538,7 @@ app.get('/api/files', auth, async (req, res) => {
     transcoder: TRANSCODER ? { label: TRANSCODER.label, hardware: TRANSCODER.hardware } : null,
     qualities: Object.values(QUALITY_PROFILES).map(({ id, label }) => ({ id, label })),
     aiSubtitles: { available: HAS_AI_SUBTITLES, model: config.whisperModel || 'small', device: config.whisperDevice || 'auto', diagnostic: AI_SUBTITLE_STATUS.diagnostic },
-    role: req.user.role, artwork: !!TMDB_KEY,
+    role: req.user.role, artwork: !!TMDB_KEY, musicMetadata: true,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
 });
@@ -2926,6 +2933,125 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
   res.json(data);
 });
 
+// Music metadata is useful even without an API key. Embedded tags are the
+// source of truth; MusicBrainz and Cover Art Archive only fill gaps and add a
+// cover. Lookups are cached per file and serialized to respect MusicBrainz's
+// one-request-per-second public API limit.
+const MUSIC_META_DIR = path.join(META_DIR, 'music');
+const MUSICBRAINZ_AGENT = String(config.musicbrainzUserAgent || 'Vault/1.0 (https://sornes.cc)').slice(0, 240);
+let musicBrainzTail = Promise.resolve();
+let musicBrainzLastRequest = 0;
+
+function cleanMusicValue(value, max = 180) {
+  const text = Array.isArray(value) ? value[0] : value;
+  return String(text || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max);
+}
+
+function guessMusicIdentity(rel) {
+  const parts = String(rel || '').replace(/\\/g, '/').split('/').filter(Boolean);
+  const filename = path.parse(parts.pop() || '').name;
+  const dirs = parts.slice(1);
+  const chunks = filename.split(/\s+-\s+/).map((part) => part.trim()).filter(Boolean);
+  const trackTitle = (chunks.length >= 2 ? chunks[chunks.length - 1] : filename)
+    .replace(/^\s*\d{1,3}[. _-]+/, '').replace(/[._]+/g, ' ').trim();
+  return {
+    title: trackTitle,
+    artist: dirs.length > 1 ? dirs[0].replace(/\s*\((?:19|20)\d{2}\)\s*$/, '') : (chunks.length >= 2 ? chunks[0] : ''),
+    album: dirs.length ? dirs[dirs.length - 1] : (chunks.length >= 3 ? chunks[1] : ''),
+  };
+}
+
+async function embeddedMusicTags(full) {
+  if (!HAS_FFMPEG) return {};
+  const raw = await run('ffprobe', [
+    '-v', 'error', '-show_entries',
+    'format_tags=title,artist,album,album_artist,date,year,track,genre',
+    '-of', 'json', full,
+  ], 15000, 96 * 1024);
+  if (!raw) return {};
+  try {
+    const tags = JSON.parse(raw).format?.tags || {};
+    const lower = Object.fromEntries(Object.entries(tags).map(([key, value]) => [key.toLowerCase(), value]));
+    return {
+      title: cleanMusicValue(lower.title),
+      artist: cleanMusicValue(lower.album_artist || lower.artist),
+      album: cleanMusicValue(lower.album),
+      year: cleanMusicValue(lower.date || lower.year, 12).slice(0, 4),
+      track: cleanMusicValue(lower.track, 20).split('/')[0],
+      genre: cleanMusicValue(lower.genre, 80),
+    };
+  } catch { return {}; }
+}
+
+function musicBrainzQuery(value) {
+  return `"${String(value || '').replace(/[+\-&|!(){}\[\]^"~*?:\\/]/g, '\\$&').slice(0, 160)}"`;
+}
+
+async function musicBrainzFetch(endpoint) {
+  const task = async () => {
+    const delay = Math.max(0, 1050 - (Date.now() - musicBrainzLastRequest));
+    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+    musicBrainzLastRequest = Date.now();
+    const response = await fetch(endpoint, {
+      headers: { Accept: 'application/json', 'User-Agent': MUSICBRAINZ_AGENT },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return null;
+    return response.json();
+  };
+  const result = musicBrainzTail.then(task, task);
+  musicBrainzTail = result.catch(() => null);
+  return result;
+}
+
+app.get('/api/music-meta/*', auth, shelfGate, async (req, res) => {
+  const full = safePath(req.params[0]);
+  if (!full || shelfOf(req.params[0]) !== 'music') return res.status(400).end();
+  let stat;
+  try { stat = await fsp.stat(full); } catch { return res.status(404).end(); }
+  if (!stat.isFile()) return res.status(400).end();
+
+  const key = crypto.createHash('sha256').update(`music-v1\u0000${full}\u0000${stat.size}\u0000${stat.mtimeMs}`).digest('hex').slice(0, 32);
+  const cacheFile = path.join(MUSIC_META_DIR, `${key}.json`);
+  try { return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8'))); } catch { /* enrich below */ }
+
+  const guessed = guessMusicIdentity(req.params[0]);
+  const embedded = await embeddedMusicTags(full);
+  let data = {
+    enabled: true, found: !!(embedded.title || embedded.artist || embedded.album), source: embedded.title ? 'embedded' : 'filename',
+    title: embedded.title || guessed.title,
+    artist: embedded.artist || guessed.artist,
+    album: embedded.album || guessed.album,
+    year: embedded.year || '', track: embedded.track || '', genre: embedded.genre || '', cover: null,
+  };
+
+  const album = data.album;
+  const artist = data.artist;
+  if (album) {
+    try {
+      const query = [`releasegroup:${musicBrainzQuery(album)}`, artist ? `artist:${musicBrainzQuery(artist)}` : ''].filter(Boolean).join(' AND ');
+      const params = new URLSearchParams({ query, fmt: 'json', limit: '3' });
+      const result = await musicBrainzFetch(`https://musicbrainz.org/ws/2/release-group/?${params}`);
+      const hit = (result?.['release-groups'] || []).find((item) => Number(item.score || 0) >= 72) || null;
+      if (hit) {
+        data = {
+          ...data, found: true, source: data.source === 'embedded' ? 'embedded+musicbrainz' : 'musicbrainz',
+          artist: data.artist || cleanMusicValue(hit['artist-credit']?.[0]?.name),
+          album: cleanMusicValue(hit.title) || data.album,
+          year: data.year || cleanMusicValue(hit['first-release-date'], 12).slice(0, 4),
+          genre: data.genre || cleanMusicValue(hit.tags?.[0]?.name, 80),
+          releaseGroupId: hit.id,
+          cover: hit.id ? `https://coverartarchive.org/release-group/${hit.id}/front-500` : null,
+        };
+      }
+    } catch { /* embedded and filename metadata remain useful offline */ }
+  }
+
+  await fsp.mkdir(MUSIC_META_DIR, { recursive: true }).catch(() => {});
+  await fsp.writeFile(cacheFile, JSON.stringify(data)).catch(() => {});
+  res.json(data);
+});
+
 app.post('/api/meta/clear', auth, adminOnly, async (req, res) => {
   await fsp.rm(META_DIR, { recursive: true, force: true }).catch(() => {});
   res.json({ ok: true });
@@ -3071,27 +3197,29 @@ function sharePage({ name, id, kind, error, size }) {
 <meta name="robots" content="noindex,nofollow">
 <title>${error ? 'Link unavailable' : esc(name)}</title>
 <style>
-:root{--bg:#070809;--fg:#eef3f8;--dim:#aab5c3;--line:#2a313c;--star:#7fd9ff;--flare:#ff6a58;
---mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root{--bg:#070909;--fg:#f3f0e8;--dim:#aab0aa;--faint:#747d78;--line:rgba(255,255,255,.14);--star:#ff6b3c;--flare:#c94723;
+--sans:'Vault Sans',ui-sans-serif,system-ui,sans-serif;--mono:'Vault Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@font-face{font-family:'Vault Sans';src:url('/fonts/geist.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Vault Mono';src:url('/fonts/plex-mono.woff2') format('woff2');font-display:swap}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);min-height:100vh;display:grid;place-items:center;
-padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-background-image:radial-gradient(900px 420px at 50% -12%,rgba(127,217,255,.06),transparent 70%)}
+padding:24px;font-family:var(--sans);
+background-image:radial-gradient(900px 420px at 50% -12%,rgba(255,107,60,.11),transparent 70%)}
 .card{width:min(880px,100%);text-align:center}
 .mark{width:26px;height:26px;margin:0 auto 26px;position:relative}
-.mark::before{content:'';position:absolute;inset:0;border:1px solid rgba(127,217,255,.3);border-radius:50%}
+.mark::before{content:'';position:absolute;inset:0;border:1px solid rgba(255,107,60,.38);border-radius:50%}
 .mark::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--star);
-box-shadow:0 0 18px 3px rgba(127,217,255,.45)}
-.name{font-size:19px;font-weight:500;margin-bottom:8px;word-break:break-word}
+box-shadow:0 0 18px 3px rgba(255,107,60,.4)}
+.name{font-size:clamp(22px,4vw,38px);font-weight:610;letter-spacing:-.03em;margin-bottom:8px;word-break:break-word}
 .meta{font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:.06em;margin-bottom:24px}
-video,img{width:100%;max-height:70vh;background:#000;display:block;border:1px solid var(--line)}
+video,img{width:100%;max-height:70vh;background:#000;display:block;border:1px solid var(--line);border-radius:14px}
 audio{width:100%}
-.dl{display:inline-block;margin-top:22px;padding:11px 22px;background:var(--star);color:#04080c;
-text-decoration:none;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.16em}
-.dl:hover{filter:brightness(1.12)}
+.dl{display:inline-block;margin-top:22px;padding:12px 22px;border-radius:999px;background:var(--fg);color:var(--bg);
+text-decoration:none;font-size:13px;font-weight:700}
+.dl:hover{background:var(--star)}.dl:focus-visible{outline:2px solid var(--star);outline-offset:3px}
 .err{font-family:var(--mono);font-size:15px;color:var(--flare);letter-spacing:.04em}
 .foot{margin-top:34px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;
-text-transform:uppercase;color:#3d444f}
+text-transform:uppercase;color:var(--faint)}
 </style></head><body><div class="card"><div class="mark"></div>${body}
 <div class="foot">Shared from a private vault</div></div></body></html>`;
 }

@@ -14,5 +14,6 @@
   "whisperModel": "small",
   "whisperDevice": "auto",
   "subtitleJobs": 1,
+  "musicbrainzUserAgent": "Vault/1.0 (https://your-domain.example)",
   "https": true
 }

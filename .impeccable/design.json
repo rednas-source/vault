@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-03T09:35:42.6836320+02:00",
+  "title": "Design System: Vault — Chromatic Archive",
+  "extensions": {
+    "colorMeta": {
+      "signal-orange": { "role": "primary", "displayName": "Signal Orange", "canonical": "#ff6b3c", "tonalRamp": ["oklch(22% 0.09 35)", "oklch(32% 0.13 35)", "oklch(42% 0.17 35)", "oklch(55% 0.20 35)", "oklch(66% 0.18 35)", "oklch(76% 0.14 35)", "oklch(87% 0.08 35)", "oklch(95% 0.03 35)"] },
+      "archive-black": { "role": "neutral", "displayName": "Archive Black", "canonical": "#070909", "tonalRamp": ["#070909", "#0c0f0f", "#171b19", "#2a302d", "#4a524e", "#747d78", "#aab0aa", "#f3f0e8"] },
+      "warm-white": { "role": "neutral", "displayName": "Warm White", "canonical": "#f3f0e8", "tonalRamp": ["#201f1c", "#393732", "#555149", "#767067", "#999289", "#bab3aa", "#ded8cf", "#f3f0e8"] },
+      "signal-rust": { "role": "primary", "displayName": "Signal Rust", "canonical": "#c94723", "tonalRamp": ["oklch(20% 0.08 35)", "oklch(30% 0.12 35)", "oklch(40% 0.16 35)", "oklch(51% 0.18 35)", "oklch(63% 0.16 35)", "oklch(75% 0.12 35)", "oklch(87% 0.07 35)", "oklch(95% 0.025 35)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Vault Display", "purpose": "Feature, album, and major administration titles only." },
+      "body": { "displayName": "Vault Body", "purpose": "Interface copy and descriptions." },
+      "label": { "displayName": "Vault Data", "purpose": "Paths, sizes, formats, time, and state." }
+    },
+    "shadows": [
+      { "name": "media-lift", "value": "0 26px 70px rgba(0,0,0,.32)", "purpose": "Artwork cards in active media rails." },
+      { "name": "floating-surface", "value": "0 30px 90px rgba(0,0,0,.52)", "purpose": "Persistent playback surfaces and album art." }
+    ],
+    "motion": [
+      { "name": "reveal", "value": "420ms cubic-bezier(.16,1,.3,1)", "purpose": "Hover metadata and shallow media lift." },
+      { "name": "state", "value": "200ms ease", "purpose": "Navigation, buttons, and row feedback." },
+      { "name": "feature-cycle", "value": "11000ms interval", "purpose": "Quiet Watch hero rotation while the user is idle at the top of the view." }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "1180px" },
+      { "name": "tablet", "value": "940px" },
+      { "name": "phone", "value": "700px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Warm-white pill for the decisive action on a dark surface.",
+      "html": "<button class=\"ds-primary\">Play</button>",
+      "css": ".ds-primary{height:41px;padding:0 17px;border:0;border-radius:999px;background:var(--text,#f3f0e8);color:var(--void,#070909);font:700 11px/1 'Vault Sans',sans-serif;transition:background .2s,transform .2s}.ds-primary:hover{background:var(--star,#ff6b3c);transform:translateY(-1px)}.ds-primary:focus-visible{outline:2px solid var(--star,#ff6b3c);outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Quiet outlined pill for a supporting media action.",
+      "html": "<button class=\"ds-secondary\">Movie details</button>",
+      "css": ".ds-secondary{height:41px;padding:0 17px;border:1px solid rgba(255,255,255,.32);border-radius:999px;background:rgba(7,9,9,.4);color:var(--text,#f3f0e8);font:700 11px/1 'Vault Sans',sans-serif;transition:background .2s,border-color .2s}.ds-secondary:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.5)}.ds-secondary:focus-visible{outline:2px solid var(--star,#ff6b3c);outline-offset:3px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Compact archive search with a data-role label.",
+      "html": "<label class=\"ds-search\"><span>SEARCH</span><input placeholder=\"Search files and folders\"></label>",
+      "css": ".ds-search{display:flex;align-items:center;height:38px;border:1px solid rgba(255,255,255,.14);border-radius:7px;background:rgba(255,255,255,.025);color:#747d78}.ds-search span{padding-left:13px;font:500 9px/1 'Vault Mono',monospace;letter-spacing:.08em}.ds-search input{min-width:0;flex:1;padding:0 12px;border:0;outline:0;background:transparent;color:#f3f0e8;font:400 12px/1 'Vault Sans',sans-serif}.ds-search:focus-within{outline:2px solid #ff6b3c;outline-offset:3px}"
+    },
+    {
+      "name": "Space Navigation",
+      "kind": "nav",
+      "description": "The persistent Library, Watch, and Listen switcher.",
+      "html": "<nav class=\"ds-space\"><button>Library</button><button class=\"on\">Watch</button><button>Listen</button></nav>",
+      "css": ".ds-space{display:flex;gap:3px;width:max-content;padding:4px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.025)}.ds-space button{height:32px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:#aab0aa;font:400 11px/1 'Vault Sans',sans-serif}.ds-space button:hover{color:#f3f0e8}.ds-space button:focus-visible{outline:2px solid #ff6b3c;outline-offset:2px}.ds-space .on{background:#f3f0e8;color:#070909}"
+    },
+    {
+      "name": "Media Card",
+      "kind": "card",
+      "refersTo": "media-card",
+      "description": "Artwork-first card whose metadata appears with deliberate depth.",
+      "html": "<article class=\"ds-media\"><div class=\"ds-art\"><div class=\"ds-reveal\">2016 · IN LIBRARY<br><span>A quiet synopsis appears on hover.</span></div></div><strong>Arrival</strong><small>2016 · FEATURE</small></article>",
+      "css": ".ds-media{width:240px;color:#f3f0e8;font-family:'Vault Sans',sans-serif;transition:transform .42s cubic-bezier(.16,1,.3,1)}.ds-media:hover{transform:translateY(-8px) scale(1.03)}.ds-media:focus-within{outline:2px solid #ff6b3c;outline-offset:3px}.ds-art{position:relative;aspect-ratio:2/3;overflow:hidden;border-radius:14px;background:radial-gradient(circle at 70% 20%,rgba(255,107,60,.34),transparent 34%),linear-gradient(145deg,#29201c,#0b0d0d 68%);box-shadow:0 26px 70px rgba(0,0,0,.32)}.ds-reveal{position:absolute;left:14px;right:14px;bottom:16px;color:#e3e5df;font:500 8px/1.4 'Vault Mono',monospace;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .42s cubic-bezier(.16,1,.3,1)}.ds-media:hover .ds-reveal{opacity:1;transform:none}.ds-reveal span{font:400 11px/1.4 'Vault Sans',sans-serif;color:#c1c6c1}.ds-media strong{display:block;margin-top:12px;font-size:14px}.ds-media small{display:block;margin-top:4px;color:#747d78;font:500 8px/1 'Vault Mono',monospace}"
+    },
+    {
+      "name": "Music Dock",
+      "kind": "custom",
+      "description": "A persistent, focused transport surface for the current track.",
+      "html": "<div class=\"ds-dock\"><div class=\"ds-cover\"></div><div><strong>Nutshell</strong><small>Alice in Chains · Jar of Flies</small></div><button aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 5v14l11-7z\"/></svg></button></div>",
+      "css": ".ds-dock{display:grid;grid-template-columns:48px 1fr 38px;align-items:center;gap:12px;width:520px;padding:9px 14px;border:1px solid rgba(255,255,255,.32);border-radius:14px;background:rgba(12,15,15,.93);color:#f3f0e8;box-shadow:0 30px 90px rgba(0,0,0,.52);font-family:'Vault Sans',sans-serif}.ds-cover{width:48px;height:48px;border-radius:9px;background:linear-gradient(145deg,#873c2b,#18100e)}.ds-dock strong,.ds-dock small{display:block}.ds-dock small{margin-top:4px;color:#aab0aa;font-size:10px}.ds-dock button{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:50%;background:#f3f0e8;color:#070909}.ds-dock button:hover{background:#ff6b3c}.ds-dock button:focus-visible{outline:2px solid #ff6b3c;outline-offset:3px}.ds-dock svg{width:16px;height:16px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Chromatic Archive",
+    "overview": "Vault feels like a serious private archive whose entertainment layer comes alive when media is present. Its working surfaces are dense, calm, and exact; Watch, Listen, and playback concentrate scale, imagery, motion, and depth without turning the file system into a streaming-site imitation. The visual voice is mineral black, warm paper white, and one orange signal.",
+    "keyCharacteristics": ["Near-black tonal layering instead of decorative panels.", "Warm orange used as a signal, never as a wash across the whole screen.", "Large, tightly set media titles paired with precise mono metadata.", "Dense file tools and spacious entertainment surfaces in one coherent shell.", "Motion that reveals state, metadata, or the next feature and respects reduced motion."],
+    "rules": [
+      { "name": "The Signal Rarity Rule", "body": "Orange identifies interaction, progress, or current state; it does not become a decorative second background.", "section": "colors" },
+      { "name": "The Two-Voice Rule", "body": "Sans carries meaning and hierarchy; mono carries data and measurement.", "section": "typography" },
+      { "name": "The Flat-Until-Useful Rule", "body": "File management is tonal and flat; depth appears where playback, hover, or protected focus makes it meaningful.", "section": "elevation" }
+    ],
+    "dos": ["Do keep filenames, permissions, folders, and primary actions legible before adding spectacle.", "Do concentrate artwork and motion in Watch, Listen, playback, and meaningful previews.", "Do provide a graceful local fallback when thumbnails or remote metadata are unavailable.", "Do mirror hover disclosure with keyboard focus and persistent detail views.", "Do pause feature rotation during interaction, at reduced-motion preference, or away from the top of the view."],
+    "donts": ["Don't turn Vault into a Netflix clone or a cyan terminal costume.", "Don't use orange as a decorative page wash or distribute many competing accent colors.", "Don't hide archive navigation or owner access to make a media screen look cleaner.", "Don't use mono for body copy, large headings, or atmosphere.", "Don't make metadata, artwork, transcoding, or network access prerequisites for reaching the original file."]
+  }
+}
