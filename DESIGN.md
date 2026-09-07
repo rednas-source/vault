@@ -55,14 +55,14 @@ components:
     backgroundColor: "{colors.warm-white}"
     textColor: "{colors.archive-black}"
     rounded: "{rounded.pill}"
-    padding: "0 17px"
-    height: "41px"
+    padding: "0 16px"
+    height: "39px"
   button-secondary:
     backgroundColor: "rgba(7, 9, 9, 0.4)"
     textColor: "{colors.warm-white}"
     rounded: "{rounded.pill}"
-    padding: "0 17px"
-    height: "41px"
+    padding: "0 16px"
+    height: "39px"
   search-field:
     backgroundColor: "rgba(255, 255, 255, 0.025)"
     textColor: "{colors.warm-white}"
@@ -137,9 +137,9 @@ The palette is almost monochrome until state or media calls for the warm signal 
 
 ## Layout
 
-Desktop uses a 68px command bar, a 230px shelf rail, a flexible content field, and a 32px status rail. File rows are intentionally dense; Watch and Listen expand into large feature fields with horizontal rails below.
+Desktop uses a 68px command bar, a 230px shelf rail, and a flexible content field. File rows are intentionally dense; Watch and Listen dismiss the shelf rail and expand into large feature fields with horizontal rails below.
 
-At 940px the shelf rail narrows and secondary owner actions reduce. At 700px the layout becomes one vertical flow: shelves become horizontal bands, the command bar wraps into three rows, media rails become touch-friendly horizontal scrollers, file columns reduce, and the player occupies the full dynamic viewport. Primary navigation, Upload, and Accounts remain directly reachable.
+At 940px the command bar becomes a two-row tablet header and the shelf rail narrows. At 700px the layout becomes one vertical flow: shelves become horizontal bands, the command bar gains a dedicated search row, media rails become touch-friendly horizontal scrollers, file columns reduce, and the player occupies the full dynamic viewport. Primary navigation and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens.
 
 Spacing follows a compact 4/8/12 rhythm inside controls and an 18/26 rhythm between surfaces. Headings receive more space above than below.
 
@@ -187,11 +187,11 @@ The three primary spaces live in a segmented pill. The active space inverts to w
 
 ### Media Card
 
-The image dominates. Hover or focus adds a shallow scale, darkens the lower image field, and reveals year, progress or rating, a two-line overview, genres, and a circular action. The same information remains available in detail views for non-hover input.
+The image dominates in a wide cinematic frame. Hover or focus adds a shallow scale, darkens the lower image field, and reveals year, progress or rating, a two-line overview, genres, and a circular action. Poster grids are reserved for full-library browsing. The same information remains available in detail views for non-hover input.
 
 ### Player
 
-Controls float over the video rather than occupying a permanent panel. Transport is icon-led; episode context sits in the top strip on wide screens, buffering uses the orange orbital signal, and advanced utilities recede before core playback controls.
+Controls float over the video rather than occupying a permanent panel. Transport is icon-led; episode context sits in the top strip on wide screens, the close control owns the opposite corner, buffering uses the orange orbital signal, and advanced utilities recede before core playback controls.
 
 ## Do's and Don'ts
 

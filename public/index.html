@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-chromatic-production-20260901">
+<meta name="vault-build" content="vault-chromatic-production-20260907">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1311,10 +1311,10 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-chromatic-production-20260901">
+<link rel="stylesheet" href="/chromatic.css?v=vault-chromatic-production-20260907">
 </head>
 <body>
-<!-- DIRECTION CONTRACT: THESIS: a private archive with a premium entertainment layer, not a generic drive and not a streaming clone. OWN-WORLD: Chromatic Vault — near-black mineral surfaces, warm orange signal color, compact local mono metadata, calm editorial type, cinematic image fields, and a precise file workspace. STORY: enter through one command surface; work in Library, lean back in Watch, focus in Listen, and keep owner controls in the same visual language. FIRST VIEWPORT: a 68px command bar leads into the existing shelf navigator and functional file library; Watch and Listen are equally visible spaces rather than hidden alternate pages. FORM: user-pinned code-led replacement derived from the approved Chromatic Vault prototype. SEED KEY: incumbent-selected. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
+<!-- DIRECTION CONTRACT: THESIS: a private archive with an integrated cinema and listening room, reproduced closely from the approved 06 Chromatic Vault prototype. OWN-WORLD: near-black mineral surfaces, warm orange signal color, compact mono metadata, calm editorial type, cinematic image fields, and a precise file workspace. STORY: enter through one command surface; work in Library, lean back in Watch, focus in Listen, and manage the system without leaving the visual world. FIRST VIEWPORT: the fixed command bar leads into the prototype's shelf navigator and horizon workspace; Watch and Listen take over the full canvas. FORM: user-pinned code-led replacement using the approved prototype as the binding specification. SEED KEY: incumbent-selected. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
 
 <!-- ─────────────────────────── gate -->
 <div id="gate">
@@ -1334,31 +1334,28 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 </div>
 
 <!-- ─────────────────────────── app -->
-<div id="app">
-  <header>
-    <div class="brand"><i></i><span>VAULT</span></div>
+<div id="app" class="app-shell">
+  <header class="app-header">
+    <div class="brand vault-brand"><i></i><span>VAULT</span></div>
     <nav class="space-nav" aria-label="Vault spaces">
       <button class="on" data-space="library" aria-current="page">Library</button>
       <button data-space="watch">Watch</button>
       <button data-space="listen">Listen</button>
     </nav>
-    <label class="search">
+    <label class="search global-search">
       <span>Search</span>
       <input id="q" placeholder="Search the vault" autocomplete="off">
       <kbd>/</kbd>
     </label>
-    <div class="head-right">
-      <button class="ghost accent" id="btnUpload">Upload</button>
-      <button class="ghost" id="btnUsers" aria-label="Accounts" title="Accounts" hidden><i class="ph ph-users" aria-hidden="true"></i><span>Accounts</span></button>
-      <button class="ghost" id="btnShelves" hidden>Shelves</button>
+    <div class="head-right header-actions">
       <button class="ghost" id="btnActivity" hidden>Activity</button>
-      <button class="ghost" data-theme-toggle>Light</button>
-      <button class="ghost" id="btnOut">Sign out</button>
+      <button class="ghost" id="btnUsers" aria-label="Manage Vault" title="Manage Vault" hidden><span>Manage</span></button>
+      <button class="ghost accent" id="btnUpload">Add to Vault</button>
     </div>
   </header>
 
-  <main>
-    <aside>
+  <main class="library-space">
+    <aside class="library-sidebar">
       <div class="tag">Shelves</div>
       <div class="shelves" id="shelves"></div>
       <div class="ent-side-label tag">Entertainment</div>
@@ -1370,7 +1367,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
       </div>
     </aside>
 
-    <div class="content">
+    <div class="content library-workspace">
       <section class="library-atmosphere" id="libraryAtmosphere" aria-labelledby="libraryAtmosphereTitle">
         <div class="library-atmosphere-art" id="libraryAtmosphereArt" aria-hidden="true"></div>
         <div class="library-atmosphere-copy">
@@ -1385,7 +1382,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
         <div class="spectrum-legend" id="legend"></div>
       </div>
 
-      <div class="toolbar">
+      <div class="toolbar library-toolbar">
         <h1 id="viewTitle">All</h1>
         <span class="count" id="viewCount"></span>
         <span class="sp"></span>
@@ -1404,7 +1401,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
         </div>
       </div>
 
-      <div class="scroll" id="scroll"></div>
+      <div class="scroll file-surface" id="scroll"></div>
     </div>
   </main>
 
@@ -1460,6 +1457,11 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
         <div><h2>The people inside your Vault.</h2><p>Accounts, shelf permissions, access tokens and session security in one controlled surface.</p></div>
         <div class="admin-stats" aria-label="Account summary"><span><b id="adminMemberCount">0</b> active</span><span><b id="adminAdminCount">0</b> admins</span><span><b id="adminTokenCount">0</b> tokens</span></div>
       </section>
+      <div class="admin-utility-actions">
+        <button class="outline-action" id="btnShelves" hidden><i class="ph ph-books" aria-hidden="true"></i> Manage shelves</button>
+        <button class="outline-action" data-theme-toggle>Light</button>
+        <button class="outline-action" id="btnOut">Sign out</button>
+      </div>
       <form class="new-acct" id="newAcct">
         <div class="admin-form-copy"><span class="tag">Add an account</span><p>Create a named identity, then decide exactly which shelves it may enter.</p></div>
         <div class="new-grid">
@@ -1490,7 +1492,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
         <span class="tag">Add a shelf</span>
         <div class="new-grid new-grid-shelf">
           <label class="field"><span>name</span><input id="shName" placeholder="Concerts" autocomplete="off"></label>
-          <label class="field"><span>types</span><input id="shExts" placeholder="mkv mp4 — optional" autocomplete="off"></label>
+          <label class="field"><span>types</span><input id="shExts" placeholder="mkv mp4, optional" autocomplete="off"></label>
           <button class="ghost accent" type="submit">Create</button>
         </div>
         <div class="rename-hint" style="margin:12px 0 0">
@@ -1916,10 +1918,10 @@ function mediaRow(title, items, list, options = {}){
 }
 
 function entertainmentTop(){
-  return `<div class="ent-top"><button class="ent-home" data-ent="movies"><span>VAULT</span> Entertainment</button>
-    <nav>${[['movies','Movies'],['series','Shows'],['music','Music']].map(([id,label])=>`<button data-ent="${id}" class="${state.shelf===id?'on':''}">${label}</button>`).join('')}</nav>
+  return `<div class="ent-top watch-topline">
+    <nav class="watch-tabs">${[['movies','Movies'],['series','Shows']].map(([id,label])=>`<button data-ent="${id}" class="${state.shelf===id?'on':''}">${label}</button>`).join('')}</nav>
     ${state.showDetail||state.movieDetail?`<button class="ent-back" data-library-back>${icon('arrow-left')} ${state.showDetail?'All shows':'All movies'}</button>`:''}
-    <label class="ent-search"><span>${icon('magnifying-glass')}</span><input id="entSearch" value="${esc(state.q)}" placeholder="Search ${state.shelf==='series'?'shows and episodes':state.shelf}"></label></div>`;
+  </div>`;
 }
 
 function aiStatusStrip(){
@@ -1939,7 +1941,7 @@ async function fetchMusicMeta(endpoint){
 
 function movieHero(group,list){
   const file=group.representative,i=list.indexOf(file),meta=state.artwork?`data-meta="${esc(url('meta',file.rel))}"`:'';
-  return `<section class="media-hero movie-library-hero" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy"><span class="media-kicker">Feature presentation</span><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">One clean feature from your private cinema, with release noise and auxiliary files kept out of the spotlight.</p><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">${icon('play','ph-fill')} ${file.watch&&!file.watch.done?'Continue':'Play'}</button><button class="media-secondary" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}">Movie details</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">MP4</button>`:''}</div></div></section>`;
+  return `<section class="media-hero movie-library-hero watch-hero" ${meta} style="--hero:url('${url('thumb',file.rel)}')"><div class="movie-frame" aria-hidden="true"><i></i><i></i><i></i></div><div class="media-hero-copy watch-hero-copy"><h2>${esc(group.label)}</h2><p class="media-hero-meta">${group.year?`${esc(group.year)} · `:''}${file.ext.toUpperCase()} · ${bytes(file.size)}</p><p class="media-overview">One clean feature from your private cinema, with release noise and auxiliary files kept out of the spotlight.</p><div class="media-hero-actions"><button class="media-primary" data-act="open" data-i="${i}">${icon('play','ph-fill')} ${file.watch&&!file.watch.done?'Continue':'Play'}</button><button class="media-secondary" data-act="movie" data-movie="${esc(group.key)}" data-i="${i}">Movie details</button>${file.ext==='mkv'?`<button class="media-secondary" data-act="convert" data-i="${i}">MP4</button>`:''}</div></div></section>`;
 }
 
 function movieDetailView(group,list){
@@ -1980,8 +1982,8 @@ function cinemaLayer(index='01'){
 function showHomeHero(group,list,number){
   const f=group.representative,i=list.indexOf(f),ep=episodeOf(f.name);const meta=state.artwork?`data-meta="${esc(url('meta',f.rel))}"`:'';
   const bg=state.thumbs?`style="--hero:url('${url('thumb',f.rel)}')"`:'';
-  return `<section class="media-hero show-home-hero" ${meta} ${bg}>${cinemaLayer(String(number).padStart(2,'0'))}
-    <div class="media-hero-copy"><span class="cinema-kicker">Featured transmission</span><h2>${esc(group.label)}</h2>
+  return `<section class="media-hero show-home-hero watch-hero" ${meta} ${bg}>${cinemaLayer(String(number).padStart(2,'0'))}
+    <div class="media-hero-copy watch-hero-copy"><h2>${esc(group.label)}</h2>
     <p class="media-hero-meta">${group.seasons.length} seasons · ${group.files.length} episodes${ep?` · Next S${String(ep.season).padStart(2,'0')}E${String(ep.episode).padStart(2,'0')}`:''}</p>
     <p class="media-overview">A complete world in your private collection. Enter the show to explore every season, story and signal.</p>
     <div class="show-signal"><i></i><span>${f.watch&&!f.watch.done?'Continue signal acquired':'Ready to begin'}</span></div>
@@ -2024,11 +2026,11 @@ function musicTrackRow(f,i,n){
 function musicView(files,list,folders){
   const albums=new Map();for(const f of files){const key=f.dir||'Loose tracks';if(!albums.has(key))albums.set(key,[]);albums.get(key).push(f);}
   const feature=files[0];const featureAlbum=(feature.dir||'Your music').split('/').pop();
-  return `<div class="media-library spotify-library">${entertainmentTop()}
-    <section class="spotify-hero" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',feature.rel))}"`:''}><div class="spotify-disc">${icon('waveform')}</div><div><span class="media-kicker">Private music collection</span><h2>${esc(featureAlbum)}</h2><p><span data-music-artist>Private collection</span> · ${files.length} tracks · ${albums.size} albums</p><button class="spotify-play-all" data-music-all>${icon('play','ph-fill')} Play all</button></div></section>
+  return `<div class="media-library spotify-library listen-space">
+    <section class="spotify-hero listen-hero" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',feature.rel))}"`:''}><div class="listen-ambient" aria-hidden="true"></div><div class="spotify-disc listen-cover">${icon('waveform')}</div><div class="listen-hero-copy"><h2>${esc(featureAlbum)}</h2><p><span data-music-artist>Private collection</span> · ${files.length} tracks · ${albums.size} albums</p><button class="spotify-play-all" data-music-all>${icon('play','ph-fill')} Play album</button></div></section>
     ${folders.length?`<div class="media-folders">${folders.map((f)=>`<button data-act="folder" data-i="${list.indexOf(f)}"><span>${icon('folder')}</span>${esc(f.name)}</button>`).join('')}</div>`:''}
-    <section class="spotify-albums"><div class="media-row-head"><h3>Albums & folders</h3><span>${albums.size}</span></div><div class="spotify-album-grid">${[...albums.entries()].map(([name,tracks],n)=>{const f=tracks[0];return `<button class="spotify-album" data-act="music" data-i="${list.indexOf(f)}" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',f.rel))}"`:''}><span class="album-cover" style="--album-hue:${(n*47)%360}">${icon('vinyl-record')}<span class="album-play">${icon('play','ph-fill')}</span></span><b>${esc(name.split('/').pop())}</b><small>${tracks.length} tracks</small></button>`;}).join('')}</div></section>
-    <section class="spotify-tracks"><div class="media-row-head"><h3>Tracks</h3><span>${files.length}</span></div><div class="spotify-track-head"><span>#</span><span>Title</span><span>Album</span><span>Added</span><span>Type</span></div>${files.map((f,n)=>musicTrackRow(f,list.indexOf(f),n+1)).join('')}</section>
+    <section class="spotify-albums listen-library"><div class="media-row-head"><h3>Albums and folders</h3><span>${albums.size}</span></div><div class="spotify-album-grid album-rail">${[...albums.entries()].map(([name,tracks],n)=>{const f=tracks[0];return `<button class="spotify-album album-card" data-act="music" data-i="${list.indexOf(f)}" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',f.rel))}"`:''}><span class="album-cover" style="--album-hue:${(n*47)%360}">${icon('vinyl-record')}<span class="album-play">${icon('play','ph-fill')}</span></span><b>${esc(name.split('/').pop())}</b><small>${tracks.length} tracks</small></button>`;}).join('')}</div></section>
+    <section class="spotify-tracks track-library"><div class="media-row-head"><h3>Tracks</h3><span>${files.length}</span></div><div class="spotify-track-head"><span>#</span><span>Title</span><span>Album</span><span>Added</span><span>Type</span></div>${files.map((f,n)=>musicTrackRow(f,list.indexOf(f),n+1)).join('')}</section>
   </div>`;
 }
 
@@ -2299,6 +2301,7 @@ function listView(list){
     const id = `${g.show}|${g.season}`;
     const open = state.open.has(id);
     rows.push(`<tr class="grp ${open?'open':''}" data-grp="${esc(id)}">
+      <td class="col-pick"></td>
       <td>
         <div class="f-name">
           <div class="grp-caret">${icon(open?'caret-down':'caret-right')}</div>
@@ -2652,7 +2655,10 @@ function wire(){
     $('#scroll').querySelectorAll('[data-music-meta]').forEach(async(element)=>{
       const meta=await fetchMusicMeta(element.dataset.musicMeta);if(!meta.found||!element.isConnected)return;
       if(element.classList.contains('spotify-hero')){
-        if(meta.cover)element.querySelector('.spotify-disc')?.style.setProperty('--album-art',`url("${meta.cover}")`);
+        if(meta.cover){
+          element.querySelector('.spotify-disc')?.style.setProperty('--album-art',`url("${meta.cover}")`);
+          element.querySelector('.listen-ambient')?.style.setProperty('--album-art',`url("${meta.cover}")`);
+        }
         const heading=element.querySelector('h2');if(heading&&meta.album)heading.textContent=meta.album;
         const artist=element.querySelector('[data-music-artist]');if(artist)artist.textContent=[meta.artist,meta.year].filter(Boolean).join(' · ')||'Private collection';
       }else if(element.classList.contains('spotify-album')){
