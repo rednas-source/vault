@@ -8,3 +8,7 @@ storage/
 *.log
 scripts/__pycache__/
 .venv/
+
+# Local library verification fixtures and screenshots
+.qa/
+.impeccable/review/

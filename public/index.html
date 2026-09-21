@@ -1311,10 +1311,11 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-chromatic-production-20260907">
+<link rel="stylesheet" href="/chromatic.css?v=vault-library-explorer-20260921">
+<link rel="stylesheet" href="/library.css?v=vault-library-explorer-20260921">
 </head>
 <body>
-<!-- DIRECTION CONTRACT: THESIS: a private archive with an integrated cinema and listening room, reproduced closely from the approved 06 Chromatic Vault prototype. OWN-WORLD: near-black mineral surfaces, warm orange signal color, compact mono metadata, calm editorial type, cinematic image fields, and a precise file workspace. STORY: enter through one command surface; work in Library, lean back in Watch, focus in Listen, and manage the system without leaving the visual world. FIRST VIEWPORT: the fixed command bar leads into the prototype's shelf navigator and horizon workspace; Watch and Listen take over the full canvas. FORM: user-pinned code-led replacement using the approved prototype as the binding specification. SEED KEY: incumbent-selected. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
+<!-- DIRECTION CONTRACT: THESIS: a private archive with an integrated cinema and listening room, reproduced closely from the approved 06 Chromatic Vault prototype. OWN-WORLD: near-black mineral surfaces, warm orange signal color, compact mono metadata, calm editorial type, cinematic image fields, and a precise file workspace. STORY: enter through one command surface; work in Library, lean back in Watch, focus in Listen, and manage the system without leaving the visual world. FIRST VIEWPORT: Library is a compact Explorer-style workspace with a 208px rail, 90px heading, 58px breadcrumb toolbar, shelf folders, and 49px file rows; Watch and Listen take over the full canvas. FORM: user-pinned code-led replacement using the approved prototype as the binding specification. SEED KEY: incumbent-selected. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
 
 <!-- ─────────────────────────── gate -->
 <div id="gate">
@@ -1368,14 +1369,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
     </aside>
 
     <div class="content library-workspace">
-      <section class="library-atmosphere" id="libraryAtmosphere" aria-labelledby="libraryAtmosphereTitle">
-        <div class="library-atmosphere-art" id="libraryAtmosphereArt" aria-hidden="true"></div>
-        <div class="library-atmosphere-copy">
-          <h2 id="libraryAtmosphereTitle">Your private horizon.</h2>
-          <p>Working files stay precise. Entertainment keeps its own room.</p>
-        </div>
-        <div class="recent-stack" id="recentStack" aria-label="Recently changed files"></div>
-      </section>
+      <div class="library-heading"><div><h2>Library</h2><p>Everything in its place.</p></div><span id="librarySummary"></span></div>
       <div class="resume" id="resume"></div>
       <div class="spectrum">
         <div class="spectrum-bar" id="spectrum"></div>
@@ -1383,11 +1377,12 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
       </div>
 
       <div class="toolbar library-toolbar">
-        <h1 id="viewTitle">All</h1>
+        <button class="ghost folder-up" id="folderUp" aria-label="Up one folder" title="Up one folder"><i class="ph ph-arrow-up"></i></button>
+        <h1 id="viewTitle">All files</h1>
         <span class="count" id="viewCount"></span>
         <span class="sp"></span>
         <button class="ghost" id="btnNewFolder">New folder</button>
-        <select class="sort" id="sort">
+        <select class="sort" id="sort" aria-label="Sort files">
           <option value="new">Newest</option>
           <option value="old">Oldest</option>
           <option value="big">Largest</option>
@@ -1512,6 +1507,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <div class="bulk" id="bulk">
   <span class="tag" id="bulkCount">0 selected</span>
   <span class="sp"></span>
+  <button class="act" id="bulkGet">Get</button>
   <button class="act" id="bulkMove">Move</button>
   <button class="act kill" id="bulkDelete">Delete</button>
   <button class="act" id="bulkClear">Clear</button>
@@ -1794,34 +1790,37 @@ function groupSeries(list){
   return { groups: real, loose };
 }
 
+const MEDIA_SHELVES = new Set(['movies', 'series', 'music']);
+const libraryShelves = () => SHELF_ORDER.filter(s => !MEDIA_SHELVES.has(s));
+function shelfFolders(){
+  return libraryShelves().map(shelf => {
+    const files = state.files.filter(f => f.shelf === shelf);
+    return { kind:'folder', shelfRoot:true, shelf, rel:shelf, dir:'', name:SHELF_LABEL[shelf] || shelf,
+      size:files.reduce((n,f)=>n+f.size,0), modified:files.reduce((n,f)=>Math.max(n,f.modified),0), count:files.length };
+  });
+}
 function visible(){
+  const inScope = f => (state.mode !== 'files' || !MEDIA_SHELVES.has(f.shelf))
+    && (state.shelf === 'all' || f.shelf === state.shelf);
   let list;
   if(state.q){
     const q = state.q.toLowerCase();
-    list = state.files.filter((f) =>
-      (state.shelf === 'all' || f.shelf === state.shelf)
-      && `${f.dir || ''}/${f.name}`.toLowerCase().includes(q));
+    list = [...(state.shelf==='all'?shelfFolders():[]), ...state.folders, ...state.files].filter(f => inScope(f)
+      && (!state.folder || f.dir === state.folder || (f.dir||'').startsWith(state.folder+'/'))
+      && `${SHELF_LABEL[f.shelf]||''}/${f.dir||''}/${f.name}`.toLowerCase().includes(q));
   }else if(state.shelf === 'all'){
-    list = state.files;
+    list = shelfFolders();
   }else{
-    // Media shelf homepages are libraries rather than filesystem folders:
-    // include nested titles so a Movies/Series/Music collection still feels
-    // complete when uploads are organised into folders on disk.
-    const libraryHome = state.mode === 'entertainment' && ['movies','series','music'].includes(state.shelf) && !state.folder;
-    const hereFiles = state.files.filter((f) => f.shelf === state.shelf && (libraryHome || (f.dir || '') === state.folder));
-    const hereFolders = state.folders.filter((f) => f.shelf === state.shelf && (f.dir || '') === state.folder);
-    list = [...hereFolders, ...hereFiles];
+    const libraryHome = state.mode === 'entertainment' && MEDIA_SHELVES.has(state.shelf) && !state.folder;
+    list = [...state.folders.filter(f => inScope(f) && (f.dir||'') === state.folder),
+      ...state.files.filter(f => inScope(f) && (libraryHome || (f.dir||'') === state.folder))];
   }
   const by = {
     new:(a,b)=>b.modified-a.modified, old:(a,b)=>a.modified-b.modified,
     big:(a,b)=>b.size-a.size, small:(a,b)=>a.size-b.size,
     az:(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}),
   };
-  return [...list].sort((a,b) => {
-    if(a.kind === 'folder' && b.kind !== 'folder') return -1;
-    if(b.kind === 'folder' && a.kind !== 'folder') return 1;
-    return by[state.sort](a,b);
-  });
+  return list.sort((a,b) => (b.kind==='folder')-(a.kind==='folder') || by[state.sort](a,b));
 }
 
 const mediaHomeActive = () => state.mode === 'entertainment' && ['movies','series','music'].includes(state.shelf) && !state.folder;
@@ -2094,36 +2093,28 @@ function openFolder(folder){
   render(); $('#scroll').scrollTop = 0;
 }
 
-function renderBreadcrumbs(){
-  const title = $('#viewTitle');
-  title.className = 'breadcrumbs';
-  if(state.mode==='entertainment'){
-    title.innerHTML=`<span class="crumb">Entertainment · ${state.shelf==='series'?'Shows':esc(SHELF_LABEL[state.shelf]||state.shelf)}</span>`;
-    return;
-  }
-  if(state.shelf === 'all'){
-    title.innerHTML = '<span class="crumb">All files</span>';
-    return;
-  }
-  const parts = state.folder ? state.folder.split('/') : [];
-  title.innerHTML = `<button class="crumb" data-depth="0">${esc(SHELF_LABEL[state.shelf] || state.shelf)}</button>`
-    + parts.map((part, i) => `<span class="crumb-sep">/</span><button class="crumb" data-depth="${i+1}">${esc(part)}</button>`).join('');
-  title.querySelectorAll('[data-depth]').forEach((button) => {
-    button.onclick = () => {
-      state.folder = parts.slice(0, +button.dataset.depth).join('/');
-      state.picked.clear(); render(); $('#scroll').scrollTop = 0;
-    };
-  });
+function goLibraryRoot(){
+  state.mode='files'; state.shelf='all'; state.folder=''; state.q=''; $('#q').value=''; state.picked.clear(); render();
 }
-
-function renderLibraryAtmosphere(){
-  const surface=$('#libraryAtmosphere'),stack=$('#recentStack'),art=$('#libraryAtmosphereArt');
-  if(!surface||!stack||!art)return;
-  const recent=state.files.filter((f)=>f.kind!=='folder').sort((a,b)=>b.modified-a.modified).slice(0,3);
-  stack.innerHTML=recent.length?recent.map((f)=>`<button data-recent-rel="${esc(f.rel)}">${icon(playable(f)?(VIDEO.includes(f.ext)?'play':'file'):'download-simple')}<span><b>${esc(f.name)}</b><small>${esc(f.dir||SHELF_LABEL[f.shelf]||f.shelf)}</small></span><em>${ago(f.modified)}</em></button>`).join(''):'<span class="recent-empty">New files will appear here.</span>';
-  stack.querySelectorAll('[data-recent-rel]').forEach((button)=>button.onclick=()=>{const file=state.files.find((f)=>f.rel===button.dataset.recentRel);if(!file)return;playable(file)?openViewer(file):(location.href=url('download',file.rel));});
-  const visual=recent.find((f)=>VIDEO.includes(f.ext));
-  art.style.backgroundImage=visual&&state.thumbs?`url("${url('thumb',visual.rel)}")`:'linear-gradient(120deg,#101916,#24120d 58%,#080a09)';
+function goUp(){
+  if(state.q){ state.q=''; $('#q').value=''; }
+  else if(state.folder) state.folder=state.folder.split('/').slice(0,-1).join('/');
+  else return goLibraryRoot();
+  state.picked.clear(); render();
+}
+$('#folderUp').onclick=goUp;
+function renderBreadcrumbs(){
+  const title=$('#viewTitle'); title.className='breadcrumbs';
+  $('#folderUp').disabled=state.shelf==='all'&&!state.q;
+  const parts=state.folder?state.folder.split('/'):[];
+  title.innerHTML=`<button class="crumb" data-root>All files</button>`
+    +(state.shelf==='all'?'':`<span class="crumb-sep">/</span><button class="crumb" data-depth="0">${esc(SHELF_LABEL[state.shelf]||state.shelf)}</button>`)
+    +parts.map((part,i)=>`<span class="crumb-sep">/</span><button class="crumb" data-depth="${i+1}">${esc(part)}</button>`).join('')
+    +(state.q?'<span class="crumb-sep">/</span><span class="crumb">Search results</span>':'');
+  title.querySelector('[data-root]').onclick=goLibraryRoot;
+  title.querySelectorAll('[data-depth]').forEach(button=>button.onclick=()=>{
+    state.folder=parts.slice(0,+button.dataset.depth).join('/'); state.q=''; $('#q').value=''; state.picked.clear(); render();
+  });
 }
 
 /* ── render */
@@ -2143,12 +2134,13 @@ function render(){
     button.classList.toggle('on',active);button.toggleAttribute('aria-current',active);
   });
   $('#q').placeholder=state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
-  renderLibraryAtmosphere();
+  const libraryFiles=state.files.filter(f=>!MEDIA_SHELVES.has(f.shelf));
+  $('#librarySummary').textContent=`${libraryFiles.length} files · ${bytes(libraryFiles.reduce((n,f)=>n+f.size,0))}`;
 
   // sidebar
-  const rows = [`<button class="shelf ${state.mode==='files'&&state.shelf==='all'?'on':''}" data-shelf="all"><b>All files</b><em>${state.files.length}</em></button>`];
-  for(const s of SHELF_ORDER){
-    rows.push(`<button class="shelf ${state.mode==='files'&&state.shelf===s?'on':''}" data-shelf="${s}"><b>${SHELF_LABEL[s]}</b><em>${counts[s]||0}</em></button>`);
+  const rows = [`<button class="shelf ${state.mode==='files'&&state.shelf==='all'?'on':''}" data-shelf="all"><i class="ph ph-squares-four"></i><b>All files</b><em>${libraryFiles.length}</em></button>`];
+  for(const s of libraryShelves()){
+    rows.push(`<button class="shelf ${state.mode==='files'&&state.shelf===s?'on':''}" data-shelf="${s}"><i class="ph ph-folder"></i><b>${esc(SHELF_LABEL[s])}</b><em>${counts[s]||0}</em></button>`);
   }
   $('#shelves').innerHTML = rows.join('');
   $('#shelves').querySelectorAll('.shelf').forEach((b) => {
@@ -2199,6 +2191,7 @@ function render(){
   renderResume();
 
   // header
+  updateBulkBar();
   const list = visible();
   const mediaHome = mediaHomeActive();
   document.body.classList.toggle('media-mode', mediaHome);
@@ -2234,7 +2227,7 @@ function render(){
       : `<div class="empty">
            <div class="empty-mark"></div>
            <p>${state.shelf === 'all' ? 'The vault is empty' : `Nothing on ${esc(where)} yet`}</p>
-           <p class="empty-sub">Drop files or folders here, press Upload, or create a folder</p>
+           <p class="empty-sub">Drop files or folders here, choose Add to Vault, or create a folder</p>
          </div>`;
     return;
   }
@@ -2293,7 +2286,7 @@ function renderResume(){
 function listView(list){
   const folders = list.filter((item) => item.kind === 'folder');
   const files = list.filter((item) => item.kind !== 'folder');
-  const { groups, loose } = state.group ? groupSeries(files) : { groups: [], loose: files };
+  const { groups, loose } = state.mode==='entertainment' && state.group ? groupSeries(files) : { groups: [], loose: files };
 
   // Groups first, then loose files, each sorted by the chosen order.
   const rows = folders.map((folder) => folderRow(folder, list.findIndex((x)=>x.rel===folder.rel)));
@@ -2323,20 +2316,21 @@ function listView(list){
   for(const f of loose) rows.push(fileRow(f, list.findIndex((x)=>x.rel===f.rel), false));
 
   return `<table class="rows"><thead><tr>
-    <th class="col-pick"><input type="checkbox" id="pickAll" title="Select all"></th>
+    <th class="col-pick"><input type="checkbox" id="pickAll" title="Select all" aria-label="Select all items"></th>
     <th>Name</th><th>Size</th><th class="col-shelf">Shelf</th><th class="col-added">Added</th><th></th>
   </tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
 function folderRow(folder, i){
-  return `<tr data-i="${i}" data-rel="${esc(folder.rel)}" class="folder-row">
-    <td class="col-pick"></td>
-    <td><div class="f-name"><div class="glyph folder-glyph">${icon('folder')}</div>
-      <b title="${esc(folder.name)}">${esc(folder.name)}<span class="folder-sub">Folder</span></b></div></td>
-    <td class="f-meta">—</td>
-    <td class="f-shelf col-shelf">${esc(SHELF_LABEL[folder.shelf]||'')}</td>
-    <td class="f-meta col-added">${ago(folder.modified)}</td>
-    <td><div class="acts"><button class="act" data-act="folder" data-i="${i}">Open</button></div></td>
+  const on=state.picked.has(folder.rel);
+  const subtitle=folder.shelfRoot?`${folder.count} ${folder.count===1?'file':'files'}`:state.q?[SHELF_LABEL[folder.shelf],folder.dir].filter(Boolean).join(' / '):'Folder';
+  return `<tr data-i="${i}" data-rel="${esc(folder.rel)}" class="folder-row ${on?'picked':''}">
+    <td class="col-pick"><input type="checkbox" class="pick" aria-label="Select ${esc(folder.name)}" data-rel="${esc(folder.rel)}" ${on?'checked':''}></td>
+    <td><div class="f-name"><div class="glyph folder-glyph">${icon('folder')}</div><button class="file-name-button" data-act="folder" data-i="${i}" title="Open ${esc(folder.name)}"><b>${esc(folder.name)}<span class="folder-sub">${esc(subtitle)}</span></b></button></div></td>
+    <td class="f-meta">${folder.shelfRoot?bytes(folder.size):'—'}</td>
+    <td class="f-shelf col-shelf">${folder.shelfRoot?'Shelf':esc(SHELF_LABEL[folder.shelf]||'')}</td>
+    <td class="f-meta col-added">${folder.modified?ago(folder.modified):'—'}</td>
+    <td><div class="acts"><button class="act" data-act="folder" data-i="${i}">Open</button><button class="act" data-act="get" data-i="${i}">Get folder</button></div></td>
   </tr>`;
 }
 
@@ -2344,7 +2338,7 @@ function fileRow(f, i, nested){
   const on = state.picked.has(f.rel);
   const showPath = !nested && f.dir && (state.shelf === 'all' || state.q);
   return `<tr data-i="${i}" data-rel="${esc(f.rel)}" class="${nested?'nested':''} ${on?'picked':''}">
-    <td class="col-pick"><input type="checkbox" class="pick" data-rel="${esc(f.rel)}" ${on?'checked':''}></td>
+    <td class="col-pick"><input type="checkbox" class="pick" aria-label="Select ${esc(f.name)}" data-rel="${esc(f.rel)}" ${on?'checked':''}></td>
     <td><div class="f-name"><div class="glyph">${esc((f.ext||'?').slice(0,4).toUpperCase())}</div>
       <b title="${esc(f.rel)}">${nested && f.ep ? `<span class="ep-no">E${String(f.ep.episode).padStart(2,'0')}</span>` : ''}${esc(f.name)}${showPath?`<span class="path-sub">${esc(SHELF_LABEL[f.shelf]||f.shelf)} / ${esc(f.dir)}</span>`:''}</b></div></td>
     <td class="f-meta">${bytes(f.size)}</td>
@@ -2362,7 +2356,17 @@ function fileRow(f, i, nested){
   </tr>`;
 }
 
+function libraryGrid(list){
+  return `<div class="tiles library-tiles">${list.map((f,i)=>`<article class="tile ${f.kind==='folder'?'folder-tile':''} ${state.picked.has(f.rel)?'picked':''}" data-rel="${esc(f.rel)}">
+    <input type="checkbox" class="pick tile-pick" aria-label="Select ${esc(f.name)}" data-rel="${esc(f.rel)}" ${state.picked.has(f.rel)?'checked':''}>
+    <button class="tile-open" data-act="${f.kind==='folder'?'folder':playable(f)?'open':'get'}" data-i="${i}" title="${esc(f.name)}">
+      <div class="tile-art blank">${f.kind==='folder'?icon('folder'):IMAGE.includes(f.ext)?`<img src="${url('stream',f.rel)}" alt="" loading="lazy">`:`<span>${esc((f.ext||'FILE').toUpperCase())}</span>`}</div>
+      <span class="tile-body"><b>${esc(f.name)}</b><small>${f.shelfRoot?`${f.count} ${f.count===1?'file':'files'}`:f.kind==='folder'?'Folder':bytes(f.size)}</small></span>
+    </button><div class="tile-actions"><button class="act" data-act="get" data-i="${i}">${icon('download-simple')} Get${f.kind==='folder'?' folder':''}</button>${f.kind!=='folder'?`<button class="act" data-act="share" data-i="${i}">Share</button>`:''}</div>
+  </article>`).join('')}</div>`;
+}
 function gridView(list){
+  if(state.mode==='files') return libraryGrid(list);
   return `<div class="tiles">${list.map((f,i)=>{
     if(f.kind === 'folder') return `<button class="tile folder-tile" data-act="folder" data-i="${i}">
       <div class="tile-art blank"><span class="ph">${icon('folder')}</span></div>
@@ -2548,7 +2552,7 @@ function wire(){
       if(act==='music'){ playMusic(f,list.filter((x)=>AUDIO.includes(x.ext)));return; }
       if(act==='open') openViewer(f);
       if(act==='convert') askConvert(f);
-      if(act==='get') location.href = url('download', f.rel);
+      if(act==='get') f.kind==='folder'?downloadSelection([f.rel]):location.href = url('download', f.rel);
       if(act==='rename') askRename(f);
       if(act==='share') askShare(f);
       if(act==='move') askMove(f);
@@ -2579,7 +2583,7 @@ function wire(){
       e.stopPropagation();
       const rel = box.dataset.rel;
       box.checked ? state.picked.add(rel) : state.picked.delete(rel);
-      box.closest('tr').classList.toggle('picked', box.checked);
+      box.closest('[data-rel]').classList.toggle('picked', box.checked);
       updateBulkBar();
     };
   });
@@ -2591,7 +2595,7 @@ function wire(){
       boxes.forEach((b) => {
         b.checked = all.checked;
         b.checked ? state.picked.add(b.dataset.rel) : state.picked.delete(b.dataset.rel);
-        b.closest('tr').classList.toggle('picked', b.checked);
+        b.closest('[data-rel]').classList.toggle('picked', b.checked);
       });
       updateBulkBar();
     };
@@ -2740,11 +2744,30 @@ function updateBulkBar(){
   const bar = $('#bulk');
   bar.classList.toggle('on', n > 0);
   if(n) $('#bulkCount').textContent = `${n} selected`;
+  const foldersSelected=[...state.picked].some(rel=>!state.files.some(f=>f.rel===rel));
+  $('#bulkMove').hidden=foldersSelected;
+  $('#bulkDelete').hidden=foldersSelected;
+  const boxes=[...$('#scroll').querySelectorAll('.pick')], all=$('#pickAll');
+  if(all){ all.checked=boxes.length>0&&boxes.every(b=>state.picked.has(b.dataset.rel)); all.indeterminate=boxes.some(b=>state.picked.has(b.dataset.rel))&&!all.checked; }
 }
 
 function clearPicked(){ state.picked.clear(); render(); }
 
 $('#bulkClear').onclick = clearPicked;
+async function downloadSelection(rels){
+  const button=$('#bulkGet'); button.disabled=true;
+  try{
+    const response=await fetch('/api/files/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rels,validate:true})});
+    if(!response.ok){const error=await response.json();throw new Error(error.error);}
+    let frame=$('#downloadFrame');
+    if(!frame){frame=document.createElement('iframe');frame.id='downloadFrame';frame.name='vault-download';frame.hidden=true;document.body.append(frame);}
+    const form=document.createElement('form');form.method='POST';form.action='/api/files/download';form.target=frame.name;
+    const input=document.createElement('input');input.type='hidden';input.name='rels';input.value=JSON.stringify(rels);form.append(input);document.body.append(form);form.submit();form.remove();
+    toast('ZIP download started');
+  }catch(error){toast(error.message||'Download could not start. Try again.','bad');}
+  finally{button.disabled=false;}
+}
+$('#bulkGet').onclick=()=>downloadSelection([...state.picked]);
 
 $('#bulkDelete').onclick = () => {
   const n = state.picked.size;
@@ -3924,11 +3947,13 @@ $('#folderPicker').onchange = () => {
 
 $('#btnNewFolder').onclick = () => {
   if(!SHELF_ORDER.length) return toast('No writable shelves available', 'bad');
-  const current = state.shelf !== 'all' ? state.shelf : SHELF_ORDER[0];
+  const folderShelves=state.mode==='files'?libraryShelves():SHELF_ORDER;
+  if(!folderShelves.length)return toast('Create a Library shelf in Manage first.','bad');
+  const current = state.shelf !== 'all' ? state.shelf : folderShelves[0];
   sheet(`<span class="tag">New folder</span>
     <p>${state.shelf === 'all' ? 'Choose a shelf and name the folder.'
       : `Create it in ${esc([SHELF_LABEL[state.shelf], state.folder].filter(Boolean).join(' / '))}.`}</p>
-    ${state.shelf === 'all' ? `<div class="shelf-pick">${SHELF_ORDER.map((s,i)=>
+    ${state.shelf === 'all' ? `<div class="shelf-pick">${folderShelves.map((s,i)=>
       `<button data-folder-shelf="${esc(s)}" class="${i===0?'on':''}">${esc(SHELF_LABEL[s])}</button>`).join('')}</div>` : ''}
     <div class="rename-field"><input id="folderName" placeholder="Folder name" autocomplete="off"></div>
     <div class="gate-error mono" id="folderErr" style="margin:0 0 14px"></div>
@@ -3973,11 +3998,11 @@ function directoryForUpload(file, shelf){
 
 function chooseShelf(files){
   const hasFolders = files.some((f) => relativePathOf(f).includes('/'));
-  const initial = state.shelf !== 'all' ? state.shelf : 'auto';
+  const initial = state.shelf !== 'all' ? state.shelf : (hasFolders ? (libraryShelves()[0] || SHELF_ORDER[0]) : 'auto');
   sheet(`<span class="tag">Upload ${files.length} ${files.length===1?'file':'files'}</span>
-    <p>${hasFolders ? 'Folder structure will be preserved. ' : ''}Pick a shelf, or let Vault sort by file type.</p>
+    <p>${hasFolders ? 'Choose one shelf for this folder. All files and subfolders stay together.' : 'Pick a shelf, or let Vault sort by file type.'}</p>
     <div class="shelf-pick">
-      <button data-s="auto" class="${initial==='auto'?'on':''}">Auto-sort</button>
+      ${hasFolders?'':`<button data-s="auto" class="${initial==='auto'?'on':''}">Auto-sort</button>`}
       ${SHELF_ORDER.map((s)=>`<button data-s="${s}" class="${initial===s?'on':''}">${SHELF_LABEL[s]}</button>`).join('')}
     </div>
     <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="go">Start upload</button></div>`);
@@ -4211,7 +4236,7 @@ window.addEventListener('drop', async (e) => {
 let qTimer;
 $('#q').addEventListener('input', (e) => {
   clearTimeout(qTimer);
-  qTimer = setTimeout(() => { state.q = e.target.value.trim(); render(); }, 120);
+  qTimer = setTimeout(() => { state.q = e.target.value.trim(); state.picked.clear(); render(); }, 120);
 });
 $('#sort').onchange = (e) => { state.sort = e.target.value; render(); };
 $('#vList').onclick = () => setView('list');
@@ -4245,6 +4270,7 @@ document.addEventListener('keydown', (e) => {
   const dialogOpen = $('#modal').classList.contains('on') || $('#viewer').classList.contains('on');
 
   if(!typing && !dialogOpen && state.user){
+    if(e.altKey && e.key==='ArrowUp'){e.preventDefault();goUp();return;}
     if(e.key === 'j' || e.key === 'ArrowDown'){ e.preventDefault(); return moveCursor(1); }
     if(e.key === 'k' || e.key === 'ArrowUp'){ e.preventDefault(); return moveCursor(-1); }
     if(e.key === 'Enter'){

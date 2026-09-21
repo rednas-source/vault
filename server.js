@@ -10,6 +10,7 @@ const fsp = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
 const { spawn, spawnSync } = require('child_process');
+const { collectEntries, streamArchive } = require('./lib/archive');
 
 // ---------------------------------------------------------------- config
 
@@ -25,7 +26,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-chromatic-production-20260907';
+const BUILD_ID = 'vault-library-explorer-20260921';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -3058,6 +3059,19 @@ app.post('/api/meta/clear', auth, adminOnly, async (req, res) => {
 });
 
 // ---------------------------------------------------------------- bulk actions
+
+// Validate the whole selection before sending an archive. Each shelf is checked
+// against the signed-in account, and nested selections are deduplicated.
+app.post('/api/files/download', auth, async (req, res) => {
+  try {
+    const rels = typeof req.body.rels === 'string' ? JSON.parse(req.body.rels) : req.body.rels;
+    const entries = await collectEntries(ROOT, rels, allowedShelves(req.user));
+    if (req.body.validate === true) return res.json({ ok: true });
+    streamArchive(res, entries);
+  } catch {
+    if (!res.headersSent) res.status(400).json({ error: 'Some selected items are unavailable. Refresh the folder and try again.' });
+  }
+});
 
 app.post('/api/files/bulk', auth, async (req, res) => {
   const rels = Array.isArray(req.body.rels) ? req.body.rels.slice(0, 500) : [];

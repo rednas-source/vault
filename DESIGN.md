@@ -38,9 +38,38 @@ typography:
     fontWeight: 500
     lineHeight: 1.3
     letterSpacing: "0.04em"
+  library-heading:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "25px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.03em"
+  library-heading-mobile:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "22px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.03em"
+  library-name:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+    fontWeight: 500
+    lineHeight: 1.4
+  library-control:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 500
+  library-data:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "11px"
+    fontWeight: 400
+    lineHeight: 1.5
 rounded:
+  library-toggle: "4px"
   compact: "5px"
+  library-toolbar: "6px"
   control: "7px"
+  library-bulk: "9px"
   media: "14px"
   feature: "16px"
   pill: "999px"
@@ -73,6 +102,16 @@ components:
     backgroundColor: "{colors.raised-surface}"
     textColor: "{colors.warm-white}"
     rounded: "{rounded.media}"
+  library-row:
+    typography: "{typography.library-name}"
+    height: "49px"
+  library-tile:
+    rounded: "{rounded.control}"
+    typography: "{typography.library-name}"
+  library-toolbar-control:
+    typography: "{typography.library-control}"
+    rounded: "{rounded.library-toolbar}"
+    height: "32px"
 ---
 
 # Design System: Vault — Chromatic Archive
@@ -82,6 +121,8 @@ components:
 **Creative North Star: "The Chromatic Archive"**
 
 Vault feels like a serious private archive whose entertainment layer comes alive when media is present. Its working surfaces are dense, calm, and exact; Watch, Listen, and playback concentrate scale, imagery, motion, and depth without turning the file system into a streaming-site imitation.
+
+Library is a compact Explorer-style operating surface: a small heading, shelf folders at the root, clickable breadcrumbs, and dense file rows. This Library refresh keeps the established Chromatic Archive identity and the Watch, Listen, and playback design unchanged.
 
 The visual voice is mineral black, warm paper white, and one orange signal. Self-hosted sans lettering gives titles editorial impact while a restrained mono face handles measurements, paths, formats, times, and system state. Missing artwork must remain graceful rather than making the application feel incomplete.
 
@@ -96,6 +137,8 @@ The visual voice is mineral black, warm paper white, and one orange signal. Self
 ## Colors
 
 The palette is almost monochrome until state or media calls for the warm signal color.
+
+Library inherits the shared dark/light variables from `public/chromatic.css`: `--night`, `--night-raised`, `--panel`, `--light`, `--muted`, `--accent`, and the existing divider and selection variables. Its toolbar, rows, and tiles use these same theme roles; there is no Library-only palette or new media color system.
 
 ### Primary
 
@@ -129,17 +172,23 @@ The palette is almost monochrome until state or media calls for the warm signal 
 
 - **Display:** Large, weight 610, tightly tracked and balanced; reserved for feature, album, and major administration titles.
 - **Headline:** Compact, weight 570; section and rail headings.
-- **Title:** Weight 600–650 at 14–16px; filenames, media names, and account identities.
+- **Title:** Weight 600–650 at 14–16px for media and account identities; Library filenames use the smaller operating scale below.
 - **Body:** Regular 13px with generous line height; descriptions stay near 52–54 characters per line inside cinematic fields.
 - **Label:** Mono at 8–10px; uppercase only for measurements, state, or compact navigation data.
 
 **The Two-Voice Rule.** Sans carries meaning and hierarchy; mono carries data and measurement.
 
+Library deliberately uses sans for its compact data as well as names: 25px/600 for the heading (22px at 700px and below), 13px/500 for names and breadcrumbs, 12px for supporting copy and toolbar controls, and 11px for row metadata, counts, table labels, and actions. Mobile filenames reduce to 12px. Numeric metadata uses tabular figures. This 11/12/13/22/25px operating scale is separate from the unchanged entertainment display scale.
+
+Icon-font `font-size` values describe glyph geometry, not text roles: shelf icons are 17px, Up is 18px, row folders are 24px, and grid folders are 38px. Do not add these to the typography ramp merely because they are implemented with an icon font.
+
 ## Layout
 
-Desktop uses a 68px command bar, a 230px shelf rail, and a flexible content field. File rows are intentionally dense; Watch and Listen dismiss the shelf rail and expand into large feature fields with horizontal rails below.
+Desktop uses a 68px command bar, a 208px Library shelf rail, and a flexible content field. Library has a small heading with summary, followed by a 58px minimum-height breadcrumb toolbar. The file surface has 18px side padding, a 38px column header, and 49px minimum-height rows. Watch and Listen dismiss the shelf rail and retain their large feature fields with horizontal rails below.
 
-At 940px the command bar becomes a two-row tablet header and the shelf rail narrows. At 700px the layout becomes one vertical flow: shelves become horizontal bands, the command bar gains a dedicated search row, media rails become touch-friendly horizontal scrollers, file columns reduce, and the player occupies the full dynamic viewport. Primary navigation and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens.
+At 1100px and below, the Library rail becomes 180px and rows reduce to selection, name, and size, with persistent actions on a second line. Above 1100px on hover-capable input, hover or focus reveals row actions in the metadata area; size, shelf, and added metadata temporarily yield that space. Non-hover input at wider widths also gets a persistent action line. At 940px the command bar becomes a two-row tablet header. At 700px the layout becomes one vertical flow: shelves and entertainment links become horizontal bands, the toolbar wraps, and file-surface side padding reduces to 12px. Mobile rows have a 48px minimum height before their action line. Primary navigation, New folder, and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens. The existing mobile media scrollers and full-viewport player remain unchanged.
+
+Library grid uses auto-filled columns with a 180px minimum. Each tile keeps selection separate from its open target and provides a persistent Get action; a file also offers Share. Selected rows and tiles use the existing orange-tinted selection surface, with an accent border on tiles.
 
 Spacing follows a compact 4/8/12 rhythm inside controls and an 18/26 rhythm between surfaces. Headings receive more space above than below.
 
@@ -158,6 +207,8 @@ The system combines tonal layers with soft ambient depth. Working rows and navig
 ## Shapes
 
 Compact work controls use 5–7px corners. Media and owner surfaces use 12–16px corners. Pills are reserved for small controls, current-state selectors, and direct actions. Artwork keeps its own rectangular silhouette; circles belong to transport and icon-only controls.
+
+Library refines that compact vocabulary: 4px view-toggle buttons, 5px row/Get actions, 6px toolbar controls and mobile shelf bands, 7px grid tiles, and a 9px bulk-action surface. These are corner sizes, independent of the text and icon scales.
 
 ## Components
 
@@ -185,6 +236,12 @@ Compact work controls use 5–7px corners. Media and owner surfaces use 12–16p
 
 The three primary spaces live in a segmented pill. The active space inverts to warm white. Shelf navigation uses compact rows with orange state marks. On phones both shelf groups scroll horizontally while the primary segmented navigation stays fully visible.
 
+### Library Hierarchy and File Tools
+
+All files presents non-media shelves as folders rather than flattening their contents. Entering a shelf or folder exposes its immediate children; breadcrumbs and Up preserve that hierarchy. Search stays within the active Library scope and searches descendants. Movies, series, and music shelves are excluded from Library browsing, search, and its file summary; their navigation leads to entertainment surfaces.
+
+Names and selection stay visible while desktop actions appear on hover or keyboard focus. Metadata yields to actions only in the wide desktop row treatment; compact and touch layouts keep actions on their own line. Grid tiles preserve explicit selection and Get/Get folder controls. The bulk surface reports selection and exposes the applicable actions. Keep folder navigation, downloading, sharing, and owner tools practical without introducing a Library hero, decorative metrics, or a new visual world.
+
 ### Media Card
 
 The image dominates in a wide cinematic frame. Hover or focus adds a shallow scale, darkens the lower image field, and reveals year, progress or rating, a two-line overview, genres, and a circular action. Poster grids are reserved for full-library browsing. The same information remains available in detail views for non-hover input.
@@ -198,6 +255,7 @@ Controls float over the video rather than occupying a permanent panel. Transport
 ### Do:
 
 - **Do** keep filenames, permissions, folders, and primary actions legible before adding spectacle.
+- **Do** keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, and responsive action disclosure together as one operating surface.
 - **Do** concentrate artwork and motion in Watch, Listen, playback, and meaningful previews.
 - **Do** provide a graceful local fallback when thumbnails or remote metadata are unavailable.
 - **Do** mirror hover disclosure with keyboard focus and persistent detail views.
@@ -209,4 +267,5 @@ Controls float over the video rather than occupying a permanent panel. Transport
 - **Don't** use orange as a decorative page wash or distribute many competing accent colors.
 - **Don't** hide archive navigation or owner access to make a media screen look cleaner.
 - **Don't** use mono for body copy, large headings, or atmosphere.
+- **Don't** interpret icon sizes as typography tokens or extend this Library refresh into new Watch or Listen styling.
 - **Don't** make metadata, artwork, transcoding, or network access prerequisites for reaching the original file.

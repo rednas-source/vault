@@ -1,33 +1,171 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-07T09:15:00+02:00",
+  "generatedAt": "2026-09-21T15:52:52+02:00",
   "title": "Design System: Vault — Chromatic Archive",
   "extensions": {
     "colorMeta": {
-      "signal-orange": { "role": "primary", "displayName": "Signal Orange", "canonical": "#ff6b3c", "tonalRamp": ["oklch(22% 0.09 35)", "oklch(32% 0.13 35)", "oklch(42% 0.17 35)", "oklch(55% 0.20 35)", "oklch(66% 0.18 35)", "oklch(76% 0.14 35)", "oklch(87% 0.08 35)", "oklch(95% 0.03 35)"] },
-      "archive-black": { "role": "neutral", "displayName": "Archive Black", "canonical": "#070909", "tonalRamp": ["#070909", "#0c0f0f", "#171b19", "#2a302d", "#4a524e", "#747d78", "#aab0aa", "#f3f0e8"] },
-      "warm-white": { "role": "neutral", "displayName": "Warm White", "canonical": "#f3f0e8", "tonalRamp": ["#201f1c", "#393732", "#555149", "#767067", "#999289", "#bab3aa", "#ded8cf", "#f3f0e8"] },
-      "signal-rust": { "role": "primary", "displayName": "Signal Rust", "canonical": "#c94723", "tonalRamp": ["oklch(20% 0.08 35)", "oklch(30% 0.12 35)", "oklch(40% 0.16 35)", "oklch(51% 0.18 35)", "oklch(63% 0.16 35)", "oklch(75% 0.12 35)", "oklch(87% 0.07 35)", "oklch(95% 0.025 35)"] }
+      "signal-orange": {
+        "role": "primary",
+        "displayName": "Signal Orange",
+        "canonical": "#ff6b3c",
+        "tonalRamp": [
+          "oklch(22% 0.09 35)",
+          "oklch(32% 0.13 35)",
+          "oklch(42% 0.17 35)",
+          "oklch(55% 0.20 35)",
+          "oklch(66% 0.18 35)",
+          "oklch(76% 0.14 35)",
+          "oklch(87% 0.08 35)",
+          "oklch(95% 0.03 35)"
+        ]
+      },
+      "archive-black": {
+        "role": "neutral",
+        "displayName": "Archive Black",
+        "canonical": "#070909",
+        "tonalRamp": [
+          "#070909",
+          "#0c0f0f",
+          "#171b19",
+          "#2a302d",
+          "#4a524e",
+          "#747d78",
+          "#aab0aa",
+          "#f3f0e8"
+        ]
+      },
+      "warm-white": {
+        "role": "neutral",
+        "displayName": "Warm White",
+        "canonical": "#f3f0e8",
+        "tonalRamp": [
+          "#201f1c",
+          "#393732",
+          "#555149",
+          "#767067",
+          "#999289",
+          "#bab3aa",
+          "#ded8cf",
+          "#f3f0e8"
+        ]
+      },
+      "signal-rust": {
+        "role": "primary",
+        "displayName": "Signal Rust",
+        "canonical": "#c94723",
+        "tonalRamp": [
+          "oklch(20% 0.08 35)",
+          "oklch(30% 0.12 35)",
+          "oklch(40% 0.16 35)",
+          "oklch(51% 0.18 35)",
+          "oklch(63% 0.16 35)",
+          "oklch(75% 0.12 35)",
+          "oklch(87% 0.07 35)",
+          "oklch(95% 0.025 35)"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Vault Display", "purpose": "Feature, album, and major administration titles only." },
-      "body": { "displayName": "Vault Body", "purpose": "Interface copy and descriptions." },
-      "label": { "displayName": "Vault Data", "purpose": "Paths, sizes, formats, time, and state." }
+      "display": {
+        "displayName": "Vault Display",
+        "purpose": "Feature, album, and major administration titles only."
+      },
+      "body": {
+        "displayName": "Vault Body",
+        "purpose": "Interface copy and descriptions."
+      },
+      "label": {
+        "displayName": "Vault Data",
+        "purpose": "Paths, sizes, formats, time, and state."
+      },
+      "library-heading": {
+        "displayName": "Library Heading",
+        "purpose": "Small 25px operating-surface heading; not an entertainment display title."
+      },
+      "library-heading-mobile": {
+        "displayName": "Library Mobile Heading",
+        "purpose": "22px Library heading at 700px and below."
+      },
+      "library-name": {
+        "displayName": "Library Name",
+        "purpose": "13px sans filenames and hierarchy labels; mobile filenames reduce to 12px."
+      },
+      "library-control": {
+        "displayName": "Library Control",
+        "purpose": "12px sans toolbar controls and supporting interface copy."
+      },
+      "library-data": {
+        "displayName": "Library Data",
+        "purpose": "11px sans row metadata, counts, and supporting actions; numeric metadata uses tabular figures."
+      }
     },
     "shadows": [
-      { "name": "media-lift", "value": "0 26px 70px rgba(0,0,0,.32)", "purpose": "Artwork cards in active media rails." },
-      { "name": "floating-surface", "value": "0 30px 90px rgba(0,0,0,.52)", "purpose": "Persistent playback surfaces and album art." }
+      {
+        "name": "media-lift",
+        "value": "0 26px 70px rgba(0,0,0,.32)",
+        "purpose": "Artwork cards in active media rails."
+      },
+      {
+        "name": "floating-surface",
+        "value": "0 30px 90px rgba(0,0,0,.52)",
+        "purpose": "Persistent playback surfaces and album art."
+      }
     ],
     "motion": [
-      { "name": "reveal", "value": "420ms cubic-bezier(.16,1,.3,1)", "purpose": "Hover metadata and shallow media lift." },
-      { "name": "state", "value": "200ms ease", "purpose": "Navigation, buttons, and row feedback." },
-      { "name": "feature-cycle", "value": "11000ms interval", "purpose": "Quiet Watch hero rotation while the user is idle at the top of the view." }
+      {
+        "name": "reveal",
+        "value": "420ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Hover metadata and shallow media lift."
+      },
+      {
+        "name": "state",
+        "value": "200ms ease",
+        "purpose": "Navigation, buttons, and row feedback."
+      },
+      {
+        "name": "feature-cycle",
+        "value": "11000ms interval",
+        "purpose": "Quiet Watch hero rotation while the user is idle at the top of the view."
+      }
     ],
     "breakpoints": [
-      { "name": "compact-desktop", "value": "1180px" },
-      { "name": "tablet", "value": "940px" },
-      { "name": "phone", "value": "700px" }
-    ]
+      {
+        "name": "compact-desktop",
+        "value": "1180px"
+      },
+      {
+        "name": "library-action-line",
+        "value": "1100px",
+        "purpose": "180px rail and persistent second-line row actions; wider non-hover input also keeps actions visible."
+      },
+      {
+        "name": "tablet",
+        "value": "940px"
+      },
+      {
+        "name": "phone",
+        "value": "700px"
+      }
+    ],
+    "library": {
+      "sources": [
+        "public/library.css",
+        "public/index.html",
+        "public/chromatic.css"
+      ],
+      "scope": "Library operating surface only. Watch, Listen, and playback retain the established design, palette, and tokens.",
+      "hierarchy": "All files shows non-media shelves as folders. Browse immediate children with breadcrumbs and Up; search includes descendants within the active Library scope. Movies, series, and music remain in entertainment and are excluded from Library browse, search, and summary.",
+      "layout": "208px rail on desktop; 180px at 1100px and below; horizontal shelf bands at 700px and below. 58px minimum breadcrumb toolbar, 38px table heading, 49px minimum desktop rows, and 48px minimum mobile rows before their action line. Grid columns auto-fill from a 180px minimum.",
+      "rowDisclosure": "Above 1100px on hover-capable input, hover/focus-within exposes actions and hides row metadata in the shared area. At 1100px and below, or wider non-hover input, actions occupy a persistent line.",
+      "grid": "Separate checkbox and open targets. Persistent Get/Get folder action and file Share action. Existing selection tint plus accent border for selected tiles.",
+      "icons": {
+        "shelf": "17px",
+        "up": "18px",
+        "row-folder": "24px",
+        "grid-folder": "38px"
+      },
+      "detectorGuidance": "The 11/12/13/22/25px Library text scale and 4/5/6/7/9px operating radii are intentional documented values. Icon-font geometry is not a font ramp. Advisory findings against the earlier documentation do not imply a new visual world or require media-token changes."
+    }
   },
   "components": [
     {
@@ -75,18 +213,67 @@
       "description": "A persistent, focused transport surface for the current track.",
       "html": "<div class=\"ds-dock\"><div class=\"ds-cover\"></div><div><strong>Nutshell</strong><small>Alice in Chains · Jar of Flies</small></div><button aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 5v14l11-7z\"/></svg></button></div>",
       "css": ".ds-dock{display:grid;grid-template-columns:48px 1fr 38px;align-items:center;gap:12px;width:520px;padding:9px 14px;border:1px solid rgba(255,255,255,.8);border-radius:14px;background:rgba(243,240,232,.95);color:#090a09;box-shadow:0 30px 90px rgba(0,0,0,.52);font-family:'Vault Sans',sans-serif}.ds-cover{width:48px;height:48px;border-radius:9px;background:linear-gradient(145deg,#873c2b,#18100e)}.ds-dock strong,.ds-dock small{display:block}.ds-dock small{margin-top:4px;color:#5f655f;font-size:10px}.ds-dock button{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:50%;background:#090a09;color:#f3f0e8}.ds-dock button:hover{background:#ff6b3c}.ds-dock button:focus-visible{outline:2px solid #ff6b3c;outline-offset:3px}.ds-dock svg{width:16px;height:16px}"
+    },
+    {
+      "name": "Library Row",
+      "kind": "custom",
+      "refersTo": "library-row",
+      "description": "Compact file row with stable selection/name and responsive action disclosure.",
+      "html": "<div class=\"ds-library-row\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-name\">Notes.pdf</button><span class=\"ds-meta\">240 KB</span><div class=\"ds-actions\"><button>Get</button><button>Share</button></div></div>",
+      "css": ".ds-library-row{position:relative;display:grid;grid-template-columns:36px minmax(140px,1fr) 90px;align-items:center;min-height:49px;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.075));color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-row:hover,.ds-library-row:focus-within{background:var(--night-raised,#0c0f0f)}.ds-library-row input{width:15px;height:15px;accent-color:var(--accent,#ff6b3c)}.ds-library-row button{border:0;background:transparent;color:inherit;cursor:pointer}.ds-name{padding:8px;text-align:left;font:500 13px/1.4 var(--sans,sans-serif)}.ds-meta{color:var(--muted,#9ba39e);font:400 11px/1.5 var(--sans,sans-serif);font-variant-numeric:tabular-nums}.ds-actions{position:absolute;right:4px;display:flex;visibility:hidden}.ds-actions button{min-height:32px;padding:0 6px;border-radius:5px;font:500 11px var(--sans,sans-serif)}.ds-library-row:hover .ds-actions,.ds-library-row:focus-within .ds-actions{visibility:visible}.ds-library-row:hover .ds-meta,.ds-library-row:focus-within .ds-meta{visibility:hidden}.ds-library-row button:hover{color:var(--accent,#ff6b3c)}.ds-library-row button:focus-visible,.ds-library-row input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}@media(max-width:1100px),(hover:none){.ds-actions{position:static;grid-column:2/-1;visibility:visible;padding-bottom:7px}.ds-actions button{min-height:34px;padding:0 7px}.ds-library-row:hover .ds-meta,.ds-library-row:focus-within .ds-meta{visibility:visible}}"
+    },
+    {
+      "name": "Library Grid Tile",
+      "kind": "card",
+      "refersTo": "library-tile",
+      "description": "File tile with independent selection, open target, and persistent download/share actions.",
+      "html": "<article class=\"ds-library-tile\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-tile-open\"><span class=\"ds-tile-art\">PDF</span><strong>Notes.pdf</strong><small>240 KB</small></button><div class=\"ds-tile-actions\"><button>Get</button><button>Share</button></div></article>",
+      "css": ".ds-library-tile{position:relative;width:180px;padding:12px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:7px;background:var(--panel,#111514);color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-tile>input{position:absolute;top:12px;left:12px;width:16px;height:16px;accent-color:var(--accent,#ff6b3c)}.ds-library-tile:has(input:checked){border-color:var(--accent,#ff6b3c);background:var(--star-soft,rgba(255,107,60,.12))}.ds-library-tile button{border:0;background:none;color:inherit;text-align:left;cursor:pointer}.ds-tile-open{display:block;width:100%;padding:0}.ds-tile-art{display:grid;place-items:center;height:90px;color:var(--muted,#9ba39e);font:13px var(--mono,monospace)}.ds-tile-open strong{display:block;font:500 13px/1.4 var(--sans,sans-serif)}.ds-tile-open small{display:block;color:var(--muted,#9ba39e);font:11px/1.5 var(--sans,sans-serif)}.ds-tile-actions{display:flex;gap:6px;border-top:1px solid var(--line-soft,rgba(255,255,255,.075));padding-top:4px;margin-top:8px}.ds-tile-actions button{min-height:32px;font:500 11px var(--sans,sans-serif)}.ds-library-tile button:hover{color:var(--accent,#ff6b3c)}.ds-library-tile button:focus-visible,.ds-library-tile input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}"
     }
   ],
   "narrative": {
     "northStar": "The Chromatic Archive",
-    "overview": "Vault feels like a serious private archive whose entertainment layer comes alive when media is present. Its working surfaces are dense, calm, and exact; Watch, Listen, and playback concentrate scale, imagery, motion, and depth without turning the file system into a streaming-site imitation. The visual voice is mineral black, warm paper white, and one orange signal.",
-    "keyCharacteristics": ["Near-black tonal layering instead of decorative panels.", "Warm orange used as a signal, never as a wash across the whole screen.", "Large, tightly set media titles paired with precise mono metadata.", "Dense file tools and spacious entertainment surfaces in one coherent shell.", "Motion that reveals state, metadata, or the next feature and respects reduced motion."],
-    "rules": [
-      { "name": "The Signal Rarity Rule", "body": "Orange identifies interaction, progress, or current state; it does not become a decorative second background.", "section": "colors" },
-      { "name": "The Two-Voice Rule", "body": "Sans carries meaning and hierarchy; mono carries data and measurement.", "section": "typography" },
-      { "name": "The Flat-Until-Useful Rule", "body": "File management is tonal and flat; depth appears where playback, hover, or protected focus makes it meaningful.", "section": "elevation" }
+    "overview": "Vault feels like a serious private archive whose entertainment layer comes alive when media is present. Its working surfaces are dense, calm, and exact; Watch, Listen, and playback concentrate scale, imagery, motion, and depth without turning the file system into a streaming-site imitation. The visual voice is mineral black, warm paper white, and one orange signal. Library is a compact Explorer-style operating surface with shelf folders at the root, a small heading, breadcrumbs, and dense file rows. Its refresh leaves Watch, Listen, and playback design unchanged.",
+    "keyCharacteristics": [
+      "Near-black tonal layering instead of decorative panels.",
+      "Warm orange used as a signal, never as a wash across the whole screen.",
+      "Large, tightly set media titles paired with precise mono metadata.",
+      "Dense file tools and spacious entertainment surfaces in one coherent shell.",
+      "Motion that reveals state, metadata, or the next feature and respects reduced motion.",
+      "Compact Library hierarchy and file actions share the established dark/light palette with entertainment."
     ],
-    "dos": ["Do keep filenames, permissions, folders, and primary actions legible before adding spectacle.", "Do concentrate artwork and motion in Watch, Listen, playback, and meaningful previews.", "Do provide a graceful local fallback when thumbnails or remote metadata are unavailable.", "Do mirror hover disclosure with keyboard focus and persistent detail views.", "Do pause feature rotation during interaction, at reduced-motion preference, or away from the top of the view."],
-    "donts": ["Don't turn Vault into a Netflix clone or a cyan terminal costume.", "Don't use orange as a decorative page wash or distribute many competing accent colors.", "Don't hide archive navigation or owner access to make a media screen look cleaner.", "Don't use mono for body copy, large headings, or atmosphere.", "Don't make metadata, artwork, transcoding, or network access prerequisites for reaching the original file."]
+    "rules": [
+      {
+        "name": "The Signal Rarity Rule",
+        "body": "Orange identifies interaction, progress, or current state; it does not become a decorative second background.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Sans carries meaning and hierarchy; mono carries data and measurement.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Until-Useful Rule",
+        "body": "File management is tonal and flat; depth appears where playback, hover, or protected focus makes it meaningful.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep filenames, permissions, folders, and primary actions legible before adding spectacle.",
+      "Do concentrate artwork and motion in Watch, Listen, playback, and meaningful previews.",
+      "Do provide a graceful local fallback when thumbnails or remote metadata are unavailable.",
+      "Do mirror hover disclosure with keyboard focus and persistent detail views.",
+      "Do pause feature rotation during interaction, at reduced-motion preference, or away from the top of the view.",
+      "Do keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, and responsive action disclosure together as one operating surface."
+    ],
+    "donts": [
+      "Don't turn Vault into a Netflix clone or a cyan terminal costume.",
+      "Don't use orange as a decorative page wash or distribute many competing accent colors.",
+      "Don't hide archive navigation or owner access to make a media screen look cleaner.",
+      "Don't use mono for body copy, large headings, or atmosphere.",
+      "Don't make metadata, artwork, transcoding, or network access prerequisites for reaching the original file.",
+      "Don't interpret icon sizes as typography tokens or extend this Library refresh into new Watch or Listen styling."
+    ]
   }
 }

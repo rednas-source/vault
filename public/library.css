@@ -1,0 +1,133 @@
+/* Library is an operating surface: compact navigation, real folders, no hero.
+   The established Vault palette remains shared with Watch and Listen. */
+body:not(.media-mode) #app>main { grid-template-columns:208px minmax(0,1fr); }
+body:not(.media-mode) .library-sidebar { padding:20px 12px 16px; }
+.library-sidebar .shelves { flex:0 0 auto; display:flex; flex-direction:column; gap:3px; overflow:visible; }
+.library-sidebar .shelf { flex:none; min-height:36px; height:36px; gap:10px; padding:0 10px; }
+.shelf b { flex:1; font:500 13px var(--sans); }
+.shelf>i { font-size:17px; color:var(--muted); }
+.shelf em,.ent-side em { font-size:11px; }
+.shelf:hover,.ent-side:hover { transform:none; }
+.library-sidebar .ent-side-label { margin-top:auto; padding-top:24px; }
+.library-sidebar .ent-side { min-height:36px; gap:10px; }
+.ent-side b { flex:1; font-size:12px; font-weight:500; }
+.library-sidebar .meter { margin-top:20px; padding-top:16px; }
+.meter-txt { font-size:10px; line-height:1.6; }
+.meter-fill { background:var(--muted); box-shadow:none; }
+body:not(.media-mode) .library-workspace { display:flex; flex-direction:column; }
+.library-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 26px 18px; flex:none; }
+.library-heading h2 { margin:0; font:600 25px/1.2 var(--sans); letter-spacing:-.03em; }
+.library-heading p { margin:6px 0 0; color:var(--muted); font-size:12px; }
+.library-heading>span { color:var(--muted); font-size:12px; }
+body.media-mode .library-heading { display:none; }
+body:not(.media-mode) .library-toolbar { position:relative; top:auto; flex:none; min-height:58px; padding:10px 18px; gap:10px; background:var(--night-raised); backdrop-filter:none; border-top:1px solid var(--line-soft); }
+.library-toolbar .breadcrumbs { display:flex; align-items:center; gap:8px; flex:1; overflow:auto; white-space:nowrap; scrollbar-width:none; }
+.library-toolbar .breadcrumbs .crumb { flex:none; max-width:200px; overflow:hidden; text-overflow:ellipsis; font:500 13px/1.5 var(--sans); text-transform:none; }
+.library-toolbar .breadcrumbs button:hover { color:var(--accent); }
+.library-toolbar .count { display:none; }
+.library-toolbar>.sp { display:none; }
+.library-toolbar .ghost,.library-toolbar select,.library-toolbar .view-tog { border-radius:6px; }
+.library-toolbar .ghost,.library-toolbar select { height:32px; min-height:32px; font-size:12px; }
+.library-toolbar .view-tog { padding:2px; }
+.library-toolbar .view-tog button { min-height:28px; padding:0 10px; border-radius:4px; font:500 11px var(--sans); }
+.folder-up { flex:none; width:32px; padding:0!important; }
+.folder-up i { font-size:18px; }
+button:disabled { opacity:.4; cursor:not-allowed; }
+body:not(.media-mode) .file-surface { flex:1; height:auto; min-height:0; padding:0 18px 90px; }
+.file-surface .rows { display:block; width:100%; }
+.file-surface .rows thead,.file-surface .rows tbody { display:block; }
+.file-surface .rows thead { position:sticky; top:0; z-index:5; background:var(--night); }
+.file-surface .rows tr { position:relative; display:grid; grid-template-columns:36px minmax(140px,1fr) 90px 110px 95px 24px; align-items:center; min-height:49px; border-bottom:1px solid var(--line-soft); }
+.file-surface .rows thead tr { min-height:38px; }
+.file-surface .rows th,.file-surface .rows td { display:block; width:auto!important; max-width:none; min-width:0; height:auto; padding:8px; border:0; background:none!important; }
+.file-surface .rows th { color:var(--muted); font:500 11px var(--sans); letter-spacing:0; text-transform:none; }
+.file-surface .rows tr:hover,.file-surface .rows tr:focus-within { background:var(--night-raised); }
+.file-surface .rows tr.picked { background:var(--star-soft); }
+.file-surface .rows .col-pick { padding:8px 4px; }
+.file-surface .rows input[type="checkbox"] { width:15px; height:15px; cursor:pointer; }
+.file-surface .glyph { width:28px; height:30px; border:0; background:var(--panel); font-size:8px; }
+.file-surface .folder-glyph { color:var(--muted); background:none; font-size:24px; }
+.file-surface .f-name { gap:10px; }
+.file-surface .f-name b { font:500 13px/1.4 var(--sans); }
+.file-surface .f-name b>span { margin-top:2px; font:400 11px/1.3 var(--sans); color:var(--muted); text-transform:none; }
+.file-name-button { min-width:0; padding:0; text-align:left; }
+.file-name-button b { display:block; }
+.file-name-button:hover b { color:var(--accent); }
+.file-surface .f-meta,.file-surface .f-shelf { color:var(--muted); font:400 11px/1.5 var(--sans); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.file-surface .rows td:last-child { position:absolute; right:4px; padding:0; }
+.file-surface .rows .acts { gap:0; flex-wrap:nowrap; visibility:hidden; pointer-events:none; }
+.file-surface .rows .act { display:inline-flex; align-items:center; justify-content:center; min-height:32px; padding:0 6px; font:500 11px var(--sans); border-radius:5px; }
+.file-surface .rows tr:hover .acts,.file-surface .rows tr:focus-within .acts { visibility:visible; pointer-events:auto; opacity:1; }
+.file-surface .rows tr:hover .f-meta,.file-surface .rows tr:hover .f-shelf,
+.file-surface .rows tr:focus-within .f-meta,.file-surface .rows tr:focus-within .f-shelf { visibility:hidden; }
+.file-surface .rows .acts .act { visibility:inherit; }
+.file-surface .rows tr::after { content:'···'; position:absolute; right:7px; color:var(--muted); pointer-events:none; }
+.file-surface .rows tr:hover::after,.file-surface .rows tr:focus-within::after,.file-surface .rows thead tr::after { content:none; }
+.file-surface .tiles { grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); padding-top:16px; }
+.file-surface .tile { position:relative; border-radius:7px; transform:none; }
+.file-surface .tile-body b { font-size:13px; }
+.file-surface .tile-body small { font:11px/1.5 var(--sans); text-transform:none; color:var(--muted); }
+.file-surface .folder-tile .tile-art { height:68px; aspect-ratio:auto; background:none; }
+.bulk { max-width:calc(100vw - 24px); min-width:0; gap:12px; border-radius:9px; background:var(--panel); }
+.bulk .tag { font:500 12px var(--sans); text-transform:none; letter-spacing:0; }
+.bulk .act { font-size:12px; }
+.bulk #bulkGet { color:var(--night); background:var(--light); padding:0 16px; border-radius:5px; }
+.bulk [hidden] { display:none!important; }
+html[data-theme="light"] .library-toolbar { background:var(--night-raised); }
+@media (max-width:1100px) {
+  body:not(.media-mode) #app>main { grid-template-columns:180px minmax(0,1fr); }
+  .file-surface .rows tr { grid-template-columns:30px minmax(130px,1fr) 70px 80px 65px 20px; }
+  .file-surface .rows .act { padding:0 4px; font-size:10px; }
+}
+@media (max-width:1100px) {
+  .file-surface .rows tr { grid-template-columns:30px minmax(0,1fr) 70px; }
+  .file-surface .rows .col-shelf,.file-surface .rows .col-added { display:none; }
+  .file-surface .rows td:last-child { position:static; grid-column:2/-1; padding:0 0 7px; }
+  .file-surface .rows .acts { justify-content:flex-start; visibility:visible; pointer-events:auto; opacity:1; flex-wrap:wrap; }
+  .file-surface .rows .acts .act { display:inline-flex; font-size:11px; min-height:34px; padding:0 7px; }
+  .file-surface .rows tr:hover .f-meta,.file-surface .rows tr:focus-within .f-meta { visibility:visible; }
+  .file-surface .rows tr::after { content:none; }
+}
+@media (max-width:700px) {
+  body:not(.media-mode) #app>main { display:block; }
+  body:not(.media-mode) .library-sidebar { padding:10px 12px; height:auto; }
+  .library-sidebar .shelves { flex-direction:row; overflow-x:auto; gap:5px; }
+  .library-sidebar .shelf { height:34px; min-height:34px; padding:0 10px; border-radius:6px; }
+  .library-sidebar .shelf b { font-size:12px; }
+  .library-sidebar .entertainment-side { display:flex; }
+  .library-sidebar .ent-side { border-radius:6px; }
+  .library-heading { padding:20px 16px 16px; }
+  .library-heading h2 { font-size:22px; }
+  .library-heading>span { font-size:11px; }
+  body:not(.media-mode) .library-toolbar { display:flex; flex-wrap:wrap; padding:8px 12px; gap:8px; }
+  .library-toolbar .breadcrumbs { flex-basis:calc(100% - 44px); }
+  .library-toolbar #btnNewFolder { display:inline-flex; margin-right:auto; }
+  .library-toolbar select { max-width:110px; }
+  body:not(.media-mode) .file-surface { padding:0 12px 110px; overflow:visible; }
+  .file-surface .rows thead { display:block; position:static; }
+  .file-surface .rows td:nth-child(3),.file-surface .rows th:nth-child(3) { display:block; }
+  .file-surface .rows thead th:last-child { display:none; }
+  .file-surface .rows tr { min-height:48px; }
+  .file-surface .f-name b { font-size:12px; }
+}
+@media (hover:none) and (min-width:1101px) {
+  .file-surface .rows td:last-child { position:static; grid-column:2/-1; padding:0 0 8px; }
+  .file-surface .rows .acts { justify-content:flex-start; visibility:visible; pointer-events:auto; opacity:1; }
+  .file-surface .rows tr::after { content:none; }
+}
+.library-tiles .tile-open { display:block; width:100%; min-width:0; padding:0; text-align:left; }
+.library-tiles .tile-pick { position:absolute; top:12px; left:12px; width:16px; height:16px; accent-color:var(--accent); z-index:1; }
+.library-tiles .tile-art { display:grid; place-items:center; color:var(--muted); font:13px var(--mono); }
+.library-tiles .folder-tile .tile-art>i { font-size:38px; }
+.library-tiles .tile-actions { display:flex; gap:6px; border-top:1px solid var(--line-soft); padding-top:4px; }
+.library-tiles .tile-actions .act { display:flex; align-items:center; gap:6px; font-size:11px; }
+.library-tiles .picked { border-color:var(--accent); background:var(--star-soft); }
+
+/* Keep the search field a single surface, including the compact phone header. */
+body:not(.media-mode) .global-search input { border:0; background:transparent; box-shadow:none; height:100%; font-family:var(--sans); }
+.library-toolbar select { letter-spacing:0; text-transform:none; }
+@media (max-width:700px) {
+  body:not(.media-mode) .global-search input { padding-right:12px; }
+  body:not(.media-mode) .global-search kbd { display:none; }
+  .library-toolbar select { width:116px; max-width:116px; padding-right:22px; }
+}

@@ -8,7 +8,8 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 
 ## What it does
 
-- **Shelves.** Files are sorted onto shelves by type on upload, or filed by hand. You define the shelves and the rules.
+- **Folder-first Library.** All files opens your working shelves as folders. Browse with breadcrumbs and Up (Alt+Up), or search within the current shelf/folder and its descendants. Movies, shows, and music live in the separate entertainment spaces.
+- **Shelves.** Files are sorted onto shelves by type on upload, or filed by hand. Folder uploads use one chosen shelf so mixed file types stay together. You define the shelves and the rules.
 - **Streams video and audio** with range requests, so seeking works and nothing has to download in full before it plays.
 - **Video thumbnails** in grid view, including for formats browsers can't play.
 - **Chunked, resumable uploads.** Large files go up in slices, so an interrupted transfer continues instead of restarting.
@@ -19,7 +20,8 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Converts MKV to MP4.** Background jobs report progress, use the same GPU-aware quality profiles, and can safely replace a verified source.
 - **Hover a video tile** to scrub through nine frames from across its runtime.
 - **Episodes collapse into seasons** automatically, from the filename.
-- **Bulk select**, move, and delete.
+- **Bulk select and Get.** Select files or folders in list or grid view and download one streamed ZIP with nested paths preserved. Folder downloads include empty directories. Move and delete remain available for file-only selections.
+- **Compact file actions.** Hover or keyboard focus replaces desktop metadata with actions; narrower screens show actions on a separate line.
 - **An activity log**, so "where did that file go" has an answer.
 - **A health endpoint** for uptime monitoring, which detects a dropped mount.
 - **Share links** — hand someone a URL for one file, no account needed.
@@ -446,3 +448,8 @@ What it deliberately doesn't do: virus scanning, read-only permissions, or per-f
 Deleting a shelf never deletes files — you nominate somewhere for the contents and they're moved first.
 
 **Files are not backed up.** The vault is a single copy on a single machine. Point a backup tool at `storagePath` if the contents matter — and separately at `users.json`, `config.json`, `shelves.json`, `shares.json`, and `progress.json`, which hold your accounts, session secret, shelf definitions, live share links, and watch history.
+
+
+## Library verification
+
+Run `npm run check` for server/client syntax and `npm test` for archive regression tests (nested selections, empty folders, path traversal, shelf restrictions, and symlinks). Folder and bulk downloads use streaming ZIP64 archives, retaining shelf paths to avoid duplicate-name collisions across shelves. The archive endpoint rechecks access for every selected shelf and does not follow symbolic links.
