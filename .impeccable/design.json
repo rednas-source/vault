@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-21T15:52:52+02:00",
+  "generatedAt": "2026-09-22T13:55:31.8470185+02:00",
   "title": "Design System: Vault — Chromatic Archive",
   "extensions": {
     "colorMeta": {
@@ -134,9 +134,9 @@
         "value": "1180px"
       },
       {
-        "name": "library-action-line",
+        "name": "library-compact-rows",
         "value": "1100px",
-        "purpose": "180px rail and persistent second-line row actions; wider non-hover input also keeps actions visible."
+        "purpose": "180px rail; file rows retain selection, name, and size. Actions remain in the context menu."
       },
       {
         "name": "tablet",
@@ -150,21 +150,26 @@
     "library": {
       "sources": [
         "public/library.css",
+        "public/library-actions.js",
+        "public/library-tools.js",
         "public/index.html",
         "public/chromatic.css"
       ],
       "scope": "Library operating surface only. Watch, Listen, and playback retain the established design, palette, and tokens.",
-      "hierarchy": "All files shows non-media shelves as folders. Browse immediate children with breadcrumbs and Up; search includes descendants within the active Library scope. Movies, series, and music remain in entertainment and are excluded from Library browse, search, and summary.",
-      "layout": "208px rail on desktop; 180px at 1100px and below; horizontal shelf bands at 700px and below. 58px minimum breadcrumb toolbar, 38px table heading, 49px minimum desktop rows, and 48px minimum mobile rows before their action line. Grid columns auto-fill from a 180px minimum.",
-      "rowDisclosure": "Above 1100px on hover-capable input, hover/focus-within exposes actions and hides row metadata in the shared area. At 1100px and below, or wider non-hover input, actions occupy a persistent line.",
-      "grid": "Separate checkbox and open targets. Persistent Get/Get folder action and file Share action. Existing selection tint plus accent border for selected tiles.",
+      "hierarchy": "All files shows non-media shelves as folders. Browse immediate children with breadcrumbs and Up; search includes descendants within the active Library scope. Movies, series, and music are excluded from All files; their sidebar shortcuts open explicit file-browsing scopes. Shared links opens a separate navigable Library view.",
+      "layout": "208px rail on desktop; 180px at 1100px and below; horizontal shelf bands at 700px and below. 58px minimum breadcrumb toolbar, 38px table heading, 49px minimum desktop rows, and 48px minimum mobile rows. Grid columns auto-fill from a 180px minimum.",
+      "rowDisclosure": "No desktop hover actions: size, shelf, and added metadata remain visible in wide rows. Compact rows retain size. Right-click or Shift+F10 opens actions. Non-hover input and phone layouts at 700px and below show one persistent Options control.",
+      "grid": "Separate checkbox and open targets, context-menu operations, and persistent Options on touch/phone layouts. Existing selection tint plus accent border for selected tiles.",
       "icons": {
         "shelf": "17px",
         "up": "18px",
         "row-folder": "24px",
         "grid-folder": "38px"
       },
-      "detectorGuidance": "The 11/12/13/22/25px Library text scale and 4/5/6/7/9px operating radii are intentional documented values. Icon-font geometry is not a font ramp. Advisory findings against the earlier documentation do not imply a new visual world or require media-token changes."
+      "detectorGuidance": "The 11/12/13/22/25px Library text scale and 4/5/6/7/9px operating radii are intentional documented values. Icon-font geometry is not a font ramp. Advisory findings against the earlier documentation do not imply a new visual world or require media-token changes.",
+      "selection": "Ordinary click establishes the range anchor without selecting or opening a menu. Checkboxes and Ctrl/Cmd-click toggle; Shift-click selects an inclusive range in visible sort order; Ctrl/Cmd+Shift-click adds the range. Double-click opens.",
+      "zipCreation": "Existing compact dialog with Archive name and Save in fields, inline progress/error, Run in background, and Download ZIP after saving. The saved archive flow stays distinct from direct ZIP downloading. Fields use shared panel/text/divider roles, 6px corners, and 13px sans.",
+      "sharedLinks": "Flat Library view with global search and All/Active/Inactive filtering, filename/path, owner/label, textual status, relative/absolute expiry, remaining downloads/used counts, Copy link and confirmed Revoke. Media opens count against limits. Loading, error/retry, empty, and no-match states share existing theme roles. Actions move below data at 1200px; rows stack with local labels at 700px. Dark and light themes retain the existing palette."
     }
   },
   "components": [
@@ -218,34 +223,38 @@
       "name": "Library Row",
       "kind": "custom",
       "refersTo": "library-row",
-      "description": "Compact file row with stable selection/name and responsive action disclosure.",
-      "html": "<div class=\"ds-library-row\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-name\">Notes.pdf</button><span class=\"ds-meta\">240 KB</span><div class=\"ds-actions\"><button>Get</button><button>Share</button></div></div>",
-      "css": ".ds-library-row{position:relative;display:grid;grid-template-columns:36px minmax(140px,1fr) 90px;align-items:center;min-height:49px;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.075));color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-row:hover,.ds-library-row:focus-within{background:var(--night-raised,#0c0f0f)}.ds-library-row input{width:15px;height:15px;accent-color:var(--accent,#ff6b3c)}.ds-library-row button{border:0;background:transparent;color:inherit;cursor:pointer}.ds-name{padding:8px;text-align:left;font:500 13px/1.4 var(--sans,sans-serif)}.ds-meta{color:var(--muted,#9ba39e);font:400 11px/1.5 var(--sans,sans-serif);font-variant-numeric:tabular-nums}.ds-actions{position:absolute;right:4px;display:flex;visibility:hidden}.ds-actions button{min-height:32px;padding:0 6px;border-radius:5px;font:500 11px var(--sans,sans-serif)}.ds-library-row:hover .ds-actions,.ds-library-row:focus-within .ds-actions{visibility:visible}.ds-library-row:hover .ds-meta,.ds-library-row:focus-within .ds-meta{visibility:hidden}.ds-library-row button:hover{color:var(--accent,#ff6b3c)}.ds-library-row button:focus-visible,.ds-library-row input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}@media(max-width:1100px),(hover:none){.ds-actions{position:static;grid-column:2/-1;visibility:visible;padding-bottom:7px}.ds-actions button{min-height:34px;padding:0 7px}.ds-library-row:hover .ds-meta,.ds-library-row:focus-within .ds-meta{visibility:visible}}"
+      "description": "Compact file row with stable metadata and context-menu actions; touch/phone layouts add Options.",
+      "html": "<div class=\"ds-library-row\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-name\">Notes.pdf</button><span class=\"ds-meta\">240 KB</span><span class=\"ds-meta ds-wide\">Documents</span><span class=\"ds-meta ds-wide\">2 days ago</span><button class=\"ds-options\" aria-label=\"Options for Notes.pdf\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"5\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"2\" fill=\"currentColor\"/></svg></button></div>",
+      "css": ".ds-library-row{display:grid;grid-template-columns:36px minmax(140px,1fr) 95px 120px 110px;align-items:center;min-height:49px;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.075));color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-row:hover,.ds-library-row:focus-within{background:var(--night-raised,#0c0f0f)}.ds-library-row:has(input:checked){background:var(--star-soft,rgba(255,107,60,.12))}.ds-library-row input{width:15px;height:15px;accent-color:var(--accent,#ff6b3c)}.ds-library-row button{border:0;background:transparent;color:inherit;cursor:pointer}.ds-name{padding:8px;text-align:left;font:500 13px/1.4 var(--sans,sans-serif)}.ds-meta{color:var(--muted,#9ba39e);font:400 11px/1.5 var(--sans,sans-serif);font-variant-numeric:tabular-nums}.ds-options{display:none}.ds-library-row button:hover{color:var(--accent,#ff6b3c)}.ds-library-row button:focus-visible,.ds-library-row input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}@media(max-width:1100px){.ds-library-row{grid-template-columns:30px minmax(0,1fr) 70px}.ds-wide{display:none}}@media(hover:none),(max-width:700px){.ds-library-row{grid-template-columns:30px minmax(0,1fr) 70px 34px}.ds-wide{display:none}.ds-options{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;color:var(--muted,#9ba39e);font-size:22px}}.ds-options svg{width:22px;height:22px}"
     },
     {
       "name": "Library Grid Tile",
       "kind": "card",
       "refersTo": "library-tile",
-      "description": "File tile with independent selection, open target, and persistent download/share actions.",
-      "html": "<article class=\"ds-library-tile\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-tile-open\"><span class=\"ds-tile-art\">PDF</span><strong>Notes.pdf</strong><small>240 KB</small></button><div class=\"ds-tile-actions\"><button>Get</button><button>Share</button></div></article>",
-      "css": ".ds-library-tile{position:relative;width:180px;padding:12px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:7px;background:var(--panel,#111514);color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-tile>input{position:absolute;top:12px;left:12px;width:16px;height:16px;accent-color:var(--accent,#ff6b3c)}.ds-library-tile:has(input:checked){border-color:var(--accent,#ff6b3c);background:var(--star-soft,rgba(255,107,60,.12))}.ds-library-tile button{border:0;background:none;color:inherit;text-align:left;cursor:pointer}.ds-tile-open{display:block;width:100%;padding:0}.ds-tile-art{display:grid;place-items:center;height:90px;color:var(--muted,#9ba39e);font:13px var(--mono,monospace)}.ds-tile-open strong{display:block;font:500 13px/1.4 var(--sans,sans-serif)}.ds-tile-open small{display:block;color:var(--muted,#9ba39e);font:11px/1.5 var(--sans,sans-serif)}.ds-tile-actions{display:flex;gap:6px;border-top:1px solid var(--line-soft,rgba(255,255,255,.075));padding-top:4px;margin-top:8px}.ds-tile-actions button{min-height:32px;font:500 11px var(--sans,sans-serif)}.ds-library-tile button:hover{color:var(--accent,#ff6b3c)}.ds-library-tile button:focus-visible,.ds-library-tile input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}"
+      "description": "File tile with independent checkbox, open target, and context-menu actions; touch/phone layouts add Options.",
+      "html": "<article class=\"ds-library-tile\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-tile-open\"><span class=\"ds-tile-art\">PDF</span><strong>Notes.pdf</strong><small>240 KB</small></button><button class=\"ds-tile-options\" aria-label=\"Options for Notes.pdf\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"5\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"2\" fill=\"currentColor\"/></svg></button></article>",
+      "css": ".ds-library-tile{position:relative;width:180px;padding:12px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:7px;background:var(--panel,#111514);color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-tile>input{position:absolute;top:12px;left:12px;width:16px;height:16px;accent-color:var(--accent,#ff6b3c)}.ds-library-tile:has(input:checked){border-color:var(--accent,#ff6b3c);background:var(--star-soft,rgba(255,107,60,.12))}.ds-library-tile button{border:0;background:none;color:inherit;text-align:left;cursor:pointer}.ds-tile-open{display:block;width:100%;padding:0}.ds-tile-art{display:grid;place-items:center;height:90px;color:var(--muted,#9ba39e);font:13px var(--mono,monospace)}.ds-tile-open strong{display:block;font:500 13px/1.4 var(--sans,sans-serif)}.ds-tile-open small{display:block;color:var(--muted,#9ba39e);font:11px/1.5 var(--sans,sans-serif)}.ds-tile-options{display:none}.ds-library-tile button:hover{color:var(--accent,#ff6b3c)}.ds-library-tile button:focus-visible,.ds-library-tile input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}@media(hover:none),(max-width:700px){.ds-tile-options{display:inline-flex;position:absolute;right:5px;bottom:5px;align-items:center;justify-content:center;width:34px;height:34px;color:var(--muted,#9ba39e);font-size:22px}.ds-tile-open strong,.ds-tile-open small{padding-right:35px}}.ds-tile-options svg{width:22px;height:22px}"
     }
   ],
   "narrative": {
     "northStar": "The Chromatic Archive",
-    "overview": "Vault feels like a serious private archive whose entertainment layer comes alive when media is present. Its working surfaces are dense, calm, and exact; Watch, Listen, and playback concentrate scale, imagery, motion, and depth without turning the file system into a streaming-site imitation. The visual voice is mineral black, warm paper white, and one orange signal. Library is a compact Explorer-style operating surface with shelf folders at the root, a small heading, breadcrumbs, and dense file rows. Its refresh leaves Watch, Listen, and playback design unchanged.",
+    "overview": "Vault feels like a serious private archive whose entertainment layer comes alive when media is present. Its working surfaces are dense, calm, and exact; Watch, Listen, and playback concentrate scale, imagery, motion, and depth without turning the file system into a streaming-site imitation.\r\n\r\nLibrary is a compact Explorer-style operating surface: a small heading, shelf folders at the root, clickable breadcrumbs, and dense file rows. This Library refresh keeps the established Chromatic Archive identity and the Watch, Listen, and playback design unchanged.\r\n\r\nThe visual voice is mineral black, warm paper white, and one orange signal. Self-hosted sans lettering gives titles editorial impact while a restrained mono face handles measurements, paths, formats, times, and system state. Missing artwork must remain graceful rather than making the application feel incomplete.",
     "keyCharacteristics": [
       "Near-black tonal layering instead of decorative panels.",
       "Warm orange used as a signal, never as a wash across the whole screen.",
       "Large, tightly set media titles paired with precise mono metadata.",
       "Dense file tools and spacious entertainment surfaces in one coherent shell.",
-      "Motion that reveals state, metadata, or the next feature and respects reduced motion.",
-      "Compact Library hierarchy and file actions share the established dark/light palette with entertainment."
+      "Motion that reveals state, metadata, or the next feature and respects reduced motion."
     ],
     "rules": [
       {
         "name": "The Signal Rarity Rule",
         "body": "Orange identifies interaction, progress, or current state; it does not become a decorative second background.",
+        "section": "colors"
+      },
+      {
+        "name": "The Local Contrast Rule",
+        "body": "Secondary text is tinted from its surrounding ground and remains legible; neutral gray is not dropped indiscriminately onto colored media.",
         "section": "colors"
       },
       {
@@ -261,19 +270,19 @@
     ],
     "dos": [
       "Do keep filenames, permissions, folders, and primary actions legible before adding spectacle.",
+      "Do keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, stable metadata, and context-menu actions together as one operating surface.",
       "Do concentrate artwork and motion in Watch, Listen, playback, and meaningful previews.",
       "Do provide a graceful local fallback when thumbnails or remote metadata are unavailable.",
-      "Do mirror hover disclosure with keyboard focus and persistent detail views.",
-      "Do pause feature rotation during interaction, at reduced-motion preference, or away from the top of the view.",
-      "Do keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, and responsive action disclosure together as one operating surface."
+      "Do mirror media hover disclosure with keyboard focus and persistent detail views.",
+      "Do pause feature rotation during interaction, at reduced-motion preference, or away from the top of the view."
     ],
     "donts": [
       "Don't turn Vault into a Netflix clone or a cyan terminal costume.",
       "Don't use orange as a decorative page wash or distribute many competing accent colors.",
       "Don't hide archive navigation or owner access to make a media screen look cleaner.",
       "Don't use mono for body copy, large headings, or atmosphere.",
-      "Don't make metadata, artwork, transcoding, or network access prerequisites for reaching the original file.",
-      "Don't interpret icon sizes as typography tokens or extend this Library refresh into new Watch or Listen styling."
+      "Don't interpret icon sizes as typography tokens or extend this Library refresh into new Watch or Listen styling.",
+      "Don't make metadata, artwork, transcoding, or network access prerequisites for reaching the original file."
     ]
   }
 }

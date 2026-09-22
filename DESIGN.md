@@ -186,9 +186,11 @@ Icon-font `font-size` values describe glyph geometry, not text roles: shelf icon
 
 Desktop uses a 68px command bar, a 208px Library shelf rail, and a flexible content field. Library has a small heading with summary, followed by a 58px minimum-height breadcrumb toolbar. The file surface has 18px side padding, a 38px column header, and 49px minimum-height rows. Watch and Listen dismiss the shelf rail and retain their large feature fields with horizontal rails below.
 
-At 1100px and below, the Library rail becomes 180px and rows reduce to selection, name, and size, with persistent actions on a second line. Above 1100px on hover-capable input, hover or focus reveals row actions in the metadata area; size, shelf, and added metadata temporarily yield that space. Non-hover input at wider widths also gets a persistent action line. At 940px the command bar becomes a two-row tablet header. At 700px the layout becomes one vertical flow: shelves and entertainment links become horizontal bands, the toolbar wraps, and file-surface side padding reduces to 12px. Mobile rows have a 48px minimum height before their action line. Primary navigation, New folder, and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens. The existing mobile media scrollers and full-viewport player remain unchanged.
+At 1100px and below, the Library rail becomes 180px and rows reduce to selection, name, and size. Wide desktop rows retain size, shelf, and added metadata on hover and focus; actions live in the context menu rather than replacing those columns. Non-hover input and phone layouts add one persistent Options control beside the size. At 940px the command bar becomes a two-row tablet header. At 700px the layout becomes one vertical flow: shelves and entertainment links become horizontal bands, the toolbar wraps, and file-surface side padding reduces to 12px. Mobile rows have a 48px minimum height. Primary navigation, New folder, and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens. The existing mobile media scrollers and full-viewport player remain unchanged.
 
-Library grid uses auto-filled columns with a 180px minimum. Each tile keeps selection separate from its open target and provides a persistent Get action; a file also offers Share. Selected rows and tiles use the existing orange-tinted selection surface, with an accent border on tiles.
+Library grid uses auto-filled columns with a 180px minimum. Each tile keeps its checkbox separate from its open target and uses the same context-menu actions as rows; touch and phone layouts provide the persistent Options control. Selected rows and tiles use the existing orange-tinted selection surface, with an accent border on tiles.
+
+Shared links occupies the same Library workspace and sidebar. Its desktop rows align file identity, status, expiry, remaining downloads, and actions without card decoration. At 1200px and below actions move beneath the data; at 700px and below each entry stacks with full-width identity and status, paired labelled expiry/download values, and reachable Copy link and Revoke controls.
 
 Spacing follows a compact 4/8/12 rhythm inside controls and an 18/26 rhythm between surfaces. Headings receive more space above than below.
 
@@ -208,7 +210,7 @@ The system combines tonal layers with soft ambient depth. Working rows and navig
 
 Compact work controls use 5–7px corners. Media and owner surfaces use 12–16px corners. Pills are reserved for small controls, current-state selectors, and direct actions. Artwork keeps its own rectangular silhouette; circles belong to transport and icon-only controls.
 
-Library refines that compact vocabulary: 4px view-toggle buttons, 5px row/Get actions, 6px toolbar controls and mobile shelf bands, 7px grid tiles, and a 9px bulk-action surface. These are corner sizes, independent of the text and icon scales.
+Library refines that compact vocabulary: 4px view-toggle buttons, 5px menu and bulk Download actions, 6px toolbar controls, ZIP fields, and mobile shelf bands, 7px grid tiles and context menus, and a 9px bulk-action surface. These are corner sizes, independent of the text and icon scales.
 
 ## Components
 
@@ -240,7 +242,7 @@ The three primary spaces live in a segmented pill. The active space inverts to w
 
 All files presents non-media shelves as folders rather than flattening their contents. Entering a shelf or folder exposes its immediate children; breadcrumbs and Up preserve that hierarchy. Search stays within the active Library scope and searches descendants. Movies, series, and music shelves are excluded from All files and its search. Their lower-left shortcuts open an explicit file-browsing scope with the same folder tools. Only the top Watch and Listen tabs enter the playback surfaces.
 
-Names and selection stay visible while desktop actions appear on hover or keyboard focus. Metadata yields to actions only in the wide desktop row treatment; compact and touch layouts keep actions on their own line. Grid tiles preserve explicit selection and Get/Get folder controls. The bulk surface reports selection and exposes the applicable actions. Keep folder navigation, downloading, sharing, and owner tools practical without introducing a Library hero, decorative metrics, or a new visual world.
+Names, selection, and the layout's metadata columns stay visible on hover and keyboard focus. Rows and grid tiles use a compact context menu for file operations, with a persistent Options control on touch and phone layouts. The bulk surface reports selection and exposes applicable actions, including Create ZIP. Keep folder navigation, downloading, sharing, and owner tools practical without introducing a Library hero, decorative metrics, or a new visual world.
 
 ### Media Card
 
@@ -250,15 +252,35 @@ The image dominates in a wide cinematic frame. Hover or focus adds a shallow sca
 
 Controls float over the video rather than occupying a permanent panel. Transport is icon-led; episode context sits in the top strip on wide screens, the close control owns the opposite corner, buffering uses the orange orbital signal, and advanced utilities recede before core playback controls.
 
+### File Selection, Actions, and Navigation
+
+An ordinary click neither selects an item nor opens a menu; it establishes the range anchor. Double-click opens the item. Checkboxes and Ctrl/Cmd-click toggle selection; Shift-click selects the inclusive range in the current visible sort order, while Ctrl/Cmd+Shift-click adds that range to the selection. Right-click, the keyboard context-menu key, or Shift+F10 opens the compact action menu without changing selection. Touch and phone layouts expose the same menu through Options. The body-level menu remains inside the viewport, offers keyboard navigation and Escape, and uses shared panel, divider, accent, and text tokens. Dragging an unchecked item moves that item without selecting it; dragging a checked item moves the checked selection. Download is available in the menu and bulk controls; folders download as ZIP archives. Move and delete support folders as well as files, while shelf roots remain protected.
+
+Folders, shelf shortcuts, and breadcrumbs accept internal drag-and-drop moves with an accent outline. Move to… provides a folder browser with an explicit Move here button. Destructive actions retain confirmation and name that folders include their contents. Back, Forward, and Up remain beside the breadcrumbs; browser/mouse history follows folder and space navigation. The existing dialog history shares the same location state.
+
+### Document Reader
+
+Document previews share the existing full-screen viewer, filename, Download, Close, and browser Back behavior. PDFs use the native browser reader. DOCX and Markdown show a simplified, read-only paper surface with restrained serif prose, clear headings, tables, and a readable line length. Legacy Word shows extracted text; LaTeX and other text formats use wrapped monospace source. The paper surface remains light for document contrast in either application theme and becomes edge-to-edge on phones. Loading and failure states keep the original download available. Uploaded markup is sanitized, runs inside a sandbox without scripts, and cannot fetch remote images.
+
+### ZIP Creation
+
+Create ZIP in Vault uses the existing compact dialog surface, with Archive name and Save in fields, an inline error, and a status line. The fields use shared panel, text, and divider colors with 6px corners and 13px sans text. The job can run in the background; progress names the work, and successful completion states the saved destination before offering Download ZIP. Creating a saved archive remains distinct from the existing direct ZIP download action.
+
+### Shared Links
+
+The Shared links sidebar entry opens a navigable Library view using the existing small heading, sans operating scale, flat dividers, and dark/light theme variables. Global search matches file paths, labels, and owners; the local filter offers All links, Active, and Inactive, alongside Refresh. Each entry shows filename and path, optional label, owner, textual status, relative and absolute expiry, remaining downloads and used count. Unlimited and no-expiry values remain explicit. Supporting copy explains that media opens count against download limits and copying a link does not.
+
+Copy link is disabled for inactive links. Revoke opens the existing confirmation dialog and names the affected file. Loading, refresh errors with retry guidance, no links, and no matching links all remain within the same quiet working surface. Phone rows show their own data labels as the column header disappears. These tools extend the established compact archive vocabulary without adding a palette, media treatment, or new visual identity.
+
 ## Do's and Don'ts
 
 ### Do:
 
 - **Do** keep filenames, permissions, folders, and primary actions legible before adding spectacle.
-- **Do** keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, and responsive action disclosure together as one operating surface.
+- **Do** keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, stable metadata, and context-menu actions together as one operating surface.
 - **Do** concentrate artwork and motion in Watch, Listen, playback, and meaningful previews.
 - **Do** provide a graceful local fallback when thumbnails or remote metadata are unavailable.
-- **Do** mirror hover disclosure with keyboard focus and persistent detail views.
+- **Do** mirror media hover disclosure with keyboard focus and persistent detail views.
 - **Do** pause feature rotation during interaction, at reduced-motion preference, or away from the top of the view.
 
 ### Don't:
@@ -269,14 +291,3 @@ Controls float over the video rather than occupying a permanent panel. Transport
 - **Don't** use mono for body copy, large headings, or atmosphere.
 - **Don't** interpret icon sizes as typography tokens or extend this Library refresh into new Watch or Listen styling.
 - **Don't** make metadata, artwork, transcoding, or network access prerequisites for reaching the original file.
-
-
-### File Selection, Actions, and Navigation
-
-Single-clicking a filename neither selects it nor opens a menu; double-click opens it. Right-click and the explicit More button open a compact action menu anchored below the row without changing selection. The body-level menu remains inside the viewport, offers keyboard navigation and Escape, and uses shared panel, divider, accent, and text tokens. Only checkboxes (including Select all) select items. Dragging an unchecked item moves that item without selecting it; dragging a checked item moves the checked selection. Download is explicit in row, menu, grid, and bulk controls; folders download as ZIP archives. Move and delete support folders as well as files, while shelf roots remain protected.
-
-Folders, shelf shortcuts, and breadcrumbs accept internal drag-and-drop moves with an accent outline. Move to… provides a folder browser with an explicit Move here button. Destructive actions retain confirmation and name that folders include their contents. Back, Forward, and Up remain beside the breadcrumbs; browser/mouse history follows folder and space navigation. The existing dialog history shares the same location state.
-
-### Document Reader
-
-Document previews share the existing full-screen viewer, filename, Download, Close, and browser Back behavior. PDFs use the native browser reader. DOCX and Markdown show a simplified, read-only paper surface with restrained serif prose, clear headings, tables, and a readable line length. Legacy Word shows extracted text; LaTeX and other text formats use wrapped monospace source. The paper surface remains light for document contrast in either application theme and becomes edge-to-edge on phones. Loading and failure states keep the original download available. Uploaded markup is sanitized, runs inside a sandbox without scripts, and cannot fetch remote images.

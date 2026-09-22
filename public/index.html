@@ -1311,8 +1311,8 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-document-preview-20260922">
-<link rel="stylesheet" href="/library.css?v=vault-document-preview-20260922">
+<link rel="stylesheet" href="/chromatic.css?v=vault-library-tools-20260922">
+<link rel="stylesheet" href="/library.css?v=vault-library-tools-20260922">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: THESIS: a private archive with an integrated cinema and listening room, reproduced closely from the approved 06 Chromatic Vault prototype. OWN-WORLD: near-black mineral surfaces, warm orange signal color, compact mono metadata, calm editorial type, cinematic image fields, and a precise file workspace. STORY: enter through one command surface; work in Library, lean back in Watch, focus in Listen, and manage the system without leaving the visual world. FIRST VIEWPORT: Library is a compact Explorer-style workspace with a 208px rail, 90px heading, 58px breadcrumb toolbar, shelf folders, and 49px file rows; Watch and Listen take over the full canvas. FORM: user-pinned code-led replacement using the approved prototype as the binding specification. SEED KEY: incumbent-selected. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
@@ -1359,6 +1359,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
     <aside class="library-sidebar">
       <div class="tag">Shelves</div>
       <div class="shelves" id="shelves"></div>
+      <div class="library-utilities"><button class="shelf" id="sharedLinksNav"><i class="ph ph-link" aria-hidden="true"></i><b>Shared links</b></button></div>
       <div class="ent-side-label tag">Entertainment</div>
       <div class="entertainment-side" id="entertainment"></div>
       <div class="meter">
@@ -1510,6 +1511,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   <span class="tag" id="bulkCount">0 selected</span>
   <span class="sp"></span>
   <button class="act" id="bulkGet">Download</button>
+  <button class="act" id="bulkZip">Create ZIP</button>
   <button class="act" id="bulkMove">Move</button>
   <button class="act kill" id="bulkDelete">Delete</button>
   <button class="act" id="bulkClear">Clear</button>
@@ -1531,8 +1533,9 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/document-reader.js?v=vault-document-preview-20260922"></script>
-<script src="/library-actions.js?v=vault-document-preview-20260922"></script>
+<script src="/document-reader.js?v=vault-library-tools-20260922"></script>
+<script src="/library-tools.js?v=vault-library-tools-20260922"></script>
+<script src="/library-actions.js?v=vault-library-tools-20260922"></script>
 <script>
 'use strict';
 
@@ -2129,6 +2132,10 @@ function render(){
   closeFileMenu();
   recordBrowserLocation();
   $('#scroll').classList.remove('feature-changing');
+  document.body.classList.toggle('shares-mode',state.mode==='shares');
+  $('#sharedLinksNav').classList.toggle('on',state.mode==='shares');
+  $('#sharedLinksNav').toggleAttribute('aria-current',state.mode==='shares');
+  $('.library-heading p').textContent=state.mode==='shares'?'Keep track of what you’ve shared.':'Everything in its place.';
   const counts = {};
   const sizes = {};
   let total = 0;
@@ -2139,10 +2146,10 @@ function render(){
   }
 
   document.querySelectorAll('[data-space]').forEach((button)=>{
-    const active=button.dataset.space==='library'?state.mode==='files':button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
+    const active=button.dataset.space==='library'?state.mode!=='entertainment':button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
     button.classList.toggle('on',active);button.toggleAttribute('aria-current',active);
   });
-  $('#q').placeholder=state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
+  $('#q').placeholder=state.mode==='shares'?'Search shared links':state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
   const libraryFiles=state.files.filter(f=>!MEDIA_SHELVES.has(f.shelf));
   const summaryFiles=state.shelf!=='all'?state.files.filter(f=>f.shelf===state.shelf):libraryFiles;
   $('.library-heading h2').textContent=MEDIA_SHELVES.has(state.shelf)&&state.mode==='files'?`${SHELF_LABEL[state.shelf]} files`:'Library';
@@ -2199,6 +2206,13 @@ function render(){
     ? present.map((s)=>`<span>${SHELF_LABEL[s]} <b>${bytes(sizes[s])}</b></span>`).join('')
     : '<span>Vault empty</span>';
 
+  if(state.mode==='shares'){
+    clearTimeout(featureTimer);document.body.classList.remove('media-mode');
+    $('#resume').classList.remove('on');$('#resume').innerHTML='';
+    $('.library-heading h2').textContent='Shared links';
+    $('#librarySummary').textContent='';
+    wireFileInteractions([]);updateBulkBar();renderSharedLinks();return;
+  }
   renderResume();
 
   // header
@@ -2342,7 +2356,7 @@ function folderRow(folder, i){
     <td class="f-meta">${folder.shelfRoot?bytes(folder.size):'—'}</td>
     <td class="f-shelf col-shelf">${folder.shelfRoot?'Shelf':esc(SHELF_LABEL[folder.shelf]||'')}</td>
     <td class="f-meta col-added">${folder.modified?ago(folder.modified):'—'}</td>
-    <td><div class="acts"><button class="act" data-act="folder" data-i="${i}">Open</button><button class="act" data-act="get" data-i="${i}">Download</button><button class="act" data-act="options" data-i="${i}" aria-label="More options for ${esc(folder.name)}">More</button></div></td>
+    <td class="touch-options-cell"><button class="touch-options" data-act="options" data-i="${i}" aria-label="Options for ${esc(folder.name)}">${icon('dots-three')}</button></td>
   </tr>`;
 }
 
@@ -2356,12 +2370,12 @@ function fileRow(f, i, nested){
     <td class="f-meta">${bytes(f.size)}</td>
     <td class="f-shelf col-shelf">${esc(SHELF_LABEL[f.shelf]||'')}</td>
     <td class="f-meta col-added">${ago(f.modified)}</td>
-    <td><div class="acts">
+    <td class="${state.mode==='files'?'touch-options-cell':''}">${state.mode==='files'?`<button class="touch-options" data-act="options" data-i="${i}" aria-label="Options for ${esc(f.name)}">${icon('dots-three')}</button>`:`<div class="acts">
       ${openable(f)?`<button class="act" data-act="open" data-i="${i}">Open</button>`:''}
       ${f.ext==='mkv'?`<button class="act" data-act="convert" data-i="${i}">MP4</button>`:''}
       <button class="act" data-act="get" data-i="${i}">Download</button>
       <button class="act" data-act="options" data-i="${i}" aria-label="More options for ${esc(f.name)}">More</button>
-    </div></td>
+    </div>`}</td>
   </tr>`;
 }
 
@@ -2371,7 +2385,7 @@ function libraryGrid(list){
     <button class="tile-open" data-act="focus" data-i="${i}" title="${esc(f.name)}">
       <div class="tile-art blank">${f.kind==='folder'?icon('folder'):IMAGE.includes(f.ext)?`<img src="${url('stream',f.rel)}" alt="" loading="lazy">`:`<span>${esc((f.ext||'FILE').toUpperCase())}</span>`}</div>
       <span class="tile-body"><b>${esc(f.name)}</b><small>${f.shelfRoot?`${f.count} ${f.count===1?'file':'files'}`:f.kind==='folder'?'Folder':bytes(f.size)}</small></span>
-    </button><div class="tile-actions"><button class="act" data-act="get" data-i="${i}">${icon('download-simple')} Download</button><button class="act" data-act="options" data-i="${i}" aria-label="More options for ${esc(f.name)}">More</button></div>
+    </button><button class="touch-options" data-act="options" data-i="${i}" aria-label="Options for ${esc(f.name)}">${icon('dots-three')}</button>
   </article>`).join('')}</div>`;
 }
 function gridView(list){
@@ -2558,7 +2572,7 @@ function wire(){
       const f = list[+el.dataset.i];
       if(!f) return;
       const act = el.dataset.act;
-      if(act==='focus')return;
+      if(act==='focus'){selectFileItem(f,e);return;}
       if(act==='options'){ showFileMenu(f,e); return; }
       if(act==='folder'){ openFolder(f); return; }
       if(act==='show'){ state.showDetail=el.dataset.show;state.q='';$('#q').value='';render();$('#scroll').scrollTop=0;return; }
@@ -2598,9 +2612,8 @@ function wire(){
     box.onclick = (e) => {
       e.stopPropagation();
       const rel = box.dataset.rel;
-      box.checked ? state.picked.add(rel) : state.picked.delete(rel);
-      box.closest('tr,.tile').classList.toggle('picked', box.checked);
-      updateBulkBar();
+      const file=list.find(item=>item.rel===rel);
+      if(file)selectFileItem(file,e,{checkbox:true,checked:box.checked});
     };
   });
   const all = $('#pickAll');
@@ -2613,6 +2626,7 @@ function wire(){
         b.checked ? state.picked.add(b.dataset.rel) : state.picked.delete(b.dataset.rel);
         b.closest('tr,.tile').classList.toggle('picked', b.checked);
       });
+      selectionAnchor=boxes.find(b=>b.checked)?.dataset.rel||null;
       updateBulkBar();
     };
   }
@@ -2767,7 +2781,7 @@ function updateBulkBar(){
   if(all){ all.checked=boxes.length>0&&boxes.every(b=>state.picked.has(b.dataset.rel)); all.indeterminate=boxes.some(b=>state.picked.has(b.dataset.rel))&&!all.checked; }
 }
 
-function clearPicked(){ state.picked.clear(); render(); }
+function clearPicked(){ state.picked.clear();selectionAnchor=null;render(); }
 
 $('#bulkClear').onclick = clearPicked;
 async function downloadSelection(rels){
@@ -2784,6 +2798,8 @@ async function downloadSelection(rels){
 $('#bulkGet').onclick=()=>downloadSelection([...state.picked]);
 $('#bulkDelete').onclick=()=>askDeleteItems([...state.picked]);
 $('#bulkMove').onclick=()=>askMoveItems([...state.picked]);
+$('#bulkZip').onclick=()=>askCreateZip([...state.picked]);
+$('#sharedLinksNav').onclick=openSharedLinks;
 
 /* ── durable MP4 conversion */
 function askConvert(f){
@@ -3385,7 +3401,7 @@ function askShare(f){
     </div>
     <div class="gate-error mono" id="shareErr" style="margin:0 0 14px"></div>
     <div class="sheet-row">
-      <button class="ghost" id="manage">All links</button>
+      <button class="ghost" id="manage">Shared links</button>
       <span style="flex:1"></span>
       <button class="ghost" id="no">Cancel</button>
       <button class="ghost accent" id="yes">Create link</button>
@@ -3419,9 +3435,9 @@ function showShareLink(f, id){
   sheet(`<span class="tag">Link ready</span>
     <p>Send this to whoever needs <b>${esc(f.name)}</b>.</p>
     <div class="token-box mono" id="lkVal">${esc(link)}</div>
-    <div class="rename-hint">Revoke it any time from <b>All links</b>.</div>
+    <div class="rename-hint">Revoke it any time from <b>Shared links</b>.</div>
     <div class="sheet-row">
-      <button class="ghost" id="manage">All links</button>
+      <button class="ghost" id="manage">Shared links</button>
       <span style="flex:1"></span>
       <button class="ghost" id="copy">Copy</button>
       <button class="ghost accent" id="done">Done</button>
@@ -3435,39 +3451,7 @@ function showShareLink(f, id){
   $('#done').onclick = closeSheet;
 }
 
-async function manageShares(){
-  const r = await fetch('/api/shares');
-  const { shares } = r.ok ? await r.json() : { shares: [] };
-  sheet(`<span class="tag">Share links</span>
-    ${shares.length ? `<div class="link-list">${shares.map((x)=>`
-      <div class="lk ${x.dead?'dead':''}">
-        <div class="lk-id">
-          <b>${esc(x.rel.split('/').pop())}</b>
-          <small>${x.label?esc(x.label)+' · ':''}${x.dead?'expired or used up'
-            :(x.expires?`until ${new Date(x.expires).toLocaleDateString()}`:'no expiry')}
-            · ${x.uses} open${x.uses===1?'':'s'}${x.maxUses?` of ${x.maxUses}`:''}</small>
-        </div>
-        <button class="act" data-copy="${esc(x.id)}">Copy</button>
-        <button class="act kill" data-kill="${esc(x.id)}">Revoke</button>
-      </div>`).join('')}</div>`
-      : '<div class="rename-hint" style="margin:0 0 18px">No links yet.</div>'}
-    <div class="sheet-row"><button class="ghost accent" id="done">Close</button></div>`);
-
-  $('#sheet').querySelectorAll('[data-copy]').forEach((b) => {
-    b.onclick = async () => {
-      try{ await navigator.clipboard.writeText(`${location.origin}/s/${b.dataset.copy}`); b.textContent='Copied'; }
-      catch{ toast('Copy failed — select the link manually','bad'); }
-    };
-  });
-  $('#sheet').querySelectorAll('[data-kill]').forEach((b) => {
-    b.onclick = async () => {
-      await fetch(`/api/shares/${b.dataset.kill}`, { method:'DELETE' });
-      toast('Link revoked');
-      manageShares();
-    };
-  });
-  $('#done').onclick = closeSheet;
-}
+function manageShares(){openSharedLinks();}
 
 /* ── accounts */
 $('#btnUsers').onclick = () => {

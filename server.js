@@ -13,6 +13,8 @@ const { spawn, spawnSync } = require('child_process');
 const { resolveEntry, collectEntries, streamArchive } = require('./lib/archive');
 const { operate } = require('./lib/file-operations');
 const { previewDocument } = require('./lib/document-preview');
+const { createZip } = require('./lib/create-zip');
+const { listSharedLinks } = require('./lib/shared-links');
 
 // ---------------------------------------------------------------- config
 
@@ -28,7 +30,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-document-preview-20260922';
+const BUILD_ID = 'vault-library-tools-20260922';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -3100,6 +3102,35 @@ app.post('/api/files/bulk', auth, async (req,res) => {
   } catch (error) { res.status(error.status || 400).json({ error:error.message }); }
 });
 
+// ZIPs are background jobs so large folders do not depend on a long HTTP request.
+const zipJobs = new Map();
+app.post('/api/files/zip', auth, (req, res) => {
+  for (const [id, job] of zipJobs) if (job.finished && Date.now() - job.finished > 3600000) zipJobs.delete(id);
+  if ([...zipJobs.values()].filter(job => job.status === 'working').length >= 2) {
+    return res.status(429).json({ error: 'Two ZIPs are already being created. Try again when one finishes.' });
+  }
+  const id = crypto.randomBytes(16).toString('hex');
+  const job = { id, by: req.user.name, status: 'working', processed: 0, total: 0 };
+  zipJobs.set(id, job);
+  const { rels, destination, name } = req.body;
+  createZip(ROOT, { rels, destination, name }, allowedShelves(req.user), {
+    onProgress: progress => Object.assign(job, progress),
+  }).then(result => {
+    Object.assign(job, result, { status: 'done', finished: Date.now() });
+    note(req.user.name, 'zip-create', result.rel);
+  }).catch(error => {
+    Object.assign(job, { status: 'failed', finished: Date.now(), error: error.status ? error.message : 'Could not create the ZIP. Check that the files are available and there is enough disk space.' });
+  });
+  res.status(202).json({ id });
+});
+app.get('/api/files/zip/:id', auth, (req, res) => {
+  res.setHeader('Cache-Control', 'private, no-store');
+  const job = zipJobs.get(req.params.id);
+  if (!job || job.by !== req.user.name) return res.status(404).json({ error: 'ZIP job not found. It may have ended when the server restarted.' });
+  const { by, ...visible } = job;
+  res.json(visible);
+});
+
 // ---------------------------------------------------------------- activity
 
 app.get('/api/activity', auth, adminOnly, (req, res) => {
@@ -3110,17 +3141,9 @@ app.get('/api/activity', auth, adminOnly, (req, res) => {
 // ---------------------------------------------------------------- shares API
 
 app.get('/api/shares', auth, async (req, res) => {
-  const admin = req.user.role === 'admin';
-  const mine = Object.entries(shares)
-    .filter(([, sh]) => admin || sh.by === req.user.name)
-    .map(([id, sh]) => ({
-      id, rel: sh.rel, by: sh.by, label: sh.label,
-      created: sh.created, expires: sh.expires, maxUses: sh.maxUses, uses: sh.uses,
-      lastUsed: sh.lastUsed || null,
-      dead: !!((sh.expires && Date.now() > sh.expires) || (sh.maxUses && sh.uses >= sh.maxUses)),
-    }))
-    .sort((a, b) => b.created - a.created);
-  res.json({ shares: mine });
+  res.setHeader('Cache-Control', 'private, no-store');
+  try { res.json({ shares: await listSharedLinks(ROOT, shares, req.user, shelfIds) }); }
+  catch { res.status(500).json({ error: 'Could not load shared links. Please try again.' }); }
 });
 
 app.post('/api/shares', auth, async (req, res) => {
