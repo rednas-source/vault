@@ -35,21 +35,10 @@ function closeFileMenu(restoreFocus=false){
   if(restoreFocus&&menuAnchor?.isConnected)menuAnchor.focus();
   return true;
 }
-function syncPicked(){
-  $('#scroll').querySelectorAll('[data-rel]').forEach(el=>{
-    if(el.matches('input.pick'))el.checked=state.picked.has(el.dataset.rel);
-    else if(el.matches('tr,.tile'))el.classList.toggle('picked',state.picked.has(el.dataset.rel));
-  });
-  updateBulkBar();
-}
 function showFileMenu(file,event){
   event?.preventDefault();event?.stopPropagation();
-  if(event?.ctrlKey||event?.metaKey){
-    state.picked.has(file.rel)?state.picked.delete(file.rel):state.picked.add(file.rel);closeFileMenu();syncPicked();return;
-  }
-  if(!state.picked.has(file.rel)){state.picked.clear();state.picked.add(file.rel);}
-  syncPicked();
-  const rels=[...state.picked],multiple=rels.length>1,protectedRoot=rels.some(rel=>!rel.includes('/'));
+  const rels=state.picked.has(file.rel)?[...state.picked]:[file.rel];
+  const multiple=rels.length>1,protectedRoot=rels.some(rel=>!rel.includes('/'));
   if(!fileMenu){
     fileMenu=document.createElement('div');fileMenu.id='fileMenu';fileMenu.className='file-menu';
     fileMenu.setAttribute('role','menu');fileMenu.setAttribute('aria-label','File actions');document.body.append(fileMenu);
@@ -65,7 +54,7 @@ function showFileMenu(file,event){
     });
   }
   const actions=[];
-  if(!multiple&&(file.kind==='folder'||playable(file)))actions.push(['open',file.kind==='folder'?'Open folder':playable(file)?'Open':'Download file','folder-open']);
+  if(!multiple&&(file.kind==='folder'||openable(file)))actions.push(['open',file.kind==='folder'?'Open folder':'Open','folder-open']);
   actions.push(['download',multiple?'Download selection':'Download','download-simple']);
   if(!multiple&&file.kind!=='folder')actions.push(['zip','Download ZIP','file-zip']);
   if(!protectedRoot){
@@ -87,7 +76,7 @@ function showFileMenu(file,event){
   fileMenu.querySelectorAll('[data-menu-action]').forEach(button=>button.onclick=()=>{
     closeFileMenu();
     const action=button.dataset.menuAction;
-    if(action==='open')file.kind==='folder'?openFolder(file):playable(file)?openViewer(file):location.assign(url('download',file.rel));
+    if(action==='open')file.kind==='folder'?openFolder(file):openable(file)?openViewer(file):location.assign(url('download',file.rel));
     if(action==='download')!multiple&&file.kind!=='folder'?location.assign(url('download',file.rel)):downloadSelection(rels);
     if(action==='zip')downloadSelection(rels);
     if(action==='move')askMoveItems(rels);
@@ -171,21 +160,23 @@ function wireFileInteractions(list){
     row.ondragstart=event=>{
       if(file.shelfRoot){event.preventDefault();return;}
       closeFileMenu();
-      if(!state.picked.has(file.rel)){state.picked.clear();state.picked.add(file.rel);syncPicked();}
-      const rels=[...state.picked];
+      const rels=state.picked.has(file.rel)?[...state.picked]:[file.rel];
       if(rels.some(rel=>!rel.includes('/'))){event.preventDefault();return;}
       event.dataTransfer.setData(ITEM_DRAG_TYPE,JSON.stringify(rels));event.dataTransfer.effectAllowed='move';row.classList.add('dragging');
     };
     row.ondragend=()=>{document.querySelectorAll('.dragging,.drop-target').forEach(el=>el.classList.remove('dragging','drop-target'));};
-    row.onclick=event=>{
-      if(event.target.closest('input,button,a'))return;
-      if(event.ctrlKey||event.metaKey){state.picked.has(file.rel)?state.picked.delete(file.rel):state.picked.add(file.rel);syncPicked();return;}
-      showFileMenu(file,event);
-    };
+    row.onclick=null;
+    row.querySelector('[data-act="focus"]')?.addEventListener('keydown',event=>{
+      if(event.key==='Enter'){
+        event.preventDefault();event.stopPropagation();
+        file.kind==='folder'?openFolder(file):openable(file)?openViewer(file):location.assign(url('download',file.rel));
+      }
+      if(event.key==='ContextMenu'||(event.shiftKey&&event.key==='F10'))showFileMenu(file,event);
+    });
     row.oncontextmenu=event=>showFileMenu(file,event);
     row.ondblclick=event=>{
       if(event.target.closest('input,.acts,.tile-actions'))return;
-      closeFileMenu();file.kind==='folder'?openFolder(file):playable(file)?openViewer(file):location.assign(url('download',file.rel));
+      closeFileMenu();file.kind==='folder'?openFolder(file):openable(file)?openViewer(file):location.assign(url('download',file.rel));
     };
     if(file.kind==='folder')wireDropTarget(row,file.rel);
   });

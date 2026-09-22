@@ -21,7 +21,8 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Hover a video tile** to scrub through nine frames from across its runtime.
 - **Episodes collapse into seasons** automatically, from the filename.
 - **Bulk select and Get.** Select files or folders in list or grid view and download one streamed ZIP with nested paths preserved. Folder downloads include empty directories. Files and folders can both be moved or deleted; shelf roots are protected.
-- **Explorer interactions.** Click a file or folder for actions, double-click to open, or use the checkboxes for multiple items. Download returns files directly or folders as ZIPs; Download ZIP also packages an individual file. Drag selected files or folders onto a folder, shelf, or breadcrumb to move them. Move to… lets you choose a nested destination.
+- **Explorer interactions.** Single-click leaves items unselected. Select only with checkboxes; right-click or use More for actions, and double-click to open. Download returns files directly or folders as ZIPs; Download ZIP also packages an individual file. Drag files or folders onto a folder, shelf, or breadcrumb to move them; dragging a checked item moves the checked selection. Move to… lets you choose a nested destination.
+- **Document reading.** Double-click PDFs, Word (`.docx`/`.doc`), Markdown, LaTeX, or plain-text files to read in the site. PDFs use the browser reader; DOCX and Markdown use a simplified reading view, older Word files show extracted text, and LaTeX shows source (no compilation). Unsupported formats still download automatically. Word previews support files up to 20 MB; text previews up to 2 MB. Encrypted, damaged, or overly complex documents keep an explicit Download option. Previews do not modify originals or send documents to an external service.
 - **Folder history.** Browser/mouse Back and Forward, toolbar arrows, and Alt+Left/Right follow visited folders. Alt+Up goes to the parent.
 - **Compact file actions.** Hover or keyboard focus replaces desktop metadata with actions; narrower screens show actions on a separate line.
 - **An activity log**, so "where did that file go" has an answer.
@@ -385,7 +386,7 @@ That `detached` case is the one worth having. If an NFS mount drops, the path re
 
 This follows the same release shape as the Padel app, adapted for Vault's existing non-Docker systemd service:
 
-1. A push to `main` runs `npm ci` plus server and browser syntax checks in GitHub Actions.
+1. A push to `main` runs `npm ci`, server and browser syntax checks, and file-operation/document-preview tests in GitHub Actions.
 2. Only a successful workflow promotes that exact commit to the mutable `production` branch.
 3. A systemd timer on the server checks `production` every five minutes (plus up to 20 seconds of jitter).
 4. A new commit is pulled with `--ff-only`, dependencies are installed, syntax is checked again, and `vault.service` is restarted.

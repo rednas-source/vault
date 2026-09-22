@@ -35,6 +35,8 @@ jobs:
       - name: Check server and browser code
         run: npm run check
 
+      - name: Test file operations and document previews
+        run: npm test
+
       - name: Promote verified commit
         run: git push origin "${GITHUB_SHA}:refs/heads/production"
-

@@ -10,8 +10,9 @@ const fsp = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
 const { spawn, spawnSync } = require('child_process');
-const { collectEntries, streamArchive } = require('./lib/archive');
+const { resolveEntry, collectEntries, streamArchive } = require('./lib/archive');
 const { operate } = require('./lib/file-operations');
+const { previewDocument } = require('./lib/document-preview');
 
 // ---------------------------------------------------------------- config
 
@@ -27,7 +28,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-library-actions-20260922';
+const BUILD_ID = 'vault-document-preview-20260922';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1810,6 +1811,21 @@ const shelfGate = (req, res, next) => {
   if (!shelf || !canUse(req.user, shelf)) return res.status(404).end();
   next();
 };
+
+app.get('/api/preview/*', auth, shelfGate, async (req, res) => {
+  res.setHeader('Cache-Control', 'private, no-store');
+  let entry;
+  try { entry = await resolveEntry(ROOT, req.params[0], allowedShelves(req.user)); }
+  catch { return res.status(404).json({ error: 'Document not found.' }); }
+  const controller = new AbortController();
+  res.on('close', () => controller.abort());
+  try {
+    const preview = await previewDocument(entry, { signal: controller.signal });
+    if (!res.destroyed) res.json(preview);
+  } catch (error) {
+    if (!res.destroyed) res.status(error.status || 422).json({ error: error.message });
+  }
+});
 
 app.get('/api/stream/*', auth, shelfGate, (req, res) => sendFile(req, res, { download: false }));
 app.get('/api/download/*', auth, shelfGate, (req, res) => sendFile(req, res, { download: true }));

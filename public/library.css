@@ -141,6 +141,12 @@ body:not(.media-mode) .global-search input { border:0; background:transparent; b
 .file-menu button i { font-size:18px; }
 .drop-target { outline:2px solid var(--accent)!important; outline-offset:-2px; background:var(--star-soft)!important; }
 .dragging { opacity:.45; }
+.viewer.reading .viewer-body { display:flex; flex-direction:column; align-items:stretch; padding:0; overflow:hidden; background:#e9e8e4; }
+.document-caption { flex:none; padding:9px 20px; border-bottom:1px solid var(--line); background:var(--panel); color:var(--muted); font-size:12px; }
+.document-frame { display:block; flex:1; width:100%; min-height:0; border:0; background:#fffefa; }
+.viewer.reading .viewer-note { margin:auto; padding:32px; max-width:600px; color:#333; }
+.viewer.reading .viewer-note p { color:#53564e; font:14px/1.6 var(--sans); letter-spacing:0; }
+.viewer.reading .viewer-note button { color:#333; border-color:#aaa; }
 .move-path { display:flex; align-items:center; gap:10px; min-width:0; padding-bottom:10px; }
 .move-path span { overflow-wrap:anywhere; font-size:12px; }
 .move-folders { max-height:280px; overflow:auto; border-block:1px solid var(--line); }

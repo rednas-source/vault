@@ -6,13 +6,17 @@
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js && node scripts/check-client.js",
-    "test": "node tests/archive.test.js && node tests/file-operations.test.js"
+    "test": "node tests/archive.test.js && node tests/file-operations.test.js && node tests/document-preview.test.js"
   },
   "dependencies": {
     "@phosphor-icons/web": "^2.1.2",
     "archiver": "^7.0.1",
     "express": "^4.19.2",
     "hls.js": "^1.7.1",
-    "multer": "^1.4.5-lts.1"
+    "mammoth": "^1.12.3",
+    "marked": "^15.0.12",
+    "multer": "^1.4.5-lts.1",
+    "sanitize-html": "^2.17.7",
+    "word-extractor": "^1.0.4"
   }
 }
