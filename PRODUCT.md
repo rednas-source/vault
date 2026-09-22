@@ -22,7 +22,7 @@ Make a large mixed collection feel understandable and pleasurable to use: browse
 
 ## Positioning
 
-Vault is not a generic cloud drive with a media skin and not a Netflix clone. It is a personal archive with a premium entertainment layer: tactile, private, capable, and visibly its own thing.
+Vault is a personal archive with a conventional streaming-service layer. The user explicitly chose Netflix / HBO / Emby conventions for Watch: clean artwork-led browsing, title details, and a show → season → episode hierarchy.
 
 ## Operating context
 
@@ -44,7 +44,7 @@ Vault is not a generic cloud drive with a media skin and not a Netflix clone. It
 ## Brand commitments
 
 - Name: Vault.
-- The user selected the Chromatic Vault prototype as the binding replacement direction for the production interface.
+- Library and Listen retain their approved design systems. The September 2026 Watch redesign supersedes the previous Chromatic Watch prototype with a neutral, conventional streaming-service interface.
 - The product should feel cinematic and editorial, but remain a serious power-user tool.
 
 ## Evidence and constraints
@@ -52,7 +52,7 @@ Vault is not a generic cloud drive with a media skin and not a Netflix clone. It
 - Existing production routes, DOM hooks, permissions, server-side path validation, storage, streaming, and account behavior are working product truth and must be preserved.
 - Existing cyan terminal styling is an anti-reference for the redesign, not a requirement.
 - The approved prototype combines the Chromatic Cinema top bar and Listen language with the Soft Kinetic file workspace.
-- Entertainment cards need richer, smooth hover disclosure and quiet automatic rotation that pauses on user interaction and respects reduced motion.
+- Watch uses stable artwork-led features, poster rows and title grids, with secondary file operations behind menus. Its hierarchy is presentation only: existing file paths remain unchanged.
 - The player should be icon-led, restrained, and professional, retain the useful episode top bar, and provide a distinct buffering state.
 - Metadata enrichment must fail softly and be cached; the collection must remain usable offline.
 
@@ -61,7 +61,7 @@ Vault is not a generic cloud drive with a media skin and not a Netflix clone. It
 1. The archive stays legible: navigation, filenames, permissions, and actions never disappear behind spectacle.
 2. Media earns atmosphere: artwork, motion, and depth are concentrated in Watch, Listen, and playback.
 3. Progressive disclosure over permanent clutter: show supporting metadata and secondary controls when relevant.
-4. One visual language across owner tools and entertainment, with density calibrated per task.
+4. Distinct work and entertainment environments, with navigation that keeps file management separate from playback.
 5. Motion communicates state or reveals detail; it never delays the primary action.
 6. Local truth first: metadata improves presentation but cannot become a dependency for access.
 

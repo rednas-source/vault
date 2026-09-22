@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-22T13:55:31.8470185+02:00",
-  "title": "Design System: Vault — Chromatic Archive",
+  "generatedAt": "2026-09-22T13:09:04.652250+00:00",
+  "title": "Design System: Vault — Archive and Watch",
   "extensions": {
     "colorMeta": {
       "signal-orange": {
@@ -63,12 +63,207 @@
           "oklch(87% 0.07 35)",
           "oklch(95% 0.025 35)"
         ]
+      },
+      "watch-ground": {
+        "role": "neutral",
+        "displayName": "Watch Ground",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-header": {
+        "role": "neutral",
+        "displayName": "Watch Header",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-surface": {
+        "role": "neutral",
+        "displayName": "Watch Surface",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-panel": {
+        "role": "neutral",
+        "displayName": "Watch Panel",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-art-fallback": {
+        "role": "neutral",
+        "displayName": "Watch Artwork Fallback",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-text": {
+        "role": "neutral",
+        "displayName": "Watch Text",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-muted": {
+        "role": "neutral",
+        "displayName": "Watch Muted",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-quiet": {
+        "role": "neutral",
+        "displayName": "Watch Quiet",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-faint": {
+        "role": "neutral",
+        "displayName": "Watch Faint",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-line": {
+        "role": "neutral",
+        "displayName": "Watch Line",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-line-soft": {
+        "role": "neutral",
+        "displayName": "Watch Line Soft",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-action": {
+        "role": "primary",
+        "displayName": "Watch Action White",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "watch-progress": {
+        "role": "neutral",
+        "displayName": "Watch Progress",
+        "tonalRamp": [
+          "#101010",
+          "#141414",
+          "#1c1c1c",
+          "#303030",
+          "#666666",
+          "#939393",
+          "#b6b6b6",
+          "#f5f5f5"
+        ],
+        "scope": "Watch browsing; token primitives are normative in DESIGN.md."
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Vault Display",
-        "purpose": "Feature, album, and major administration titles only."
+        "purpose": "Established Listen feature/album and major administration titles; Watch has its own display role."
       },
       "body": {
         "displayName": "Vault Body",
@@ -97,13 +292,37 @@
       "library-data": {
         "displayName": "Library Data",
         "purpose": "11px sans row metadata, counts, and supporting actions; numeric metadata uses tabular figures."
+      },
+      "watch-display": {
+        "displayName": "Watch Feature",
+        "purpose": "Stable artwork-led title; 39px on phones and 76px at 1800px and above."
+      },
+      "watch-heading": {
+        "displayName": "Watch Rail Heading",
+        "purpose": "Rail and season/episode section headings; 20px on phones."
+      },
+      "watch-catalog-heading": {
+        "displayName": "Watch Catalog Heading",
+        "purpose": "Movies, TV Shows, and search results; 28px on phones."
+      },
+      "watch-body": {
+        "displayName": "Watch Synopsis",
+        "purpose": "Feature synopsis, limited to four lines or three on phones; 14px at 1000px and below."
+      },
+      "watch-poster-title": {
+        "displayName": "Watch Poster Title",
+        "purpose": "Persistent title below upright artwork; 13px on phones."
+      },
+      "watch-meta": {
+        "displayName": "Watch Metadata",
+        "purpose": "Sans season/year and supporting metadata; poster metadata is 11px on phones."
       }
     },
     "shadows": [
       {
         "name": "media-lift",
         "value": "0 26px 70px rgba(0,0,0,.32)",
-        "purpose": "Artwork cards in active media rails."
+        "purpose": "Established media rails outside Watch. Watch artwork has no ornamental shadow."
       },
       {
         "name": "floating-surface",
@@ -115,7 +334,7 @@
       {
         "name": "reveal",
         "value": "420ms cubic-bezier(.16,1,.3,1)",
-        "purpose": "Hover metadata and shallow media lift."
+        "purpose": "Existing hover metadata and shallow media lift outside Watch."
       },
       {
         "name": "state",
@@ -123,9 +342,14 @@
         "purpose": "Navigation, buttons, and row feedback."
       },
       {
-        "name": "feature-cycle",
-        "value": "11000ms interval",
-        "purpose": "Quiet Watch hero rotation while the user is idle at the top of the view."
+        "name": "watch-art-feedback",
+        "value": "220ms ease",
+        "purpose": "Poster artwork translates upward 4px and brightens to 1.08 on hover or keyboard focus."
+      },
+      {
+        "name": "watch-play-overlay",
+        "value": "180ms ease",
+        "purpose": "Play-overlay opacity; visible on phones and episode rows."
       }
     ],
     "breakpoints": [
@@ -145,6 +369,16 @@
       {
         "name": "phone",
         "value": "700px"
+      },
+      {
+        "name": "watch-compact",
+        "value": "1000px",
+        "purpose": "Smaller feature, synopsis, grid columns, and episode thumbnail."
+      },
+      {
+        "name": "watch-wide",
+        "value": "1800px",
+        "purpose": "680px minimum home feature, 76px title, and 205px minimum catalog columns."
       }
     ],
     "library": {
@@ -155,7 +389,7 @@
         "public/index.html",
         "public/chromatic.css"
       ],
-      "scope": "Library operating surface only. Watch, Listen, and playback retain the established design, palette, and tokens.",
+      "scope": "Library operating surface only. Listen, administration, and playback retain their established systems; Watch is separately scoped below.",
       "hierarchy": "All files shows non-media shelves as folders. Browse immediate children with breadcrumbs and Up; search includes descendants within the active Library scope. Movies, series, and music are excluded from All files; their sidebar shortcuts open explicit file-browsing scopes. Shared links opens a separate navigable Library view.",
       "layout": "208px rail on desktop; 180px at 1100px and below; horizontal shelf bands at 700px and below. 58px minimum breadcrumb toolbar, 38px table heading, 49px minimum desktop rows, and 48px minimum mobile rows. Grid columns auto-fill from a 180px minimum.",
       "rowDisclosure": "No desktop hover actions: size, shelf, and added metadata remain visible in wide rows. Compact rows retain size. Right-click or Shift+F10 opens actions. Non-hover input and phone layouts at 700px and below show one persistent Options control.",
@@ -170,6 +404,42 @@
       "selection": "Ordinary click establishes the range anchor without selecting or opening a menu. Checkboxes and Ctrl/Cmd-click toggle; Shift-click selects an inclusive range in visible sort order; Ctrl/Cmd+Shift-click adds the range. Double-click opens.",
       "zipCreation": "Existing compact dialog with Archive name and Save in fields, inline progress/error, Run in background, and Download ZIP after saving. The saved archive flow stays distinct from direct ZIP downloading. Fields use shared panel/text/divider roles, 6px corners, and 13px sans.",
       "sharedLinks": "Flat Library view with global search and All/Active/Inactive filtering, filename/path, owner/label, textual status, relative/absolute expiry, remaining downloads/used counts, Copy link and confirmed Revoke. Media opens count against limits. Loading, error/retry, empty, and no-match states share existing theme roles. Actions move below data at 1200px; rows stack with local labels at 700px. Dark and light themes retain the existing palette."
+    },
+    "watch": {
+      "sources": [
+        "public/watch.css",
+        "public/watch.js",
+        "public/watch-model.js",
+        "public/index.html"
+      ],
+      "authority": "The user explicitly chose conventional Netflix / HBO / Emby streaming style. The first body comment in public/index.html records the direction contract.",
+      "scope": "Watch browsing and its shared-header treatment while body.watch-mode is active. Independent neutral dark palette, even under the application light theme. Library, Listen, administration, and playback retain their established systems.",
+      "hierarchy": "Home / Movies / TV Shows → title detail → season → ordered episodes. Back, All seasons, season selection, and browser history preserve context. This is a presentation hierarchy; no file moves. Specials and Unsorted episodes are explicit groups.",
+      "layout": "Internally scrolling pane beneath the shared header; 62px local navigation, 570px minimum home feature, 510px minimum desktop detail feature, 60px rail overlap. Upright 2:3 posters, 16:9 resume/episode art, 2:2.65 season art. Catalog grid starts at a 170px minimum, season columns at 155–190px. Desktop episode columns: 28px number, 190px image, flexible text, 36px options.",
+      "responsive": "At 1000px: 510px minimum home feature, 145px minimum catalog columns, 160px episode thumbnail. At 700px: 20px gutter, 56px navigation, 590px minimum home feature with image above copy, 540px detail feature, two-column catalogs/seasons, 145px poster rail cards, 280px resume cards, 24px overlap, and episode rows of 110px image / flexible text / 30px options. At 1800px: 680px minimum home feature and 205px minimum catalog columns.",
+      "states": "White 2px focus outline with 4px offset, persistent poster labels and options, text for watched/resume status, neutral progress bars. Primary actions have 46px minimum height, 44px on phones. Phone rails use touch scrolling and omit arrow controls.",
+      "motion": "No automatic feature rotation, orbit/canvas decoration, tilted posters, or chromatic storyworld treatments. Only restrained hover/focus and manual rail scrolling. Reduced motion removes transitions and smooth scrolling.",
+      "fallbacks": "Existing metadata artwork, then thumbnail/title-icon fallback; a missing feature image leaves a neutral field with readable copy. Empty catalog offers Open Library; no search results offers Clear search. Playback and file access remain available without artwork.",
+      "assets": "No new shipping raster assets. Public TMDB artwork fixtures are confined to ignored .qa; review screenshots are evidence, not runtime assets.",
+      "review": {
+        "disposition": "SHIP",
+        "materialFixes": "None required by final reviewer.",
+        "screenshots": [
+          ".impeccable/review/watch-home-desktop.png",
+          ".impeccable/review/watch-shows-desktop.png",
+          ".impeccable/review/watch-seasons-desktop.png",
+          ".impeccable/review/watch-episodes-desktop.png",
+          ".impeccable/review/watch-movie-desktop.png",
+          ".impeccable/review/watch-home-mobile.png",
+          ".impeccable/review/watch-shows-mobile.png",
+          ".impeccable/review/watch-seasons-mobile.png",
+          ".impeccable/review/watch-episodes-mobile.png",
+          ".impeccable/review/watch-no-art-desktop.png",
+          ".impeccable/review/watch-empty-desktop.png"
+        ],
+        "captureContext": "Some detail captures intentionally show internal-pane scrolled positions; the fixed shared header is still visible."
+      },
+      "detectorGuidance": "Colors, type sizes, and radii in .qa/watch-detector.json include expected mismatches against the former global system. Apply the actual scoped Watch tokens and responsive rules documented here; no suppression or global token replacement is implied."
     }
   },
   "components": [
@@ -177,7 +447,7 @@
       "name": "Primary Action",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Warm-white pill for the decisive action on a dark surface.",
+      "description": "Established surface outside Watch: Warm-white pill for the decisive action on a dark surface.",
       "html": "<button class=\"ds-primary\">Play</button>",
       "css": ".ds-primary{height:39px;padding:0 16px;border:0;border-radius:999px;background:var(--text,#f3f0e8);color:var(--void,#070909);font:700 11px/1 'Vault Sans',sans-serif;transition:background .2s,transform .2s}.ds-primary:hover{background:var(--star,#ff6b3c);transform:translateY(-1px)}.ds-primary:focus-visible{outline:2px solid var(--star,#ff6b3c);outline-offset:3px}"
     },
@@ -185,7 +455,7 @@
       "name": "Secondary Action",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Quiet outlined pill for a supporting media action.",
+      "description": "Established surface outside Watch: Quiet outlined pill for a supporting media action.",
       "html": "<button class=\"ds-secondary\">Movie details</button>",
       "css": ".ds-secondary{height:39px;padding:0 16px;border:1px solid rgba(255,255,255,.32);border-radius:999px;background:rgba(7,9,9,.4);color:var(--text,#f3f0e8);font:700 11px/1 'Vault Sans',sans-serif;transition:background .2s,border-color .2s}.ds-secondary:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.5)}.ds-secondary:focus-visible{outline:2px solid var(--star,#ff6b3c);outline-offset:3px}"
     },
@@ -200,15 +470,15 @@
     {
       "name": "Space Navigation",
       "kind": "nav",
-      "description": "The persistent Library, Watch, and Listen switcher.",
-      "html": "<nav class=\"ds-space\"><button>Library</button><button class=\"on\">Watch</button><button>Listen</button></nav>",
+      "description": "Established Library/Listen shared-space switcher. Watch uses a neutral small-radius active tab without a pill enclosure.",
+      "html": "<nav class=\"ds-space\"><button class=\"on\">Library</button><button>Watch</button><button>Listen</button></nav>",
       "css": ".ds-space{display:flex;gap:3px;width:max-content;padding:4px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.025)}.ds-space button{height:32px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:#aab0aa;font:400 11px/1 'Vault Sans',sans-serif}.ds-space button:hover{color:#f3f0e8}.ds-space button:focus-visible{outline:2px solid #ff6b3c;outline-offset:2px}.ds-space .on{background:#f3f0e8;color:#070909}"
     },
     {
       "name": "Media Card",
       "kind": "card",
       "refersTo": "media-card",
-      "description": "Wide artwork-first rail card whose metadata appears with deliberate depth.",
+      "description": "Established surface outside Watch: Wide artwork-first rail card whose metadata appears with deliberate depth.",
       "html": "<article class=\"ds-media\"><div class=\"ds-art\"><div class=\"ds-reveal\">2016 · IN LIBRARY<br><span>A quiet synopsis appears on hover.</span></div></div><strong>Arrival</strong><small>2016 · FEATURE</small></article>",
       "css": ".ds-media{width:300px;color:#f3f0e8;font-family:'Vault Sans',sans-serif;transition:transform .42s cubic-bezier(.16,1,.3,1)}.ds-media:hover{transform:translateY(-8px) scale(1.025)}.ds-media:focus-within{outline:2px solid #ff6b3c;outline-offset:3px}.ds-art{position:relative;aspect-ratio:1.6;overflow:hidden;border-radius:14px;background:radial-gradient(circle at 70% 20%,rgba(255,107,60,.34),transparent 34%),#111514;box-shadow:0 26px 70px rgba(0,0,0,.32)}.ds-reveal{position:absolute;left:14px;right:14px;bottom:16px;color:#e3e5df;font:500 8px/1.4 'Vault Mono',monospace;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .42s cubic-bezier(.16,1,.3,1)}.ds-media:hover .ds-reveal{opacity:1;transform:none}.ds-reveal span{font:400 11px/1.4 'Vault Sans',sans-serif;color:#c1c6c1}.ds-media strong{display:block;margin-top:12px;font-size:14px}.ds-media small{display:block;margin-top:4px;color:#747d78;font:500 8px/1 'Vault Mono',monospace}"
     },
@@ -234,22 +504,46 @@
       "description": "File tile with independent checkbox, open target, and context-menu actions; touch/phone layouts add Options.",
       "html": "<article class=\"ds-library-tile\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-tile-open\"><span class=\"ds-tile-art\">PDF</span><strong>Notes.pdf</strong><small>240 KB</small></button><button class=\"ds-tile-options\" aria-label=\"Options for Notes.pdf\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"5\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"2\" fill=\"currentColor\"/></svg></button></article>",
       "css": ".ds-library-tile{position:relative;width:180px;padding:12px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:7px;background:var(--panel,#111514);color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-tile>input{position:absolute;top:12px;left:12px;width:16px;height:16px;accent-color:var(--accent,#ff6b3c)}.ds-library-tile:has(input:checked){border-color:var(--accent,#ff6b3c);background:var(--star-soft,rgba(255,107,60,.12))}.ds-library-tile button{border:0;background:none;color:inherit;text-align:left;cursor:pointer}.ds-tile-open{display:block;width:100%;padding:0}.ds-tile-art{display:grid;place-items:center;height:90px;color:var(--muted,#9ba39e);font:13px var(--mono,monospace)}.ds-tile-open strong{display:block;font:500 13px/1.4 var(--sans,sans-serif)}.ds-tile-open small{display:block;color:var(--muted,#9ba39e);font:11px/1.5 var(--sans,sans-serif)}.ds-tile-options{display:none}.ds-library-tile button:hover{color:var(--accent,#ff6b3c)}.ds-library-tile button:focus-visible,.ds-library-tile input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}@media(hover:none),(max-width:700px){.ds-tile-options{display:inline-flex;position:absolute;right:5px;bottom:5px;align-items:center;justify-content:center;width:34px;height:34px;color:var(--muted,#9ba39e);font-size:22px}.ds-tile-open strong,.ds-tile-open small{padding-right:35px}}.ds-tile-options svg{width:22px;height:22px}"
+    },
+    {
+      "name": "Watch Primary Action",
+      "kind": "button",
+      "refersTo": "watch-button-primary",
+      "description": "Neutral rectangular playback action; dedicated Watch scope.",
+      "html": "<button class=\"ds-watch-primary\">Play</button>",
+      "css": ".ds-watch-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:12px 24px;border:0;border-radius:4px;background:#fff;color:#141414;font:650 15px var(--sans,sans-serif)}.ds-watch-primary:hover{background:#ddd}.ds-watch-primary:focus-visible{outline:2px solid #fff;outline-offset:4px}@media(max-width:700px){.ds-watch-primary{min-height:44px;padding:10px 15px;font-size:13px}}"
+    },
+    {
+      "name": "Watch Secondary Action",
+      "kind": "button",
+      "refersTo": "watch-button-secondary",
+      "description": "Neutral supporting detail or options action over the Watch backdrop.",
+      "html": "<button class=\"ds-watch-secondary\">More info</button>",
+      "css": ".ds-watch-secondary{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:12px 24px;border:0;border-radius:4px;background:rgba(100,100,100,.55);color:#fff;font:650 15px var(--sans,sans-serif)}.ds-watch-secondary:hover{background:#555}.ds-watch-secondary:focus-visible{outline:2px solid #fff;outline-offset:4px}@media(max-width:700px){.ds-watch-secondary{min-height:44px;padding:10px 15px;font-size:13px}}"
+    },
+    {
+      "name": "Watch Poster",
+      "kind": "card",
+      "refersTo": "watch-poster",
+      "description": "Upright title target with persistent metadata and a neutral missing-art fallback.",
+      "html": "<button class=\"ds-watch-poster\"><span class=\"ds-watch-art\">A title</span><strong>A title</strong><small>3 seasons</small></button>",
+      "css": ".ds-watch-poster{display:block;width:180px;padding:0;border:0;background:transparent;text-align:left;color:#f5f5f5;font-family:var(--sans,sans-serif)}.ds-watch-art{display:flex;align-items:center;justify-content:center;aspect-ratio:2/3;border-radius:5px;background:#252525;color:#c9c9c9;font-size:19px;font-weight:600;transition:transform .22s ease,filter .22s ease}.ds-watch-poster strong{display:block;margin-top:11px;font-size:14px;font-weight:550;line-height:1.4;color:#ededed}.ds-watch-poster small{display:block;margin-top:3px;font-size:12px;line-height:1.5;color:#b6b6b6}.ds-watch-poster:hover .ds-watch-art,.ds-watch-poster:focus-visible .ds-watch-art{transform:translateY(-4px);filter:brightness(1.08)}.ds-watch-poster:focus-visible{outline:2px solid #fff;outline-offset:4px}@media(prefers-reduced-motion:reduce){.ds-watch-art{transition:none}}"
     }
   ],
   "narrative": {
-    "northStar": "The Chromatic Archive",
-    "overview": "Vault feels like a serious private archive whose entertainment layer comes alive when media is present. Its working surfaces are dense, calm, and exact; Watch, Listen, and playback concentrate scale, imagery, motion, and depth without turning the file system into a streaming-site imitation.\r\n\r\nLibrary is a compact Explorer-style operating surface: a small heading, shelf folders at the root, clickable breadcrumbs, and dense file rows. This Library refresh keeps the established Chromatic Archive identity and the Watch, Listen, and playback design unchanged.\r\n\r\nThe visual voice is mineral black, warm paper white, and one orange signal. Self-hosted sans lettering gives titles editorial impact while a restrained mono face handles measurements, paths, formats, times, and system state. Missing artwork must remain graceful rather than making the application feel incomplete.",
+    "northStar": "The Chromatic Archive, with a personal streaming library for Watch",
+    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Listen, administration, and playback retain their established Chromatic Archive styling. Watch is the user's explicitly chosen conventional Netflix / HBO / Emby-style streaming library: neutral black, white controls, cinematic backdrops, upright posters, and straightforward title browsing.\n\nLibrary is a compact Explorer-style operating surface: a small heading, shelf folders at the root, clickable breadcrumbs, and dense file rows. Watch has its own scoped palette and composition; its show → season → episode hierarchy is a presentation of existing files, with browser history and no physical file moves.\n\nThe established archive voice uses mineral black, warm paper white, and one orange signal. Watch uses the same self-hosted sans family with a separate, readable streaming type scale and neutral controls. Missing artwork remains graceful in both systems. Watch's scoped rules supersede earlier chromatic storyworlds, orbit/canvas effects, tilted posters, and automatic hero rotation; those earlier directions do not govern this surface.",
     "keyCharacteristics": [
       "Near-black tonal layering instead of decorative panels.",
-      "Warm orange used as a signal, never as a wash across the whole screen.",
-      "Large, tightly set media titles paired with precise mono metadata.",
+      "Warm orange remains the archive signal; Watch browsing uses white focus, progress, and active states.",
+      "Sans-led Watch titles and metadata; the existing archive and Listen type roles remain scoped to their surfaces.",
       "Dense file tools and spacious entertainment surfaces in one coherent shell.",
-      "Motion that reveals state, metadata, or the next feature and respects reduced motion."
+      "Restrained interaction feedback that respects reduced motion; Watch's feature stays stable."
     ],
     "rules": [
       {
         "name": "The Signal Rarity Rule",
-        "body": "Orange identifies interaction, progress, or current state; it does not become a decorative second background.",
+        "body": "In the archive and Listen, orange identifies interaction, progress, or current state; it does not become a decorative second background. Watch browsing uses neutral state treatments and preserves the shared brand and player where applicable.",
         "section": "colors"
       },
       {
@@ -259,7 +553,7 @@
       },
       {
         "name": "The Two-Voice Rule",
-        "body": "Sans carries meaning and hierarchy; mono carries data and measurement.",
+        "body": "In the established archive/Listen system, sans carries meaning and hierarchy and mono carries data and measurement. Library's compact data and Watch's content metadata use sans; the shared header retains its existing search typography.",
         "section": "typography"
       },
       {
@@ -271,17 +565,17 @@
     "dos": [
       "Do keep filenames, permissions, folders, and primary actions legible before adding spectacle.",
       "Do keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, stable metadata, and context-menu actions together as one operating surface.",
-      "Do concentrate artwork and motion in Watch, Listen, playback, and meaningful previews.",
+      "Do use artwork-led, neutral Watch browsing while preserving the established Library, Listen, administration, and playback systems.",
       "Do provide a graceful local fallback when thumbnails or remote metadata are unavailable.",
       "Do mirror media hover disclosure with keyboard focus and persistent detail views.",
-      "Do pause feature rotation during interaction, at reduced-motion preference, or away from the top of the view."
+      "Do keep Watch's feature stable, respect reduced motion, and preserve show → season → episode navigation and browser history."
     ],
     "donts": [
-      "Don't turn Vault into a Netflix clone or a cyan terminal costume.",
+      "Don't apply Watch's explicitly selected Netflix / HBO / Emby conventions to Library or Listen, or revive storyworlds, orbit/canvas effects, tilted posters, or automatic hero rotation in Watch.",
       "Don't use orange as a decorative page wash or distribute many competing accent colors.",
       "Don't hide archive navigation or owner access to make a media screen look cleaner.",
       "Don't use mono for body copy, large headings, or atmosphere.",
-      "Don't interpret icon sizes as typography tokens or extend this Library refresh into new Watch or Listen styling.",
+      "Don't interpret icon sizes as typography tokens or apply one surface's typography, colors, and corner scale to another.",
       "Don't make metadata, artwork, transcoding, or network access prerequisites for reaching the original file."
     ]
   }

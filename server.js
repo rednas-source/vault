@@ -30,7 +30,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-library-tools-20260922';
+const BUILD_ID = 'vault-watch-20260922';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -2843,7 +2843,7 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
   let st;
   try { st = await fsp.stat(full); } catch { return res.status(404).end(); }
 
-  const key = crypto.createHash('sha256').update(`meta-v4\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
+  const key = crypto.createHash('sha256').update(`meta-v5\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
   const cacheFile = path.join(META_DIR, `${key}.json`);
   try {
     return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
@@ -2854,7 +2854,10 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
   // A movie folder is usually a cleaner identity than the release filename
   // inside it (and handles generic names such as movie.mkv or main.mkv).
   const name = mediaShelf === 'movies' && relParts.length > 2 ? relParts[1] : path.basename(full);
-  const guessed = guessTitle(name);
+  const identity = mediaShelf === 'series' ? require('./public/watch-model').episode({name:path.basename(full),dir:relParts.slice(1,-1).join('/')}) : null;
+  const guessed = identity && identity.show !== 'Unsorted shows'
+    ? { ...guessTitle(identity.show + '.mkv'), kind:'tv', season:identity.season, episode:identity.episode }
+    : guessTitle(name);
   const title = guessed.title;
   const year = guessed.year;
   const season = guessed.season;
