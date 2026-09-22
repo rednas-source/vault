@@ -3,8 +3,8 @@ let navIndex=0, navMax=0, navReady=false, restoringNav=false;
 let fileMenu=null, menuAnchor=null;
 let selectionAnchor=null, selectionScope='';
 const ITEM_DRAG_TYPE='application/x-vault-items';
-const browserLocation=()=>({mode:state.mode,shelf:state.shelf,folder:state.folder,q:state.q,showDetail:state.showDetail,movieDetail:state.movieDetail,watchTab:state.watchTab,watchSeason:state.watchSeason});
-const locationKey=nav=>JSON.stringify([nav.mode,nav.shelf,nav.folder,nav.showDetail,nav.movieDetail,nav.watchTab,nav.watchSeason]);
+const browserLocation=()=>({mode:state.mode,shelf:state.shelf,folder:state.folder,q:state.q,showDetail:state.showDetail,movieDetail:state.movieDetail,watchTab:state.watchTab,watchSeason:state.watchSeason,listenPage:state.listenPage,listenDetail:state.listenDetail});
+const locationKey=nav=>JSON.stringify([nav.mode,nav.shelf,nav.folder,nav.showDetail,nav.movieDetail,nav.watchTab,nav.watchSeason,nav.listenPage,nav.listenDetail]);
 
 function recordBrowserLocation(){
   if(restoringNav)return;

@@ -1311,17 +1311,19 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-create-menu-20260922">
-<link rel="stylesheet" href="/library.css?v=vault-create-menu-20260922">
-<link rel="stylesheet" href="/watch.css?v=vault-create-menu-20260922">
+<link rel="stylesheet" href="/chromatic.css?v=vault-listen-20260922">
+<link rel="stylesheet" href="/library.css?v=vault-listen-20260922">
+<link rel="stylesheet" href="/watch.css?v=vault-listen-20260922">
+<link rel="stylesheet" href="/listen.css?v=vault-listen-20260922">
+<link rel="stylesheet" href="/appearance.css?v=vault-listen-20260922">
 </head>
 <body>
-<!-- DIRECTION CONTRACT: Watch, September 2026.
-THESIS: a personal streaming library, organized by titles, seasons and episodes.
-OWN-WORLD: neutral black canvas, white controls, Geist typography, cinematic backdrops and rectangular posters; Library and Listen retain their established systems.
-STORY: browse Home, Movies or TV Shows; open a show, choose a season, play an episode.
-FIRST VIEWPORT: restrained navigation above a 570px artwork-led feature, left-aligned title and playback controls, followed by Continue watching and poster rails. Mobile brings artwork above the title and keeps two-column catalogs.
-FORM: code-led; user-pinned Netflix / HBO / Emby conventions supersede random direction selection. Signature interaction: Show → Season → Episode with browser history; existing paths never move.
+<!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
+THESIS: a familiar Spotify-style player for the user's own music, with configurable Vault appearance.
+OWN-WORLD: charcoal panels, upright square album art, blue playback controls, white type; Library and Watch preserve their layouts.
+STORY: browse albums, open tracks, save favorites, build playlists, and control the queue while music continues across sections.
+FIRST VIEWPORT: compact shared header with centered search; Library sidebar beside a grey music canvas, quick album shortcuts and cover rows; transport remains anchored along the bottom.
+FORM: code-led, user-pinned Spotify conventions with grey/blue replacing grey/green. Signature interaction: album browsing and queue control without interrupting playback; color and icon-tab preferences persist.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
 
 <!-- ─────────────────────────── gate -->
@@ -1346,22 +1348,24 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
   <header class="app-header">
     <div class="brand vault-brand"><i></i><span>VAULT</span></div>
     <nav class="space-nav" aria-label="Vault spaces">
-      <button class="on" data-space="library" aria-current="page">Library</button>
-      <button data-space="watch">Watch</button>
-      <button data-space="listen">Listen</button>
+      <button class="on" data-space="library" aria-current="page" aria-label="Library" title="Library"><i class="ph ph-folder-simple" aria-hidden="true"></i><span>Library</span></button>
+      <button data-space="watch" aria-label="Watch" title="Watch"><i class="ph ph-film-slate" aria-hidden="true"></i><span>Watch</span></button>
+      <button data-space="listen" aria-label="Listen" title="Listen"><i class="ph ph-headphones" aria-hidden="true"></i><span>Listen</span></button>
     </nav>
     <label class="search global-search">
-      <span>Search</span>
-      <input id="q" placeholder="Search the vault" autocomplete="off">
+      <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+      <input aria-label="Search the current section" id="q" placeholder="Search the vault" autocomplete="off">
       <kbd>/</kbd>
     </label>
     <div class="head-right header-actions">
-      <button class="ghost" id="btnActivity" hidden>Activity</button>
-      <button class="ghost" id="btnUsers" aria-label="Manage Vault" title="Manage Vault" hidden><span>Manage</span></button>
-      <button class="ghost accent" id="btnUpload">Add to Vault</button>
+      <button class="ghost header-icon" id="btnActivity" aria-label="Activity" title="Activity" hidden><i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i></button>
+      <button class="ghost header-icon" id="btnUsers" aria-label="Manage Vault" title="Manage Vault" hidden><i class="ph ph-gear-six" aria-hidden="true"></i></button>
+      <button class="ghost header-icon" id="btnUpload" aria-label="Add to Vault" title="Add to Vault"><i class="ph ph-upload-simple" aria-hidden="true"></i></button>
+      <button class="ghost header-icon" id="btnAppearance" aria-label="Appearance" title="Appearance" aria-expanded="false" aria-controls="appearancePanel"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></button>
     </div>
   </header>
 
+  <section id="appearancePanel" class="appearance-panel" aria-label="Appearance settings" hidden></section>
   <main class="library-space">
     <aside class="library-sidebar">
       <div class="tag">Shelves</div>
@@ -1420,12 +1424,11 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <span id="railState" class="live">idle</span>
   </div>
 
-  <div class="music-dock" id="musicDock">
-    <div class="music-now-art" id="musicNowArt"><i class="ph ph-waveform"></i></div>
-    <div class="music-now-copy"><b id="musicNowTitle">Nothing playing</b><small id="musicNowAlbum">Music</small></div>
-    <button id="musicPrev" title="Previous" aria-label="Previous track"><i class="ph ph-skip-back"></i></button><button class="music-main-play" id="musicPlay" title="Play / pause" aria-label="Play or pause"><i class="ph-fill ph-play"></i></button><button id="musicNext" title="Next" aria-label="Next track"><i class="ph ph-skip-forward"></i></button>
-    <span class="music-dock-time" id="musicAt">0:00</span><input type="range" id="musicSeek" min="0" max="1000" value="0"><span class="music-dock-time" id="musicDur">0:00</span>
-    <button id="musicMute" title="Mute" aria-label="Mute"><i class="ph ph-speaker-high"></i></button><input type="range" id="musicVolume" min="0" max="100" value="100" aria-label="Music volume">
+  <div class="music-dock" id="musicDock" aria-label="Music player">
+    <div class="music-now"><button class="music-now-art" id="musicNowArt" aria-label="Open playing album"><i class="ph ph-music-notes"></i></button><div class="music-now-copy"><button id="musicNowTitle">Choose something to play</button><small id="musicNowAlbum">Your music, right here</small></div><button class="music-icon" id="musicLike" aria-label="Like current song"><i class="ph ph-heart"></i></button></div>
+    <div class="music-center"><div class="music-transport"><button class="music-icon" id="musicShuffle" aria-label="Shuffle" aria-pressed="false" title="Shuffle"><i class="ph ph-shuffle"></i></button><button class="music-icon" id="musicPrev" title="Previous track" aria-label="Previous track"><i class="ph ph-skip-back"></i></button><button class="music-main-play" id="musicPlay" title="Play / pause" aria-label="Play"><i class="ph ph-play"></i></button><button class="music-icon" id="musicNext" title="Next track" aria-label="Next track"><i class="ph ph-skip-forward"></i></button><button class="music-icon" id="musicRepeat" title="Repeat off" aria-label="Repeat off"><i class="ph ph-repeat"></i></button></div>
+    <div class="music-timeline"><span id="musicAt">0:00</span><input type="range" id="musicSeek" min="0" max="1000" value="0" aria-label="Playback position"><span id="musicDur">0:00</span></div></div>
+    <div class="music-player-tools"><button class="music-icon" id="musicQueueToggle" title="Queue" aria-label="Show queue" aria-pressed="false"><i class="ph ph-queue"></i></button><button class="music-icon" id="musicMute" title="Mute" aria-label="Mute"><i class="ph ph-speaker-high"></i></button><input type="range" id="musicVolume" min="0" max="100" value="100" aria-label="Music volume"></div>
     <audio id="musicAudio" preload="metadata"></audio>
   </div>
 </div>
@@ -1540,11 +1543,13 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/watch-model.js?v=vault-create-menu-20260922"></script>
-<script src="/watch.js?v=vault-create-menu-20260922"></script>
-<script src="/document-reader.js?v=vault-create-menu-20260922"></script>
-<script src="/library-tools.js?v=vault-create-menu-20260922"></script>
-<script src="/library-actions.js?v=vault-create-menu-20260922"></script>
+<script src="/appearance.js?v=vault-listen-20260922"></script>
+<script src="/listen.js?v=vault-listen-20260922"></script>
+<script src="/watch-model.js?v=vault-listen-20260922"></script>
+<script src="/watch.js?v=vault-listen-20260922"></script>
+<script src="/document-reader.js?v=vault-listen-20260922"></script>
+<script src="/library-tools.js?v=vault-listen-20260922"></script>
+<script src="/library-actions.js?v=vault-listen-20260922"></script>
 <script>
 'use strict';
 
@@ -1570,6 +1575,7 @@ function applyTheme(mode){
   const label = mode === 'light' ? 'Dark' : 'Light';
   document.querySelectorAll('[data-theme-toggle]').forEach((b) => { b.textContent = label; });
   try{ localStorage.setItem('vault-theme', mode); }catch{ /* private mode */ }
+  applyAppearance();
 }
 function currentTheme(){
   return document.documentElement.getAttribute('data-theme') || 'dark';
@@ -1593,7 +1599,7 @@ document.querySelectorAll('[data-space]').forEach((button) => {
       state.mode = 'files';
       if(['movies','series','music'].includes(state.shelf)) state.shelf = 'all';
     }else if(space === 'listen'){
-      state.mode = 'entertainment'; state.shelf = 'music';
+      state.mode = 'entertainment'; state.shelf = 'music';state.listenPage='home';state.listenDetail=null;
     }else{
       state.mode = 'entertainment';
       state.shelf = SHELF_ORDER.includes('movies')?'movies':'series';state.watchTab='home';state.watchSeason=null;
@@ -1817,6 +1823,7 @@ function shelfFolders(){
   });
 }
 function visible(){
+  if(listenActive())return state.files.filter(file=>file.shelf==='music'&&AUDIO.includes(file.ext));
   if(watchActive())return state.files.filter(file=>['movies','series'].includes(file.shelf)&&VIDEO.includes(file.ext));
   const inScope = f => (state.mode !== 'files' || state.shelf !== 'all' || !MEDIA_SHELVES.has(f.shelf))
     && (state.shelf === 'all' || f.shelf === state.shelf);
@@ -2040,6 +2047,7 @@ function musicView(files,list,folders){
 }
 
 function mediaView(list){
+  if(listenActive())return listenView(list);
   if(watchActive())return watchView(list);
   const files = list.filter((f)=>f.kind!=='folder');
   const folders = list.filter((f)=>f.kind==='folder');
@@ -2130,6 +2138,8 @@ function renderBreadcrumbs(){
 function render(){
   closeFileMenu();
   document.body.classList.toggle('watch-mode',watchActive());
+  document.body.classList.toggle('listen-mode',listenActive());
+  applyAppearance();syncListenDock();
   recordBrowserLocation();
   $('#scroll').classList.remove('feature-changing');
   document.body.classList.toggle('shares-mode',state.mode==='shares');
@@ -2493,21 +2503,7 @@ async function pollSubtitleBatch(ids,label){
   setTimeout(()=>pollSubtitleBatch(ids,label),2400);
 }
 
-let musicQueue=[],musicIndex=-1;
-function playMusic(f,queue){
-  musicQueue=(queue&&queue.length?queue:state.files.filter((x)=>x.shelf==='music'&&AUDIO.includes(x.ext)));musicIndex=Math.max(0,musicQueue.findIndex((x)=>x.rel===f.rel));
-  const audio=$('#musicAudio');audio.dataset.rel=f.rel;audio.src=url('stream',f.rel);$('#musicNowTitle').textContent=cleanMediaTitle(f.name);$('#musicNowAlbum').textContent=f.dir||'Vault Music';$('#musicNowArt').style.backgroundImage='';$('#musicNowArt').innerHTML=icon('waveform');$('#musicDock').classList.add('on');audio.play().catch(()=>{});
-  if(state.musicMetadata)fetchMusicMeta(url('music-meta',f.rel)).then((meta)=>{if(!meta.found||audio.dataset.rel!==f.rel)return;if(meta.title)$('#musicNowTitle').textContent=meta.title;$('#musicNowAlbum').textContent=[meta.artist,meta.album].filter(Boolean).join(' · ')||f.dir||'Vault Music';if(meta.cover){$('#musicNowArt').style.backgroundImage=`url("${meta.cover}")`;$('#musicNowArt').innerHTML='';}});
-}
-function musicStep(delta){if(!musicQueue.length)return;musicIndex=(musicIndex+delta+musicQueue.length)%musicQueue.length;playMusic(musicQueue[musicIndex],musicQueue);}
-const musicAudio=$('#musicAudio');
-$('#musicPrev').onclick=()=>musicStep(-1);$('#musicNext').onclick=()=>musicStep(1);$('#musicPlay').onclick=()=>musicAudio.paused?musicAudio.play().catch(()=>{}):musicAudio.pause();
-musicAudio.onplay=()=>{$('#musicPlay').innerHTML=icon('pause','ph-fill');};musicAudio.onpause=()=>{$('#musicPlay').innerHTML=icon('play','ph-fill');};musicAudio.onended=()=>musicStep(1);
-musicAudio.ontimeupdate=()=>{const d=isFinite(musicAudio.duration)?musicAudio.duration:0;$('#musicAt').textContent=fmtTime(musicAudio.currentTime);$('#musicDur').textContent=fmtTime(d);if(d)$('#musicSeek').value=Math.round(musicAudio.currentTime/d*1000);};
-$('#musicSeek').oninput=()=>{if(isFinite(musicAudio.duration))musicAudio.currentTime=+$('#musicSeek').value/1000*musicAudio.duration;};
-const musicVolume=(()=>{try{return parseFloat(localStorage.getItem('vault-music-vol')||'1');}catch{return 1;}})();musicAudio.volume=Math.max(0,Math.min(1,musicVolume));$('#musicVolume').value=Math.round(musicAudio.volume*100);
-$('#musicVolume').oninput=()=>{musicAudio.volume=+$('#musicVolume').value/100;musicAudio.muted=false;try{localStorage.setItem('vault-music-vol',String(musicAudio.volume));}catch{}};
-$('#musicMute').onclick=()=>{musicAudio.muted=!musicAudio.muted;$('#musicMute').innerHTML=icon(musicAudio.muted?'speaker-slash':'speaker-high');};
+// Persistent music playback is managed by listen.js.
 
 async function setEpisodeWatch(file,action){
   try{
@@ -2766,7 +2762,7 @@ function wire(){
   initCinemaField();
   initCinemaRails();
   scheduleFeatureRotation();
-  wireWatch(list);
+  wireWatch(list);wireListen(list);
 }
 
 /* ── bulk actions */

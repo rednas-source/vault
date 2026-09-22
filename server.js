@@ -30,7 +30,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-create-menu-20260922';
+const BUILD_ID = 'vault-listen-20260922';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -2975,7 +2975,7 @@ async function embeddedMusicTags(full) {
   if (!HAS_FFMPEG) return {};
   const raw = await run('ffprobe', [
     '-v', 'error', '-show_entries',
-    'format_tags=title,artist,album,album_artist,date,year,track,genre',
+    'format=duration:format_tags=title,artist,album,album_artist,date,year,track,genre',
     '-of', 'json', full,
   ], 15000, 96 * 1024);
   if (!raw) return {};
@@ -2983,6 +2983,7 @@ async function embeddedMusicTags(full) {
     const tags = JSON.parse(raw).format?.tags || {};
     const lower = Object.fromEntries(Object.entries(tags).map(([key, value]) => [key.toLowerCase(), value]));
     return {
+      duration: Number(JSON.parse(raw).format?.duration)||0,
       title: cleanMusicValue(lower.title),
       artist: cleanMusicValue(lower.album_artist || lower.artist),
       album: cleanMusicValue(lower.album),
@@ -3021,7 +3022,7 @@ app.get('/api/music-meta/*', auth, shelfGate, async (req, res) => {
   try { stat = await fsp.stat(full); } catch { return res.status(404).end(); }
   if (!stat.isFile()) return res.status(400).end();
 
-  const key = crypto.createHash('sha256').update(`music-v1\u0000${full}\u0000${stat.size}\u0000${stat.mtimeMs}`).digest('hex').slice(0, 32);
+  const key = crypto.createHash('sha256').update(`music-v2\u0000${full}\u0000${stat.size}\u0000${stat.mtimeMs}`).digest('hex').slice(0, 32);
   const cacheFile = path.join(MUSIC_META_DIR, `${key}.json`);
   try { return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8'))); } catch { /* enrich below */ }
 
@@ -3032,7 +3033,7 @@ app.get('/api/music-meta/*', auth, shelfGate, async (req, res) => {
     title: embedded.title || guessed.title,
     artist: embedded.artist || guessed.artist,
     album: embedded.album || guessed.album,
-    year: embedded.year || '', track: embedded.track || '', genre: embedded.genre || '', cover: null,
+    year: embedded.year || '', track: embedded.track || '', genre: embedded.genre || '', duration:embedded.duration||0, cover: null,
   };
 
   const album = data.album;

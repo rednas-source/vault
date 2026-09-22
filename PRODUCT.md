@@ -22,7 +22,7 @@ Make a large mixed collection feel understandable and pleasurable to use: browse
 
 ## Positioning
 
-Vault is a personal archive with a conventional streaming-service layer. The user explicitly chose Netflix / HBO / Emby conventions for Watch: clean artwork-led browsing, title details, and a show → season → episode hierarchy.
+Vault is a personal archive with a conventional streaming-service layer. The user explicitly chose Spotify’s composition for Listen, with charcoal panels and a light-blue default accent, and Netflix / HBO / Emby conventions for Watch: clean artwork-led browsing, title details, and a show → season → episode hierarchy.
 
 ## Operating context
 
@@ -36,7 +36,8 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - Browse, search, sort, upload, move, rename, delete, download, and share files and folders.
 - Create and manage shelves with server-enforced account access.
 - Browse movies and shows as grouped entertainment libraries with progress, details, cast, recommendations, and episode navigation.
-- Browse and play music by albums, folders, and tracks.
+- Browse and play music by albums and tracks, with a persistent player, queue, shuffle/repeat, liked songs, and browser-local playlists per account.
+- Customize the shared accent palette and optional icon-only section navigation from Appearance.
 - Play browser-native video or prepare MKV/HLS streams with quality selection, subtitles, AI subtitles, theatre mode, picture-in-picture, and progress tracking.
 - Convert MKV to MP4, inspect activity, manage accounts and API tokens, and monitor storage.
 - Enrich local media automatically while keeping local filenames and files as the source of truth.
@@ -44,14 +45,16 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 ## Brand commitments
 
 - Name: Vault.
-- Library and Listen retain their approved design systems. The September 2026 Watch redesign supersedes the previous Chromatic Watch prototype with a neutral, conventional streaming-service interface.
+- Library retains its approved folder workspace. The September 2026 Watch redesign uses a conventional streaming-service interface; Listen replaces the Chromatic prototype with Spotify-style library, album, track, queue, and player composition in grey and blue.
 - The product should feel cinematic and editorial, but remain a serious power-user tool.
 
 ## Evidence and constraints
 
 - Existing production routes, DOM hooks, permissions, server-side path validation, storage, streaming, and account behavior are working product truth and must be preserved.
 - Existing cyan terminal styling is an anti-reference for the redesign, not a requirement.
-- The approved prototype combines the Chromatic Cinema top bar and Listen language with the Soft Kinetic file workspace.
+- The shared top bar uses compact utility icons, optional icon-only section tabs, and centered search. Appearance provides six accent palettes, a default reset, and the Library light/dark preference; choices persist in this browser.
+- Default accents are orange in Library/Watch and light blue in Listen. Explicit palette choices apply across the site. Watch and Listen retain dark playback backgrounds.
+- Listen organizes existing Music files; it does not access a Spotify catalog. Playlists, favorites, and recent listening stay local to this account in this browser.
 - Watch uses stable artwork-led features, poster rows and title grids, with secondary file operations behind menus. Its hierarchy is presentation only: existing file paths remain unchanged.
 - The player should be icon-led, restrained, and professional, retain the useful episode top bar, and provide a distinct buffering state.
 - Metadata enrichment must fail softly and be cached; the collection must remain usable offline.

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-22T13:09:04.652250+00:00",
-  "title": "Design System: Vault — Archive and Watch",
+  "generatedAt": "2026-09-22T13:47:25.161153+00:00",
+  "title": "Design System: Vault — Library, Watch, and Listen",
   "extensions": {
     "colorMeta": {
       "signal-orange": {
@@ -258,12 +258,466 @@
           "#f5f5f5"
         ],
         "scope": "Watch browsing; token primitives are normative in DESIGN.md."
+      },
+      "listen-shell": {
+        "role": "neutral",
+        "displayName": "Listen Shell",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-ground": {
+        "role": "neutral",
+        "displayName": "Listen Ground",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-raised": {
+        "role": "neutral",
+        "displayName": "Listen Raised",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-panel": {
+        "role": "neutral",
+        "displayName": "Listen Panel",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-hover": {
+        "role": "neutral",
+        "displayName": "Listen Hover",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-nav": {
+        "role": "neutral",
+        "displayName": "Listen Nav",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-art-fallback": {
+        "role": "neutral",
+        "displayName": "Listen Art Fallback",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-text": {
+        "role": "neutral",
+        "displayName": "Listen Text",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-muted": {
+        "role": "neutral",
+        "displayName": "Listen Muted",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-line": {
+        "role": "neutral",
+        "displayName": "Listen Line",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-chip": {
+        "role": "neutral",
+        "displayName": "Listen Chip",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-chip-hover": {
+        "role": "neutral",
+        "displayName": "Listen Chip Hover",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-selected": {
+        "role": "neutral",
+        "displayName": "Listen Selected",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "listen-selected-hover": {
+        "role": "neutral",
+        "displayName": "Listen Selected Hover",
+        "tonalRamp": [
+          "#080808",
+          "#121212",
+          "#181818",
+          "#242424",
+          "#3a3a3a",
+          "#777777",
+          "#b3b3b3",
+          "#f6f6f6"
+        ],
+        "scope": "Listen; primitives are normative in DESIGN.md."
+      },
+      "palette-orange-dark": {
+        "role": "primary",
+        "displayName": "Orange / Dark surface",
+        "tonalRamp": [
+          "oklch(15% 0.16 35)",
+          "oklch(27% 0.16 35)",
+          "oklch(39% 0.16 35)",
+          "oklch(51% 0.16 35)",
+          "oklch(63% 0.16 35)",
+          "oklch(75% 0.16 35)",
+          "oklch(87% 0.16 35)",
+          "oklch(95% 0.16 35)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-orange-light": {
+        "role": "primary",
+        "displayName": "Orange / Light surface",
+        "tonalRamp": [
+          "oklch(15% 0.16 35)",
+          "oklch(27% 0.16 35)",
+          "oklch(39% 0.16 35)",
+          "oklch(51% 0.16 35)",
+          "oklch(63% 0.16 35)",
+          "oklch(75% 0.16 35)",
+          "oklch(87% 0.16 35)",
+          "oklch(95% 0.16 35)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-blue-dark": {
+        "role": "primary",
+        "displayName": "Blue / Dark surface",
+        "tonalRamp": [
+          "oklch(15% 0.13 245)",
+          "oklch(27% 0.13 245)",
+          "oklch(39% 0.13 245)",
+          "oklch(51% 0.13 245)",
+          "oklch(63% 0.13 245)",
+          "oklch(75% 0.13 245)",
+          "oklch(87% 0.13 245)",
+          "oklch(95% 0.13 245)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-blue-light": {
+        "role": "primary",
+        "displayName": "Blue / Light surface",
+        "tonalRamp": [
+          "oklch(15% 0.13 245)",
+          "oklch(27% 0.13 245)",
+          "oklch(39% 0.13 245)",
+          "oklch(51% 0.13 245)",
+          "oklch(63% 0.13 245)",
+          "oklch(75% 0.13 245)",
+          "oklch(87% 0.13 245)",
+          "oklch(95% 0.13 245)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-purple-dark": {
+        "role": "primary",
+        "displayName": "Purple / Dark surface",
+        "tonalRamp": [
+          "oklch(15% 0.14 300)",
+          "oklch(27% 0.14 300)",
+          "oklch(39% 0.14 300)",
+          "oklch(51% 0.14 300)",
+          "oklch(63% 0.14 300)",
+          "oklch(75% 0.14 300)",
+          "oklch(87% 0.14 300)",
+          "oklch(95% 0.14 300)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-purple-light": {
+        "role": "primary",
+        "displayName": "Purple / Light surface",
+        "tonalRamp": [
+          "oklch(15% 0.14 300)",
+          "oklch(27% 0.14 300)",
+          "oklch(39% 0.14 300)",
+          "oklch(51% 0.14 300)",
+          "oklch(63% 0.14 300)",
+          "oklch(75% 0.14 300)",
+          "oklch(87% 0.14 300)",
+          "oklch(95% 0.14 300)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-green-dark": {
+        "role": "primary",
+        "displayName": "Green / Dark surface",
+        "tonalRamp": [
+          "oklch(15% 0.12 155)",
+          "oklch(27% 0.12 155)",
+          "oklch(39% 0.12 155)",
+          "oklch(51% 0.12 155)",
+          "oklch(63% 0.12 155)",
+          "oklch(75% 0.12 155)",
+          "oklch(87% 0.12 155)",
+          "oklch(95% 0.12 155)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-green-light": {
+        "role": "primary",
+        "displayName": "Green / Light surface",
+        "tonalRamp": [
+          "oklch(15% 0.12 155)",
+          "oklch(27% 0.12 155)",
+          "oklch(39% 0.12 155)",
+          "oklch(51% 0.12 155)",
+          "oklch(63% 0.12 155)",
+          "oklch(75% 0.12 155)",
+          "oklch(87% 0.12 155)",
+          "oklch(95% 0.12 155)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-rose-dark": {
+        "role": "primary",
+        "displayName": "Rose / Dark surface",
+        "tonalRamp": [
+          "oklch(15% 0.14 355)",
+          "oklch(27% 0.14 355)",
+          "oklch(39% 0.14 355)",
+          "oklch(51% 0.14 355)",
+          "oklch(63% 0.14 355)",
+          "oklch(75% 0.14 355)",
+          "oklch(87% 0.14 355)",
+          "oklch(95% 0.14 355)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-rose-light": {
+        "role": "primary",
+        "displayName": "Rose / Light surface",
+        "tonalRamp": [
+          "oklch(15% 0.14 355)",
+          "oklch(27% 0.14 355)",
+          "oklch(39% 0.14 355)",
+          "oklch(51% 0.14 355)",
+          "oklch(63% 0.14 355)",
+          "oklch(75% 0.14 355)",
+          "oklch(87% 0.14 355)",
+          "oklch(95% 0.14 355)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-gold-dark": {
+        "role": "primary",
+        "displayName": "Gold / Dark surface",
+        "tonalRamp": [
+          "oklch(15% 0.12 85)",
+          "oklch(27% 0.12 85)",
+          "oklch(39% 0.12 85)",
+          "oklch(51% 0.12 85)",
+          "oklch(63% 0.12 85)",
+          "oklch(75% 0.12 85)",
+          "oklch(87% 0.12 85)",
+          "oklch(95% 0.12 85)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "palette-gold-light": {
+        "role": "primary",
+        "displayName": "Gold / Light surface",
+        "tonalRamp": [
+          "oklch(15% 0.12 85)",
+          "oklch(27% 0.12 85)",
+          "oklch(39% 0.12 85)",
+          "oklch(51% 0.12 85)",
+          "oklch(63% 0.12 85)",
+          "oklch(75% 0.12 85)",
+          "oklch(87% 0.12 85)",
+          "oklch(95% 0.12 85)"
+        ],
+        "scope": "Appearance palette; dark values apply to Watch and Listen even when Library is light. Tonal ramps are preview metadata, not runtime palette variants."
+      },
+      "listen-liked-gradient-start": {
+        "role": "secondary",
+        "displayName": "Listen Liked Gradient Start",
+        "purpose": "Dark blue endpoint of the Liked Songs cover gradient.",
+        "tonalRamp": [
+          "oklch(15% 0.1 245)",
+          "oklch(27% 0.1 245)",
+          "oklch(39% 0.1 245)",
+          "oklch(51% 0.1 245)",
+          "oklch(63% 0.1 245)",
+          "oklch(75% 0.1 245)",
+          "oklch(87% 0.1 245)",
+          "oklch(95% 0.1 245)"
+        ],
+        "scope": "Listen; primitive is normative in DESIGN.md. Tonal ramp is preview metadata, not a runtime scale."
+      },
+      "listen-liked-gradient-end": {
+        "role": "secondary",
+        "displayName": "Listen Liked Gradient End",
+        "purpose": "Light blue endpoint of the Liked Songs cover gradient.",
+        "tonalRamp": [
+          "oklch(15% 0.09 240)",
+          "oklch(27% 0.09 240)",
+          "oklch(39% 0.09 240)",
+          "oklch(51% 0.09 240)",
+          "oklch(63% 0.09 240)",
+          "oklch(75% 0.09 240)",
+          "oklch(87% 0.09 240)",
+          "oklch(95% 0.09 240)"
+        ],
+        "scope": "Listen; primitive is normative in DESIGN.md. Tonal ramp is preview metadata, not a runtime scale."
+      },
+      "listen-hero-meta": {
+        "role": "neutral",
+        "displayName": "Listen Hero Meta",
+        "purpose": "Supporting metadata in collection and album heroes.",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(27% 0 0)",
+          "oklch(39% 0 0)",
+          "oklch(51% 0 0)",
+          "oklch(63% 0 0)",
+          "oklch(75% 0 0)",
+          "oklch(87% 0 0)",
+          "oklch(95% 0 0)"
+        ],
+        "scope": "Listen; primitive is normative in DESIGN.md. Tonal ramp is preview metadata, not a runtime scale."
+      },
+      "listen-slider-unfilled": {
+        "role": "neutral",
+        "displayName": "Listen Slider Unfilled",
+        "purpose": "Unplayed seek and volume track in the persistent music transport.",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(27% 0 0)",
+          "oklch(39% 0 0)",
+          "oklch(51% 0 0)",
+          "oklch(63% 0 0)",
+          "oklch(75% 0 0)",
+          "oklch(87% 0 0)",
+          "oklch(95% 0 0)"
+        ],
+        "scope": "Listen; primitive is normative in DESIGN.md. Tonal ramp is preview metadata, not a runtime scale."
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Vault Display",
-        "purpose": "Established Listen feature/album and major administration titles; Watch has its own display role."
+        "purpose": "Established administration display role; Watch and Listen have separate display scales."
       },
       "body": {
         "displayName": "Vault Body",
@@ -316,25 +770,68 @@
       "watch-meta": {
         "displayName": "Watch Metadata",
         "purpose": "Sans season/year and supporting metadata; poster metadata is 11px on phones."
+      },
+      "listen-display": {
+        "displayName": "Listen Display",
+        "purpose": "Collection titles, 48px at 1250px and below and 34px at 760px and below."
+      },
+      "listen-heading": {
+        "displayName": "Listen Heading",
+        "purpose": "Music section headings; 23px on phones."
+      },
+      "listen-album-title": {
+        "displayName": "Listen Album Title",
+        "purpose": "Album titles below square artwork; 14px on phones."
+      },
+      "listen-track-title": {
+        "displayName": "Listen Track Title",
+        "purpose": "Track titles with persistent artist metadata; 13px on phones."
+      },
+      "listen-body": {
+        "displayName": "Listen Body",
+        "purpose": "Music supporting copy and album metadata."
+      },
+      "listen-meta": {
+        "displayName": "Listen Meta",
+        "purpose": "Track metadata and duration, using sans and tabular numerals where appropriate."
+      },
+      "shared-search": {
+        "displayName": "Shared Search",
+        "purpose": "Centered global search; sans in every section."
       }
     },
     "shadows": [
       {
-        "name": "media-lift",
-        "value": "0 26px 70px rgba(0,0,0,.32)",
-        "purpose": "Established media rails outside Watch. Watch artwork has no ornamental shadow."
+        "name": "listen-album-art",
+        "value": "0 8px 22px #0004",
+        "purpose": "Square album art."
       },
       {
-        "name": "floating-surface",
-        "value": "0 30px 90px rgba(0,0,0,.52)",
-        "purpose": "Persistent playback surfaces and album art."
+        "name": "listen-collection-art",
+        "value": "0 8px 28px #0005",
+        "purpose": "Large collection artwork."
+      },
+      {
+        "name": "listen-play",
+        "value": "0 6px 16px #0003",
+        "purpose": "Circular album/collection play."
+      },
+      {
+        "name": "listen-overlay",
+        "value": "0 8px 30px #0008",
+        "purpose": "Overlay queue panel at narrower widths."
+      },
+      {
+        "name": "appearance",
+        "value": "0 12px 36px rgba(0,0,0,.3)",
+        "purpose": "Settings popover."
       }
     ],
     "motion": [
       {
         "name": "reveal",
         "value": "420ms cubic-bezier(.16,1,.3,1)",
-        "purpose": "Existing hover metadata and shallow media lift outside Watch."
+        "purpose": "Established legacy media feedback outside Watch and Listen."
       },
       {
         "name": "state",
@@ -350,6 +847,11 @@
         "name": "watch-play-overlay",
         "value": "180ms ease",
         "purpose": "Play-overlay opacity; visible on phones and episode rows."
+      },
+      {
+        "name": "listen-state",
+        "value": "180ms ease",
+        "purpose": "Album background, play opacity and transform. Disabled with smooth scrolling under reduced motion."
       }
     ],
     "breakpoints": [
@@ -361,10 +863,6 @@
         "name": "library-compact-rows",
         "value": "1100px",
         "purpose": "180px rail; file rows retain selection, name, and size. Actions remain in the context menu."
-      },
-      {
-        "name": "tablet",
-        "value": "940px"
       },
       {
         "name": "phone",
@@ -379,6 +877,26 @@
         "name": "watch-wide",
         "value": "1800px",
         "purpose": "680px minimum home feature, 76px title, and 205px minimum catalog columns."
+      },
+      {
+        "name": "listen-overlay",
+        "value": "1250px",
+        "purpose": "Narrower sidebar, overlaid queue, two-column quick shortcuts, 180px art and 48px title."
+      },
+      {
+        "name": "shared-header-tablet",
+        "value": "1100px",
+        "purpose": "112px header, search on second row. Listen removes track album columns."
+      },
+      {
+        "name": "listen-phone",
+        "value": "760px",
+        "purpose": "Music sidebar hidden, two-column album grid, simplified tracks, 80px dock."
+      },
+      {
+        "name": "shared-header-phone",
+        "value": "600px",
+        "purpose": "150px three-row header, 36px search and compact utility icons."
       }
     ],
     "library": {
@@ -389,7 +907,7 @@
         "public/index.html",
         "public/chromatic.css"
       ],
-      "scope": "Library operating surface only. Listen, administration, and playback retain their established systems; Watch is separately scoped below.",
+      "scope": "Library operating surface only. Watch and Listen have separate media systems; the shared header follows Appearance.",
       "hierarchy": "All files shows non-media shelves as folders. Browse immediate children with breadcrumbs and Up; search includes descendants within the active Library scope. Movies, series, and music are excluded from All files; their sidebar shortcuts open explicit file-browsing scopes. Shared links opens a separate navigable Library view.",
       "layout": "208px rail on desktop; 180px at 1100px and below; horizontal shelf bands at 700px and below. 58px minimum breadcrumb toolbar, 38px table heading, 49px minimum desktop rows, and 48px minimum mobile rows. Grid columns auto-fill from a 180px minimum.",
       "rowDisclosure": "No desktop hover actions: size, shelf, and added metadata remain visible in wide rows. Compact rows retain size. Right-click or Shift+F10 opens actions. Non-hover input and phone layouts at 700px and below show one persistent Options control.",
@@ -412,8 +930,8 @@
         "public/watch-model.js",
         "public/index.html"
       ],
-      "authority": "The user explicitly chose conventional Netflix / HBO / Emby streaming style. The first body comment in public/index.html records the direction contract.",
-      "scope": "Watch browsing and its shared-header treatment while body.watch-mode is active. Independent neutral dark palette, even under the application light theme. Library, Listen, administration, and playback retain their established systems.",
+      "authority": "The user explicitly chose conventional Netflix / HBO / Emby streaming style; the current Listen/header direction contract does not replace Watch composition.",
+      "scope": "Watch browsing remains an independent neutral dark palette, even under the Library light theme. Shared header layout and accent follow Appearance; Library and Listen retain their separately documented compositions.",
       "hierarchy": "Home / Movies / TV Shows → title detail → season → ordered episodes. Back, All seasons, season selection, and browser history preserve context. This is a presentation hierarchy; no file moves. Specials and Unsorted episodes are explicit groups.",
       "layout": "Internally scrolling pane beneath the shared header; 62px local navigation, 570px minimum home feature, 510px minimum desktop detail feature, 60px rail overlap. Upright 2:3 posters, 16:9 resume/episode art, 2:2.65 season art. Catalog grid starts at a 170px minimum, season columns at 155–190px. Desktop episode columns: 28px number, 190px image, flexible text, 36px options.",
       "responsive": "At 1000px: 510px minimum home feature, 145px minimum catalog columns, 160px episode thumbnail. At 700px: 20px gutter, 56px navigation, 590px minimum home feature with image above copy, 540px detail feature, two-column catalogs/seasons, 145px poster rail cards, 280px resume cards, 24px overlap, and episode rows of 110px image / flexible text / 30px options. At 1800px: 680px minimum home feature and 205px minimum catalog columns.",
@@ -440,55 +958,41 @@
         "captureContext": "Some detail captures intentionally show internal-pane scrolled positions; the fixed shared header is still visible."
       },
       "detectorGuidance": "Colors, type sizes, and radii in .qa/watch-detector.json include expected mismatches against the former global system. Apply the actual scoped Watch tokens and responsive rules documented here; no suppression or global token replacement is implied."
+    },
+    "appearance": {
+      "sources": [
+        "public/appearance.css",
+        "public/appearance.js",
+        "public/index.html"
+      ],
+      "palette": "Six explicit palettes: Orange, Light blue, Purple, Green, Rose, Gold. Default restores orange in Library/Watch and blue in Listen. Light variants apply only to light Library; Watch and Listen keep dark surfaces.",
+      "variables": "Runtime --accent-rgb, --accent, --accent-soft, --star, --star-soft, --star-edge, --flare, --flare-edge, --sky, and --select share the selected palette. Token primitives live in DESIGN.md.",
+      "layout": "68px desktop header; centered 260–400px search, 38px utilities. 112px at 1100px and below, 150px at 600px and below. 330px Appearance popover, three-column palette grid.",
+      "navigation": "Unboxed section tabs with optional icon-only mode. Labels and titles remain accessible; owner controls retain existing permission visibility.",
+      "persistence": "Accent choice and icon-navigation preference persist in vault-appearance in this browser; Library theme remains browser-local.",
+      "states": "Popover Escape and outside click close it; controls preserve focus after selection, and closing from its control returns focus to Appearance."
+    },
+    "listen": {
+      "sources": [
+        "public/listen.css",
+        "public/listen.js",
+        "public/appearance.css",
+        "public/appearance.js",
+        "public/index.html"
+      ],
+      "authority": "User-pinned Spotify composition, grey/blue instead of grey/green; current direction contract in public/index.html. This supersedes Chromatic Listen guidance.",
+      "layout": "264px library / flexible main panel, or 244px / flexible main / 280px side panel. 8px gaps and panel corners; independently scrolling content. Sticky 70px navigation. Home quick shortcuts, square albums, collection hero and track rows.",
+      "responsive": "1250px: 225px sidebar or 210px with open overlay panel; 300px queue overlay, two quick columns, 180px collection art. 1100px: no track album column. 760px: hidden sidebar/mobile Library, two album columns, stacked art/title, 62px title/like/options tracks, visible likes/play. 600px: 6px outer padding.",
+      "transport": "Persistent, full-width black dock: 92px desktop, 80px at 760px. Identity/like left, transport/seek center, queue/volume right; mobile keeps identity/play/next/seek and exposes other transport functions in Listen. Mounted across sections while active; no blur, floating pill, or dock shadow.",
+      "states": "Selected filter fills remain light with dark text on hover. Active tracks, likes, repeat/shuffle use accent; album play appears on hover and focus and remains visible on phones. Shared accent focus outline is 2px with 3px offset. Empty music, collections and search offer relevant actions.",
+      "type": "10/11/12/13/14/15/16/22/24px functional sans scale; 28px empty heading; collection clamp(34px,4.6vw,70px) at weight 800. Phone/compact variants recorded in DESIGN.md. Icon-font geometry is not typography.",
+      "shapes": "4px tracks/small art, 5px album art, 6px album card, 7px now-playing art/small-phone panel, 8px panels, pill filters and circular play.",
+      "persistence": "Liked songs, recent listening (30 entries), and playlists are per-account browser-local records under vault-listen:<account>; files remain Music shelf files, with metadata enrichment and no Spotify catalog.",
+      "assets": "Runtime music metadata supplies album artwork. Neutral icon fallbacks and CSS liked-song gradient work without art. No new shipping raster assets. Review screenshots are evidence, not runtime assets.",
+      "detectorGuidance": "The earlier .qa/listen-detector.json has 35 color/type/radius advisories against stale DESIGN.md. Compare each to the documented Listen palette, functional sans scale, responsive variants, and small radii. These scoped values do not authorize arbitrary new values, blanket suppressions, or changes to Library/Watch. Selected-filter hover contrast was corrected in the final listen.css rule before this documentation pass."
     }
   },
   "components": [
-    {
-      "name": "Primary Action",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Established surface outside Watch: Warm-white pill for the decisive action on a dark surface.",
-      "html": "<button class=\"ds-primary\">Play</button>",
-      "css": ".ds-primary{height:39px;padding:0 16px;border:0;border-radius:999px;background:var(--text,#f3f0e8);color:var(--void,#070909);font:700 11px/1 'Vault Sans',sans-serif;transition:background .2s,transform .2s}.ds-primary:hover{background:var(--star,#ff6b3c);transform:translateY(-1px)}.ds-primary:focus-visible{outline:2px solid var(--star,#ff6b3c);outline-offset:3px}"
-    },
-    {
-      "name": "Secondary Action",
-      "kind": "button",
-      "refersTo": "button-secondary",
-      "description": "Established surface outside Watch: Quiet outlined pill for a supporting media action.",
-      "html": "<button class=\"ds-secondary\">Movie details</button>",
-      "css": ".ds-secondary{height:39px;padding:0 16px;border:1px solid rgba(255,255,255,.32);border-radius:999px;background:rgba(7,9,9,.4);color:var(--text,#f3f0e8);font:700 11px/1 'Vault Sans',sans-serif;transition:background .2s,border-color .2s}.ds-secondary:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.5)}.ds-secondary:focus-visible{outline:2px solid var(--star,#ff6b3c);outline-offset:3px}"
-    },
-    {
-      "name": "Search Field",
-      "kind": "input",
-      "refersTo": "search-field",
-      "description": "Compact archive search with a data-role label.",
-      "html": "<label class=\"ds-search\"><span>SEARCH</span><input placeholder=\"Search files and folders\"></label>",
-      "css": ".ds-search{display:flex;align-items:center;height:38px;border:1px solid rgba(255,255,255,.14);border-radius:7px;background:rgba(255,255,255,.025);color:#747d78}.ds-search span{padding-left:13px;font:500 9px/1 'Vault Mono',monospace;letter-spacing:.08em}.ds-search input{min-width:0;flex:1;padding:0 12px;border:0;outline:0;background:transparent;color:#f3f0e8;font:400 12px/1 'Vault Sans',sans-serif}.ds-search:focus-within{outline:2px solid #ff6b3c;outline-offset:3px}"
-    },
-    {
-      "name": "Space Navigation",
-      "kind": "nav",
-      "description": "Established Library/Listen shared-space switcher. Watch uses a neutral small-radius active tab without a pill enclosure.",
-      "html": "<nav class=\"ds-space\"><button class=\"on\">Library</button><button>Watch</button><button>Listen</button></nav>",
-      "css": ".ds-space{display:flex;gap:3px;width:max-content;padding:4px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.025)}.ds-space button{height:32px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:#aab0aa;font:400 11px/1 'Vault Sans',sans-serif}.ds-space button:hover{color:#f3f0e8}.ds-space button:focus-visible{outline:2px solid #ff6b3c;outline-offset:2px}.ds-space .on{background:#f3f0e8;color:#070909}"
-    },
-    {
-      "name": "Media Card",
-      "kind": "card",
-      "refersTo": "media-card",
-      "description": "Established surface outside Watch: Wide artwork-first rail card whose metadata appears with deliberate depth.",
-      "html": "<article class=\"ds-media\"><div class=\"ds-art\"><div class=\"ds-reveal\">2016 · IN LIBRARY<br><span>A quiet synopsis appears on hover.</span></div></div><strong>Arrival</strong><small>2016 · FEATURE</small></article>",
-      "css": ".ds-media{width:300px;color:#f3f0e8;font-family:'Vault Sans',sans-serif;transition:transform .42s cubic-bezier(.16,1,.3,1)}.ds-media:hover{transform:translateY(-8px) scale(1.025)}.ds-media:focus-within{outline:2px solid #ff6b3c;outline-offset:3px}.ds-art{position:relative;aspect-ratio:1.6;overflow:hidden;border-radius:14px;background:radial-gradient(circle at 70% 20%,rgba(255,107,60,.34),transparent 34%),#111514;box-shadow:0 26px 70px rgba(0,0,0,.32)}.ds-reveal{position:absolute;left:14px;right:14px;bottom:16px;color:#e3e5df;font:500 8px/1.4 'Vault Mono',monospace;opacity:0;transform:translateY(10px);transition:opacity .28s,transform .42s cubic-bezier(.16,1,.3,1)}.ds-media:hover .ds-reveal{opacity:1;transform:none}.ds-reveal span{font:400 11px/1.4 'Vault Sans',sans-serif;color:#c1c6c1}.ds-media strong{display:block;margin-top:12px;font-size:14px}.ds-media small{display:block;margin-top:4px;color:#747d78;font:500 8px/1 'Vault Mono',monospace}"
-    },
-    {
-      "name": "Music Dock",
-      "kind": "custom",
-      "description": "A persistent, focused transport surface for the current track.",
-      "html": "<div class=\"ds-dock\"><div class=\"ds-cover\"></div><div><strong>Nutshell</strong><small>Alice in Chains · Jar of Flies</small></div><button aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 5v14l11-7z\"/></svg></button></div>",
-      "css": ".ds-dock{display:grid;grid-template-columns:48px 1fr 38px;align-items:center;gap:12px;width:520px;padding:9px 14px;border:1px solid rgba(255,255,255,.8);border-radius:14px;background:rgba(243,240,232,.95);color:#090a09;box-shadow:0 30px 90px rgba(0,0,0,.52);font-family:'Vault Sans',sans-serif}.ds-cover{width:48px;height:48px;border-radius:9px;background:linear-gradient(145deg,#873c2b,#18100e)}.ds-dock strong,.ds-dock small{display:block}.ds-dock small{margin-top:4px;color:#5f655f;font-size:10px}.ds-dock button{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:50%;background:#090a09;color:#f3f0e8}.ds-dock button:hover{background:#ff6b3c}.ds-dock button:focus-visible{outline:2px solid #ff6b3c;outline-offset:3px}.ds-dock svg{width:16px;height:16px}"
-    },
     {
       "name": "Library Row",
       "kind": "custom",
@@ -496,14 +1000,6 @@
       "description": "Compact file row with stable metadata and context-menu actions; touch/phone layouts add Options.",
       "html": "<div class=\"ds-library-row\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-name\">Notes.pdf</button><span class=\"ds-meta\">240 KB</span><span class=\"ds-meta ds-wide\">Documents</span><span class=\"ds-meta ds-wide\">2 days ago</span><button class=\"ds-options\" aria-label=\"Options for Notes.pdf\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"5\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"2\" fill=\"currentColor\"/></svg></button></div>",
       "css": ".ds-library-row{display:grid;grid-template-columns:36px minmax(140px,1fr) 95px 120px 110px;align-items:center;min-height:49px;border-bottom:1px solid var(--line-soft,rgba(255,255,255,.075));color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-row:hover,.ds-library-row:focus-within{background:var(--night-raised,#0c0f0f)}.ds-library-row:has(input:checked){background:var(--star-soft,rgba(255,107,60,.12))}.ds-library-row input{width:15px;height:15px;accent-color:var(--accent,#ff6b3c)}.ds-library-row button{border:0;background:transparent;color:inherit;cursor:pointer}.ds-name{padding:8px;text-align:left;font:500 13px/1.4 var(--sans,sans-serif)}.ds-meta{color:var(--muted,#9ba39e);font:400 11px/1.5 var(--sans,sans-serif);font-variant-numeric:tabular-nums}.ds-options{display:none}.ds-library-row button:hover{color:var(--accent,#ff6b3c)}.ds-library-row button:focus-visible,.ds-library-row input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}@media(max-width:1100px){.ds-library-row{grid-template-columns:30px minmax(0,1fr) 70px}.ds-wide{display:none}}@media(hover:none),(max-width:700px){.ds-library-row{grid-template-columns:30px minmax(0,1fr) 70px 34px}.ds-wide{display:none}.ds-options{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;color:var(--muted,#9ba39e);font-size:22px}}.ds-options svg{width:22px;height:22px}"
-    },
-    {
-      "name": "Library Grid Tile",
-      "kind": "card",
-      "refersTo": "library-tile",
-      "description": "File tile with independent checkbox, open target, and context-menu actions; touch/phone layouts add Options.",
-      "html": "<article class=\"ds-library-tile\"><input type=\"checkbox\" aria-label=\"Select Notes.pdf\"><button class=\"ds-tile-open\"><span class=\"ds-tile-art\">PDF</span><strong>Notes.pdf</strong><small>240 KB</small></button><button class=\"ds-tile-options\" aria-label=\"Options for Notes.pdf\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"5\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"2\" fill=\"currentColor\"/></svg></button></article>",
-      "css": ".ds-library-tile{position:relative;width:180px;padding:12px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:7px;background:var(--panel,#111514);color:var(--light,#f3f0e8);font-family:var(--sans,sans-serif)}.ds-library-tile>input{position:absolute;top:12px;left:12px;width:16px;height:16px;accent-color:var(--accent,#ff6b3c)}.ds-library-tile:has(input:checked){border-color:var(--accent,#ff6b3c);background:var(--star-soft,rgba(255,107,60,.12))}.ds-library-tile button{border:0;background:none;color:inherit;text-align:left;cursor:pointer}.ds-tile-open{display:block;width:100%;padding:0}.ds-tile-art{display:grid;place-items:center;height:90px;color:var(--muted,#9ba39e);font:13px var(--mono,monospace)}.ds-tile-open strong{display:block;font:500 13px/1.4 var(--sans,sans-serif)}.ds-tile-open small{display:block;color:var(--muted,#9ba39e);font:11px/1.5 var(--sans,sans-serif)}.ds-tile-options{display:none}.ds-library-tile button:hover{color:var(--accent,#ff6b3c)}.ds-library-tile button:focus-visible,.ds-library-tile input:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}@media(hover:none),(max-width:700px){.ds-tile-options{display:inline-flex;position:absolute;right:5px;bottom:5px;align-items:center;justify-content:center;width:34px;height:34px;color:var(--muted,#9ba39e);font-size:22px}.ds-tile-open strong,.ds-tile-open small{padding-right:35px}}.ds-tile-options svg{width:22px;height:22px}"
     },
     {
       "name": "Watch Primary Action",
@@ -528,22 +1024,68 @@
       "description": "Upright title target with persistent metadata and a neutral missing-art fallback.",
       "html": "<button class=\"ds-watch-poster\"><span class=\"ds-watch-art\">A title</span><strong>A title</strong><small>3 seasons</small></button>",
       "css": ".ds-watch-poster{display:block;width:180px;padding:0;border:0;background:transparent;text-align:left;color:#f5f5f5;font-family:var(--sans,sans-serif)}.ds-watch-art{display:flex;align-items:center;justify-content:center;aspect-ratio:2/3;border-radius:5px;background:#252525;color:#c9c9c9;font-size:19px;font-weight:600;transition:transform .22s ease,filter .22s ease}.ds-watch-poster strong{display:block;margin-top:11px;font-size:14px;font-weight:550;line-height:1.4;color:#ededed}.ds-watch-poster small{display:block;margin-top:3px;font-size:12px;line-height:1.5;color:#b6b6b6}.ds-watch-poster:hover .ds-watch-art,.ds-watch-poster:focus-visible .ds-watch-art{transform:translateY(-4px);filter:brightness(1.08)}.ds-watch-poster:focus-visible{outline:2px solid #fff;outline-offset:4px}@media(prefers-reduced-motion:reduce){.ds-watch-art{transition:none}}"
+    },
+    {
+      "name": "Shared Search",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Centered sans search with raised theme fill and accent focus border.",
+      "html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" width=\"19\" height=\"19\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"m15 15 6 6\" stroke=\"currentColor\" stroke-width=\"2\"/></svg><input aria-label=\"Search the current section\" placeholder=\"Search the vault\"></label>",
+      "css": ".ds-search{display:flex;align-items:center;gap:10px;width:300px;height:38px;padding:0 12px;border:1px solid var(--line,#3a3a3a);border-radius:9px;background:var(--night-raised,#181818);color:var(--muted,#b3b3b3)}.ds-search input{width:100%;border:0;background:none;color:var(--light,#f6f6f6);font:13px var(--sans,Arial,sans-serif)}.ds-search:focus-within{border-color:var(--accent,#69bbff)}.ds-search input:focus-visible{outline:0}"
+    },
+    {
+      "name": "Shared Space Navigation",
+      "kind": "nav",
+      "description": "Optional icon-only mode keeps labels accessible; accent marks the active space.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Vault spaces\"><button>Library</button><button>Watch</button><button aria-current=\"page\">Listen</button></nav>",
+      "css": ".ds-nav{display:flex;gap:4px}.ds-nav button{height:38px;padding:0 12px;border:0;border-radius:7px;background:none;color:var(--muted,#b3b3b3);font:12px var(--sans,Arial,sans-serif)}.ds-nav [aria-current]{background:var(--star-soft,rgba(105,187,255,.12));color:var(--accent,#69bbff)}.ds-nav button:hover{background:var(--hover,#2a2a2a);color:var(--light,#f6f6f6)}.ds-nav button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}"
+    },
+    {
+      "name": "Listen Collection Play",
+      "kind": "button",
+      "refersTo": "listen-play",
+      "description": "Accent-filled circular collection action; inherits explicit palette choices.",
+      "html": "<button class=\"ds-listen-play\" aria-label=\"Play collection\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 4v16l13-8z\"/></svg></button>",
+      "css": ".ds-listen-play{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border:0;border-radius:50%;background:var(--accent,#69bbff);color:#101010;box-shadow:0 6px 16px #0003;transition:transform .18s}.ds-listen-play:hover{transform:scale(1.05);filter:brightness(1.08)}.ds-listen-play:active{transform:translateY(1px)}.ds-listen-play:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-listen-play{transition:none}}"
+    },
+    {
+      "name": "Listen Filters",
+      "kind": "chip",
+      "refersTo": "listen-filter-selected",
+      "description": "Light selected pills retain dark text and light fill on hover.",
+      "html": "<div class=\"ds-listen-filters\"><button aria-pressed=\"true\">All</button><button aria-pressed=\"false\">Albums</button><button aria-pressed=\"false\">Songs</button></div>",
+      "css": ".ds-listen-filters{display:flex;gap:8px}.ds-listen-filters button{padding:7px 13px;border:0;border-radius:999px;background:#272727;color:#f6f6f6;font:500 13px var(--sans,Arial,sans-serif)}.ds-listen-filters button:hover{background:#333}.ds-listen-filters [aria-pressed=true]{background:#f5f5f5;color:#121212}.ds-listen-filters [aria-pressed=true]:hover{background:#fff;color:#121212}.ds-listen-filters button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}"
+    },
+    {
+      "name": "Listen Album",
+      "kind": "card",
+      "refersTo": "listen-album",
+      "description": "Square runtime artwork or neutral fallback, persistent title/artist, separate play target.",
+      "html": "<article class=\"ds-album\"><button class=\"ds-album-open\"><span class=\"ds-album-art\"><svg viewBox=\"0 0 24 24\" width=\"35\" height=\"35\" aria-hidden=\"true\"><path d=\"M9 18V5l11-2v13M9 8l11-2\" stroke=\"currentColor\" stroke-width=\"2\" fill=\"none\"/><ellipse cx=\"6\" cy=\"18\" rx=\"3\" ry=\"2\" fill=\"currentColor\"/><ellipse cx=\"17\" cy=\"16\" rx=\"3\" ry=\"2\" fill=\"currentColor\"/></svg></span><b>Album title</b><small>Artist</small></button><button class=\"ds-album-play\" aria-label=\"Play album\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 4v16l13-8z\"/></svg></button></article>",
+      "css": ".ds-album{position:relative;width:180px;border-radius:6px;transition:background .18s;font-family:var(--sans,Arial,sans-serif)}.ds-album:hover,.ds-album:focus-within{background:#242424}.ds-album-open{display:block;width:100%;padding:10px;border:0;border-radius:6px;text-align:left;background:none;color:#f6f6f6}.ds-album-art{display:grid;place-items:center;aspect-ratio:1;border-radius:5px;background:#282828;color:#b3b3b3;box-shadow:0 8px 22px #0004;margin-bottom:12px}.ds-album b{display:block;font-size:15px;font-weight:600;line-height:1.5}.ds-album small{display:block;font-size:13px;color:#b3b3b3;line-height:1.5;margin-top:3px}.ds-album-play{position:absolute;right:19px;bottom:84px;width:46px;height:46px;border:0;border-radius:50%;background:var(--accent,#69bbff);color:#101010;opacity:0;transform:translateY(7px);transition:transform .18s,opacity .18s}.ds-album:hover .ds-album-play,.ds-album:focus-within .ds-album-play{opacity:1;transform:none}.ds-album button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}@media(max-width:760px){.ds-album-play{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.ds-album,.ds-album-play{transition:none}}"
+    },
+    {
+      "name": "Music Transport",
+      "kind": "custom",
+      "description": "Flat full-width black transport with neutral main play, seek track, and persistent track identity.",
+      "html": "<div class=\"ds-dock\"><div><b>Track title</b><small>Artist</small></div><div class=\"ds-dock-center\"><button aria-label=\"Play current track\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 4v16l13-8z\"/></svg></button><input aria-label=\"Seek\" type=\"range\" min=\"0\" max=\"100\" value=\"35\"></div></div>",
+      "css": ".ds-dock{display:grid;grid-template-columns:minmax(120px,1fr) minmax(180px,2fr);gap:24px;padding:12px 20px;min-height:68px;background:#080808;color:#fff;font-family:var(--sans,Arial,sans-serif)}.ds-dock b{display:block;font-size:13px;font-weight:550}.ds-dock small{display:block;margin-top:5px;color:#b3b3b3;font-size:11px}.ds-dock-center{display:flex;flex-direction:column;align-items:center;gap:6px}.ds-dock button{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:#fff;color:#101010}.ds-dock button:hover{transform:scale(1.06)}.ds-dock button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}.ds-dock input{width:100%;height:4px;accent-color:var(--accent,#69bbff)}.ds-dock input:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}"
     }
   ],
   "narrative": {
-    "northStar": "The Chromatic Archive, with a personal streaming library for Watch",
-    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Listen, administration, and playback retain their established Chromatic Archive styling. Watch is the user's explicitly chosen conventional Netflix / HBO / Emby-style streaming library: neutral black, white controls, cinematic backdrops, upright posters, and straightforward title browsing.\n\nLibrary is a compact Explorer-style operating surface: a small heading, shelf folders at the root, clickable breadcrumbs, and dense file rows. Watch has its own scoped palette and composition; its show → season → episode hierarchy is a presentation of existing files, with browser history and no physical file moves.\n\nThe established archive voice uses mineral black, warm paper white, and one orange signal. Watch uses the same self-hosted sans family with a separate, readable streaming type scale and neutral controls. Missing artwork remains graceful in both systems. Watch's scoped rules supersede earlier chromatic storyworlds, orbit/canvas effects, tilted posters, and automatic hero rotation; those earlier directions do not govern this surface.",
+    "northStar": "A private archive with familiar streaming rooms",
+    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Administration and video playback retain their established structures. The shared header now has compact utility icons, optional icon-only section tabs, and centered sans search across all three spaces.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
     "keyCharacteristics": [
-      "Near-black tonal layering instead of decorative panels.",
-      "Warm orange remains the archive signal; Watch browsing uses white focus, progress, and active states.",
-      "Sans-led Watch titles and metadata; the existing archive and Listen type roles remain scoped to their surfaces.",
-      "Dense file tools and spacious entertainment surfaces in one coherent shell.",
-      "Restrained interaction feedback that respects reduced motion; Watch's feature stays stable."
+      "Near-black tonal layering with distinct file, video, and music compositions.",
+      "One configurable accent; default orange in Library/Watch and light blue in Listen.",
+      "Sans-led media titles, tracks, and metadata with operational mono retained where already used.",
+      "Compact shared navigation, centered search, and directly reachable utility icons.",
+      "Restrained state feedback, persistent music transport, and reduced-motion support."
     ],
     "rules": [
       {
         "name": "The Signal Rarity Rule",
-        "body": "In the archive and Listen, orange identifies interaction, progress, or current state; it does not become a decorative second background. Watch browsing uses neutral state treatments and preserves the shared brand and player where applicable.",
+        "body": "The active accent identifies interaction, progress, and current state. Listen permits restrained translucent accent layers behind navigation and collections; Watch browsing keeps neutral local playback actions and progress. The shared header follows Appearance rather than a fixed orange rule.",
         "section": "colors"
       },
       {
@@ -553,7 +1095,7 @@
       },
       {
         "name": "The Two-Voice Rule",
-        "body": "In the established archive/Listen system, sans carries meaning and hierarchy and mono carries data and measurement. Library's compact data and Watch's content metadata use sans; the shared header retains its existing search typography.",
+        "body": "Sans carries hierarchy and readable interface content. Mono is limited to established operational data roles; Library data, Watch metadata, Listen tracks and time, and shared search use sans.",
         "section": "typography"
       },
       {
@@ -565,14 +1107,15 @@
     "dos": [
       "Do keep filenames, permissions, folders, and primary actions legible before adding spectacle.",
       "Do keep Library's shelf-root hierarchy, breadcrumbs, compact sans scale, stable metadata, and context-menu actions together as one operating surface.",
-      "Do use artwork-led, neutral Watch browsing while preserving the established Library, Listen, administration, and playback systems.",
+      "Do use artwork-led Watch browsing and the charcoal Spotify-style Listen composition while preserving Library file tools, administration, and video playback.",
+      "Do keep selected Listen filter pills legible on hover and preserve visible focus, persistent transport, and phone actions.",
       "Do provide a graceful local fallback when thumbnails or remote metadata are unavailable.",
       "Do mirror media hover disclosure with keyboard focus and persistent detail views.",
       "Do keep Watch's feature stable, respect reduced motion, and preserve show → season → episode navigation and browser history."
     ],
     "donts": [
       "Don't apply Watch's explicitly selected Netflix / HBO / Emby conventions to Library or Listen, or revive storyworlds, orbit/canvas effects, tilted posters, or automatic hero rotation in Watch.",
-      "Don't use orange as a decorative page wash or distribute many competing accent colors.",
+      "Don't distribute competing accent palettes or hard-code orange into shared controls; preserve the default blue Listen identity and explicit Appearance choices.",
       "Don't hide archive navigation or owner access to make a media screen look cleaner.",
       "Don't use mono for body copy, large headings, or atmosphere.",
       "Don't interpret icon sizes as typography tokens or apply one surface's typography, colors, and corner scale to another.",
