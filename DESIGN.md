@@ -322,6 +322,8 @@ Outside Watch, the three primary spaces live in a segmented pill and the active 
 
 All files presents non-media shelves as folders rather than flattening their contents. Entering a shelf or folder exposes its immediate children; breadcrumbs and Up preserve that hierarchy. Search stays within the active Library scope and searches descendants. Movies, series, and music shelves are excluded from All files and its search. Their lower-left shortcuts open an explicit file-browsing scope with the same folder tools. Only the top Watch and Listen tabs enter the playback surfaces.
 
+Right-clicking empty Library space opens the same compact menu with New file and New folder. Creation uses the current folder; All files offers a shelf picker. New files are empty and default to Untitled.txt. Item context menus retain their existing actions.
+
 Names, selection, and the layout's metadata columns stay visible on hover and keyboard focus. Rows and grid tiles use a compact context menu for file operations, with a persistent Options control on touch and phone layouts. The bulk surface reports selection and exposes applicable actions, including Create ZIP. Keep folder navigation, downloading, sharing, and owner tools practical without introducing a Library hero, decorative metrics, or a new visual world.
 
 ### Established Media Card (outside Watch)

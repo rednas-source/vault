@@ -1311,9 +1311,9 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-watch-20260922">
-<link rel="stylesheet" href="/library.css?v=vault-watch-20260922">
-<link rel="stylesheet" href="/watch.css?v=vault-watch-20260922">
+<link rel="stylesheet" href="/chromatic.css?v=vault-create-menu-20260922">
+<link rel="stylesheet" href="/library.css?v=vault-create-menu-20260922">
+<link rel="stylesheet" href="/watch.css?v=vault-create-menu-20260922">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Watch, September 2026.
@@ -1540,11 +1540,11 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/watch-model.js?v=vault-watch-20260922"></script>
-<script src="/watch.js?v=vault-watch-20260922"></script>
-<script src="/document-reader.js?v=vault-watch-20260922"></script>
-<script src="/library-tools.js?v=vault-watch-20260922"></script>
-<script src="/library-actions.js?v=vault-watch-20260922"></script>
+<script src="/watch-model.js?v=vault-create-menu-20260922"></script>
+<script src="/watch.js?v=vault-create-menu-20260922"></script>
+<script src="/document-reader.js?v=vault-create-menu-20260922"></script>
+<script src="/library-tools.js?v=vault-create-menu-20260922"></script>
+<script src="/library-actions.js?v=vault-create-menu-20260922"></script>
 <script>
 'use strict';
 
@@ -3886,19 +3886,21 @@ $('#folderPicker').onchange = () => {
   $('#folderPicker').value = '';
 };
 
-$('#btnNewFolder').onclick = () => {
+$('#btnNewFolder').onclick = () => askNewItem('folder');
+function askNewItem(kind){
+  const isFile=kind==='file',label=isFile?'file':'folder';
   if(!SHELF_ORDER.length) return toast('No writable shelves available', 'bad');
   const folderShelves=state.mode==='files'&&state.shelf==='all'?libraryShelves():SHELF_ORDER;
   if(!folderShelves.length)return toast('Create a Library shelf in Manage first.','bad');
   const current = state.shelf !== 'all' ? state.shelf : folderShelves[0];
-  sheet(`<span class="tag">New folder</span>
-    <p>${state.shelf === 'all' ? 'Choose a shelf and name the folder.'
+  sheet(`<span class="tag">New ${label}</span>
+    <p>${state.shelf === 'all' ? `Choose a shelf and name the ${label}.`
       : `Create it in ${esc([SHELF_LABEL[state.shelf], state.folder].filter(Boolean).join(' / '))}.`}</p>
     ${state.shelf === 'all' ? `<div class="shelf-pick">${folderShelves.map((s,i)=>
       `<button data-folder-shelf="${esc(s)}" class="${i===0?'on':''}">${esc(SHELF_LABEL[s])}</button>`).join('')}</div>` : ''}
-    <div class="rename-field"><input id="folderName" placeholder="Folder name" autocomplete="off"></div>
+    <label class="sr-only" for="folderName">${isFile?'File':'Folder'} name</label><div class="rename-field"><input id="folderName" placeholder="${isFile?'File name, e.g. notes.txt':'Folder name'}" value="${isFile?'Untitled.txt':''}" autocomplete="off"></div>${isFile?'<p>Creates an empty file.</p>':''}
     <div class="gate-error mono" id="folderErr" style="margin:0 0 14px"></div>
-    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Create folder</button></div>`);
+    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Create ${label}</button></div>`);
   let shelf = current;
   $('#sheet').querySelectorAll('[data-folder-shelf]').forEach((b) => {
     b.onclick = () => {
@@ -3907,24 +3909,27 @@ $('#btnNewFolder').onclick = () => {
     };
   });
 
-  const input = $('#folderName'); input.focus();
+  const input = $('#folderName'); input.focus();if(isFile)input.select();
   $('#no').onclick = closeSheet;
   const create = async () => {
     const name = input.value.trim();
-    if(!name) return void ($('#folderErr').textContent = 'Give the folder a name.');
-    const r = await fetch('/api/folders', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ shelf, directory: shelf===state.shelf ? state.folder : '', name }),
-    });
-    const d = await r.json().catch(()=>({}));
-    if(!r.ok) return void ($('#folderErr').textContent = d.error || 'Could not create the folder.');
-    closeSheet();
-    if(state.shelf === 'all'){ state.shelf = shelf; state.folder = ''; }
-    toast(`Created ${name}`); load();
+    if(!name) return void ($('#folderErr').textContent = `Give the ${label} a name.`);
+    const button=$('#yes');if(button.disabled)return;button.disabled=true;
+    try{
+      const r = await fetch(isFile?'/api/files/create':'/api/folders', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ shelf, directory: shelf===state.shelf ? state.folder : '', name }),
+      });
+      const d = await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error || `Could not create the ${label}.`);
+      const directory=shelf===state.shelf?state.folder:'';
+      window.addEventListener('popstate',()=>{state.shelf=shelf;state.folder=directory;state.q='';$('#q').value='';load();},{once:true});
+      closeSheet();toast(`Created ${name}`);
+    }catch(error){$('#folderErr').textContent=error.message||`Could not create the ${label}.`;button.disabled=false;}
   };
   $('#yes').onclick = create;
   input.onkeydown = (e) => { if(e.key === 'Enter') create(); };
-};
+}
 
 function relativePathOf(file){
   return String(droppedPaths.get(file) || file.webkitRelativePath || '').replace(/\\/g,'/');

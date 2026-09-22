@@ -36,10 +36,7 @@ function closeFileMenu(restoreFocus=false){
   if(restoreFocus&&menuAnchor?.isConnected)menuAnchor.focus();
   return true;
 }
-function showFileMenu(file,event){
-  event?.preventDefault();event?.stopPropagation();
-  const rels=state.picked.has(file.rel)?[...state.picked]:[file.rel];
-  const multiple=rels.length>1,protectedRoot=rels.some(rel=>!rel.includes('/'));
+function ensureFileMenu(){
   if(!fileMenu){
     fileMenu=document.createElement('div');fileMenu.id='fileMenu';fileMenu.className='file-menu';
     fileMenu.setAttribute('role','menu');fileMenu.setAttribute('aria-label','File actions');document.body.append(fileMenu);
@@ -54,6 +51,13 @@ function showFileMenu(file,event){
       if(e.key==='Tab')closeFileMenu();
     });
   }
+}
+function showFileMenu(file,event){
+  event?.preventDefault();event?.stopPropagation();
+  const rels=state.picked.has(file.rel)?[...state.picked]:[file.rel];
+  const multiple=rels.length>1,protectedRoot=rels.some(rel=>!rel.includes('/'));
+  ensureFileMenu();
+  fileMenu.setAttribute('aria-label','File actions');
   const actions=[];
   if(!multiple&&(file.kind==='folder'||openable(file)))actions.push(['open',file.kind==='folder'?'Open folder':'Open','folder-open']);
   actions.push(['download',multiple?'Download selection':'Download','download-simple']);
@@ -90,6 +94,19 @@ function showFileMenu(file,event){
     if(action==='delete')askDeleteItems(rels);
   });
   if(!event?.detail)fileMenu.querySelector('button')?.focus();
+}
+
+function showBackgroundMenu(event){
+  if(state.mode!=='files'||event.target.closest('tr[data-rel],.tile[data-rel],button,input,select,a'))return;
+  event.preventDefault();event.stopPropagation();ensureFileMenu();
+  fileMenu.setAttribute('aria-label','Create items');
+  fileMenu.innerHTML=`<button role="menuitem" data-create="file">${icon('file-plus')}<span>New file</span></button><button role="menuitem" data-create="folder">${icon('folder-plus')}<span>New folder</span></button>`;
+  fileMenu.hidden=false;menuAnchor=$('#scroll');menuAnchor.tabIndex=-1;
+  const box=fileMenu.getBoundingClientRect();
+  fileMenu.style.left=`${Math.max(8,Math.min(event.clientX,innerWidth-box.width-8))}px`;
+  fileMenu.style.top=`${Math.max(8,Math.min(event.clientY,innerHeight-box.height-8))}px`;
+  fileMenu.querySelectorAll('[data-create]').forEach(button=>button.onclick=()=>{closeFileMenu();askNewItem(button.dataset.create);});
+  fileMenu.querySelector('button').focus();
 }
 
 function syncPicked(){
@@ -180,6 +197,7 @@ function wireDropTarget(element,destination){
   };
 }
 function wireFileInteractions(list){
+  $('#scroll').oncontextmenu=state.mode==='files'?showBackgroundMenu:null;
   if(state.mode!=='files'){
     $('#scroll').ondragover=null;$('#scroll').ondrop=null;$('#scroll').ondragleave=null;return;
   }

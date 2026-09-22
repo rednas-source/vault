@@ -11,7 +11,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawn, spawnSync } = require('child_process');
 const { resolveEntry, collectEntries, streamArchive } = require('./lib/archive');
-const { operate } = require('./lib/file-operations');
+const { operate, createFile } = require('./lib/file-operations');
 const { previewDocument } = require('./lib/document-preview');
 const { createZip } = require('./lib/create-zip');
 const { listSharedLinks } = require('./lib/shared-links');
@@ -30,7 +30,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-watch-20260922';
+const BUILD_ID = 'vault-create-menu-20260922';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1546,6 +1546,14 @@ app.get('/api/files', auth, async (req, res) => {
     role: req.user.role, artwork: !!TMDB_KEY, musicMetadata: true,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
+});
+
+app.post('/api/files/create', auth, async (req, res) => {
+  try {
+    const result = await createFile(ROOT, req.body, allowedShelves(req.user));
+    note(req.user.name, 'file-create', result.rel);
+    res.json(result);
+  } catch (error) { res.status(error.status || 500).json({ error:error.status?error.message:'Could not create the file.' }); }
 });
 
 app.post('/api/folders', auth, async (req, res) => {

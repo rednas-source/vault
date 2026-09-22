@@ -2,7 +2,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
-const {operate}=require('../lib/file-operations');
+const {operate,createFile}=require('../lib/file-operations');
 async function fixture(fn){
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-operations-'));
  try{
@@ -13,6 +13,20 @@ async function fixture(fn){
   await fn(root);
  }finally{await fs.rm(root,{recursive:true,force:true});}
 }
+
+test('creates empty files in allowed folders without overwriting or escaping the shelf',()=>fixture(async root=>{
+ const create=(name,directory='Source/Nested',shelf='docs')=>createFile(root,{shelf,directory,name},['docs']);
+ const result=await create('New notes.md');assert.equal(result.rel,'docs/Source/Nested/New notes.md');
+ assert.equal((await fs.stat(path.join(root,result.rel))).size,0);
+ await assert.rejects(create('one.txt',''),error=>error.status===409);
+ assert.equal(await fs.readFile(path.join(root,'docs/one.txt'),'utf8'),'one');
+ for(const name of ['../bad.txt','a/b.txt','.hidden','bad\\file','con.txt','bad.',''])await assert.rejects(create(name));
+ await assert.rejects(create('new.txt','','photos'),error=>error.status===403);
+ for(const directory of ['../photos','missing','one.txt'])await assert.rejects(create('new.txt',directory));
+ await fs.symlink(path.join(root,'photos'),path.join(root,'docs/Linked'),'junction');
+ await assert.rejects(create('new.txt','Linked'));
+ await assert.rejects(fs.stat(path.join(root,'photos/new.txt')));
+}));
 test('moves files and complete folders to nested destinations, deduplicates parent/child',()=>fixture(async root=>{
  let result=await operate(root,{action:'move',rels:['docs/Source','docs/Source/Nested/notes.txt'],destination:'docs/Target'},['docs']);
  assert.equal(result.done,1);assert.equal(result.failed,0);
