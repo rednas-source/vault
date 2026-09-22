@@ -11,6 +11,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawn, spawnSync } = require('child_process');
 const { collectEntries, streamArchive } = require('./lib/archive');
+const { operate } = require('./lib/file-operations');
 
 // ---------------------------------------------------------------- config
 
@@ -26,7 +27,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-library-explorer-20260921';
+const BUILD_ID = 'vault-library-actions-20260922';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1728,45 +1729,24 @@ app.delete('/api/upload/:id', auth, async (req, res) => {
 });
 
 app.delete('/api/file', auth, async (req, res) => {
-  const full = safePath(req.query.rel);
-  if (!full) return res.status(400).json({ error: 'Bad path' });
-  if (!requireShelf(req, res, req.query.rel)) return;
   try {
-    await fsp.unlink(full);
+    const result = await operate(ROOT, { action:'delete', rels:[req.query.rel] }, allowedShelves(req.user));
+    if (result.failed) return res.status(500).json({ error:'Could not delete the item.' });
     note(req.user.name, 'delete', req.query.rel);
-    res.json({ ok: true });
-  } catch {
-    res.status(404).json({ error: 'File not found' });
-  }
+    res.json({ ok:true });
+  } catch (error) { res.status(error.status || 400).json({ error:error.message }); }
 });
 
 app.patch('/api/file', auth, async (req, res) => {
-  const from = safePath(req.body.rel);
-  const shelf = req.body.shelf;
-  const newName = req.body.name ? safeName(req.body.name) : null;
-  if (!from) return res.status(400).json({ error: 'Bad path' });
-  if (shelf && !shelfById(shelf)) return res.status(400).json({ error: 'Unknown shelf' });
-
-  // Both ends must be permitted: you can't drag a file out of a shelf you
-  // can't see, nor push one into a shelf you don't have.
-  if (!requireShelf(req, res, req.body.rel)) return;
-  if (shelf && !canUse(req.user, shelf)) {
-    return res.status(403).json({ error: 'No permission for that shelf' });
-  }
-
-  // A rename stays beside the original, including inside nested folders. A
-  // move to another shelf intentionally lands at that shelf's root.
-  const targetDir = shelf ? path.join(ROOT, shelf) : path.dirname(from);
-  await fsp.mkdir(targetDir, { recursive: true });
-  const target = path.join(targetDir, await uniqueName(targetDir, newName || path.basename(from)));
   try {
-    await fsp.rename(from, target);
-    const now = path.relative(ROOT, target).split(path.sep).join('/');
-    note(req.user.name, newName ? 'rename' : 'move', `${req.body.rel} -> ${now}`);
-    res.json({ rel: now });
-  } catch (e) {
-    res.status(500).json({ error: 'Could not move file' });
-  }
+    const result = await operate(ROOT, {
+      action:req.body.name ? 'rename' : 'move', rels:[req.body.rel], name:req.body.name,
+      destination:req.body.destination || req.body.shelf,
+    }, allowedShelves(req.user));
+    if (result.failed) return res.status(500).json({ error:'Could not move or rename the item.' });
+    note(req.user.name, req.body.name ? 'rename' : 'move', `${req.body.rel} -> ${result.changes[0].to}`);
+    res.json({ rel:result.changes[0].to });
+  } catch (error) { res.status(error.status || 400).json({ error:error.message }); }
 });
 
 /** Streams with HTTP range support so video and audio can seek. */
@@ -3062,54 +3042,46 @@ app.post('/api/meta/clear', auth, adminOnly, async (req, res) => {
 
 // Validate the whole selection before sending an archive. Each shelf is checked
 // against the signed-in account, and nested selections are deduplicated.
+const downloadTickets = new Map();
 app.post('/api/files/download', auth, async (req, res) => {
   try {
     const rels = typeof req.body.rels === 'string' ? JSON.parse(req.body.rels) : req.body.rels;
     const entries = await collectEntries(ROOT, rels, allowedShelves(req.user));
-    if (req.body.validate === true) return res.json({ ok: true });
+    if (req.body.validate === true) return res.json({ ok:true });
+    if (req.body.prepare === true) {
+      for (const [id,ticket] of downloadTickets) if (ticket.expires < Date.now()) downloadTickets.delete(id);
+      if (downloadTickets.size >= 1000) return res.status(429).json({ error:'Too many pending downloads. Try again shortly.' });
+      const id = crypto.randomBytes(24).toString('hex');
+      downloadTickets.set(id, { rels, user:req.user.name, expires:Date.now()+120000 });
+      return res.json({ url:`/api/files/download/${id}` });
+    }
     streamArchive(res, entries);
   } catch {
-    if (!res.headersSent) res.status(400).json({ error: 'Some selected items are unavailable. Refresh the folder and try again.' });
+    if (!res.headersSent) res.status(400).json({ error:'Some selected items are unavailable. Refresh the folder and try again.' });
   }
 });
 
-app.post('/api/files/bulk', auth, async (req, res) => {
-  const rels = Array.isArray(req.body.rels) ? req.body.rels.slice(0, 500) : [];
-  const action = req.body.action;
-  if (!rels.length) return res.status(400).json({ error: 'Nothing selected' });
-  if (!['move', 'delete'].includes(action)) return res.status(400).json({ error: 'Unknown action' });
+// A normal browser download navigates to an attachment, leaving the page intact.
+// The short-lived ticket is account-bound; access is checked again at download.
+app.get('/api/files/download/:ticket', auth, async (req,res) => {
+  const ticket = downloadTickets.get(req.params.ticket);
+  if (!ticket || ticket.expires < Date.now() || ticket.user !== req.user.name) return res.status(404).json({ error:'Download expired. Select Download again.' });
+  downloadTickets.delete(req.params.ticket);
+  try {
+    const entries = await collectEntries(ROOT, ticket.rels, allowedShelves(req.user));
+    const filename = ticket.rels.length === 1 ? safeName(path.basename(ticket.rels[0])) + '.zip' : 'Vault-download.zip';
+    streamArchive(res, entries, filename);
+  } catch { if (!res.headersSent) res.status(400).json({ error:'An item is no longer available. Refresh and try again.' }); }
+});
 
-  let targetDir = null;
-  if (action === 'move') {
-    const shelf = req.body.shelf;
-    if (!shelfById(shelf)) return res.status(400).json({ error: 'Unknown shelf' });
-    if (!canUse(req.user, shelf)) return res.status(403).json({ error: 'No permission for that shelf' });
-    targetDir = path.join(ROOT, shelf);
-    await fsp.mkdir(targetDir, { recursive: true });
-  }
-
-  let done = 0;
-  const failed = [];
-  for (const rel of rels) {
-    const full = safePath(rel);
-    const shelf = shelfOf(rel);
-    // Each file is checked on its own — a selection spanning shelves must not
-    // let one permitted file carry a forbidden one along with it.
-    if (!full || !shelf || !canUse(req.user, shelf)) { failed.push(rel); continue; }
-    try {
-      if (action === 'delete') {
-        await fsp.unlink(full);
-      } else {
-        const dest = path.join(targetDir, await uniqueName(targetDir, path.basename(full)));
-        await fsp.rename(full, dest);
-      }
-      done++;
-    } catch { failed.push(rel); }
-  }
-
-  note(req.user.name, action === 'delete' ? 'bulk-delete' : 'bulk-move',
-       `${done} file${done === 1 ? '' : 's'}${action === 'move' ? ' to ' + req.body.shelf : ''}`);
-  res.json({ done, failed: failed.length });
+app.post('/api/files/bulk', auth, async (req,res) => {
+  try {
+    const result = await operate(ROOT, {
+      action:req.body.action, rels:req.body.rels, destination:req.body.destination || req.body.shelf,
+    }, allowedShelves(req.user));
+    note(req.user.name, req.body.action === 'delete' ? 'bulk-delete' : 'bulk-move', `${result.done} items`);
+    res.json(result);
+  } catch (error) { res.status(error.status || 400).json({ error:error.message }); }
 });
 
 // ---------------------------------------------------------------- activity

@@ -131,3 +131,30 @@ body:not(.media-mode) .global-search input { border:0; background:transparent; b
   body:not(.media-mode) .global-search kbd { display:none; }
   .library-toolbar select { width:116px; max-width:116px; padding-right:22px; }
 }
+/* File operations use a body-level menu so the scrolling table cannot clip it. */
+.file-menu { position:fixed; z-index:80; width:224px; max-width:calc(100vw - 16px); max-height:calc(100dvh - 16px); overflow:auto; padding:6px; border:1px solid var(--line); border-radius:7px; background:var(--panel); box-shadow:0 12px 32px rgba(0,0,0,.25); }
+.file-menu[hidden] { display:none; }
+.file-menu-title { padding:8px 10px 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); font-size:12px; }
+.file-menu button { display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; min-height:36px; border-radius:5px; text-align:left; font-size:13px; }
+.file-menu button:hover,.file-menu button:focus-visible { background:var(--star-soft); color:var(--light); }
+.file-menu button.danger { color:var(--accent); }
+.file-menu button i { font-size:18px; }
+.drop-target { outline:2px solid var(--accent)!important; outline-offset:-2px; background:var(--star-soft)!important; }
+.dragging { opacity:.45; }
+.move-path { display:flex; align-items:center; gap:10px; min-width:0; padding-bottom:10px; }
+.move-path span { overflow-wrap:anywhere; font-size:12px; }
+.move-folders { max-height:280px; overflow:auto; border-block:1px solid var(--line); }
+.move-folders button { display:flex; align-items:center; gap:10px; padding:10px; width:100%; text-align:left; font-size:13px; }
+.move-folders button:hover { background:var(--star-soft); }
+.move-folders button span { flex:1; overflow:hidden; text-overflow:ellipsis; }
+.move-folders p { color:var(--muted); font-size:12px; }
+.operation-error { color:var(--accent); font-size:13px; }
+.file-surface .rows .act { text-transform:none; }
+@media (min-width:1101px) and (hover:hover) {
+  .file-surface .rows tr { grid-template-columns:36px minmax(140px,1fr) 95px 120px 110px 32px; }
+}
+@media (max-width:700px) {
+  .library-toolbar .breadcrumbs { flex-basis:calc(100% - 128px); }
+  .bulk { gap:6px; padding:8px; flex-wrap:wrap; }
+  .bulk .act { padding-inline:8px; }
+}

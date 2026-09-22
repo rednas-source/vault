@@ -8,7 +8,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 
 ## What it does
 
-- **Folder-first Library.** All files opens your working shelves as folders. Browse with breadcrumbs and Up (Alt+Up), or search within the current shelf/folder and its descendants. Movies, shows, and music live in the separate entertainment spaces.
+- **Folder-first Library.** All files opens your working shelves as folders. Browse with breadcrumbs and Up (Alt+Up), or search within the current shelf/folder and its descendants. Movies, shows, and music stay out of All files; their lower-left shortcuts open their file folders. The top Watch and Listen tabs open playback libraries.
 - **Shelves.** Files are sorted onto shelves by type on upload, or filed by hand. Folder uploads use one chosen shelf so mixed file types stay together. You define the shelves and the rules.
 - **Streams video and audio** with range requests, so seeking works and nothing has to download in full before it plays.
 - **Video thumbnails** in grid view, including for formats browsers can't play.
@@ -20,7 +20,9 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Converts MKV to MP4.** Background jobs report progress, use the same GPU-aware quality profiles, and can safely replace a verified source.
 - **Hover a video tile** to scrub through nine frames from across its runtime.
 - **Episodes collapse into seasons** automatically, from the filename.
-- **Bulk select and Get.** Select files or folders in list or grid view and download one streamed ZIP with nested paths preserved. Folder downloads include empty directories. Move and delete remain available for file-only selections.
+- **Bulk select and Get.** Select files or folders in list or grid view and download one streamed ZIP with nested paths preserved. Folder downloads include empty directories. Files and folders can both be moved or deleted; shelf roots are protected.
+- **Explorer interactions.** Click a file or folder for actions, double-click to open, or use the checkboxes for multiple items. Download returns files directly or folders as ZIPs; Download ZIP also packages an individual file. Drag selected files or folders onto a folder, shelf, or breadcrumb to move them. Move to… lets you choose a nested destination.
+- **Folder history.** Browser/mouse Back and Forward, toolbar arrows, and Alt+Left/Right follow visited folders. Alt+Up goes to the parent.
 - **Compact file actions.** Hover or keyboard focus replaces desktop metadata with actions; narrower screens show actions on a separate line.
 - **An activity log**, so "where did that file go" has an answer.
 - **A health endpoint** for uptime monitoring, which detects a dropped mount.

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js && node scripts/check-client.js",
-    "test": "node tests/archive.test.js"
+    "test": "node tests/archive.test.js && node tests/file-operations.test.js"
   },
   "dependencies": {
     "@phosphor-icons/web": "^2.1.2",

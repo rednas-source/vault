@@ -1311,8 +1311,8 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-library-explorer-20260921">
-<link rel="stylesheet" href="/library.css?v=vault-library-explorer-20260921">
+<link rel="stylesheet" href="/chromatic.css?v=vault-library-actions-20260922">
+<link rel="stylesheet" href="/library.css?v=vault-library-actions-20260922">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: THESIS: a private archive with an integrated cinema and listening room, reproduced closely from the approved 06 Chromatic Vault prototype. OWN-WORLD: near-black mineral surfaces, warm orange signal color, compact mono metadata, calm editorial type, cinematic image fields, and a precise file workspace. STORY: enter through one command surface; work in Library, lean back in Watch, focus in Listen, and manage the system without leaving the visual world. FIRST VIEWPORT: Library is a compact Explorer-style workspace with a 208px rail, 90px heading, 58px breadcrumb toolbar, shelf folders, and 49px file rows; Watch and Listen take over the full canvas. FORM: user-pinned code-led replacement using the approved prototype as the binding specification. SEED KEY: incumbent-selected. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
@@ -1377,6 +1377,8 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
       </div>
 
       <div class="toolbar library-toolbar">
+        <button class="ghost folder-up" id="folderBack" aria-label="Back" title="Back (Alt+Left)"><i class="ph ph-arrow-left"></i></button>
+        <button class="ghost folder-up" id="folderForward" aria-label="Forward" title="Forward (Alt+Right)"><i class="ph ph-arrow-right"></i></button>
         <button class="ghost folder-up" id="folderUp" aria-label="Up one folder" title="Up one folder"><i class="ph ph-arrow-up"></i></button>
         <h1 id="viewTitle">All files</h1>
         <span class="count" id="viewCount"></span>
@@ -1507,7 +1509,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <div class="bulk" id="bulk">
   <span class="tag" id="bulkCount">0 selected</span>
   <span class="sp"></span>
-  <button class="act" id="bulkGet">Get</button>
+  <button class="act" id="bulkGet">Download</button>
   <button class="act" id="bulkMove">Move</button>
   <button class="act kill" id="bulkDelete">Delete</button>
   <button class="act" id="bulkClear">Clear</button>
@@ -1529,6 +1531,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
+<script src="/library-actions.js?v=vault-library-actions-20260922"></script>
 <script>
 'use strict';
 
@@ -1620,7 +1623,7 @@ function openLayer(name, close){
   // Re-opening a layer that's already on top shouldn't stack a second entry.
   if(layers.length && layers[layers.length-1].name === name) return;
   layers.push({ name, close });
-  history.pushState({ vaultLayer: name, depth: layers.length }, '');
+  history.pushState({ ...history.state, vaultLayer:name, depth:layers.length }, '');
 }
 
 /** Close the top layer by going back, so history and the UI stay in step. */
@@ -1645,6 +1648,7 @@ window.addEventListener('popstate', () => {
     try{ layer.close(); }catch{ /* already gone */ }
   }
   poppingHistory = false;
+  restoreBrowserLocation();
 });
 
 /** Called by a layer that closed itself (a button, a completed action). */
@@ -1800,7 +1804,7 @@ function shelfFolders(){
   });
 }
 function visible(){
-  const inScope = f => (state.mode !== 'files' || !MEDIA_SHELVES.has(f.shelf))
+  const inScope = f => (state.mode !== 'files' || state.shelf !== 'all' || !MEDIA_SHELVES.has(f.shelf))
     && (state.shelf === 'all' || f.shelf === state.shelf);
   let list;
   if(state.q){
@@ -2106,10 +2110,12 @@ $('#folderUp').onclick=goUp;
 function renderBreadcrumbs(){
   const title=$('#viewTitle'); title.className='breadcrumbs';
   $('#folderUp').disabled=state.shelf==='all'&&!state.q;
+  $('#folderBack').disabled=navIndex<=0; $('#folderForward').disabled=navIndex>=navMax;
+  $('#folderBack').onclick=()=>history.back(); $('#folderForward').onclick=()=>history.forward();
   const parts=state.folder?state.folder.split('/'):[];
   title.innerHTML=`<button class="crumb" data-root>All files</button>`
-    +(state.shelf==='all'?'':`<span class="crumb-sep">/</span><button class="crumb" data-depth="0">${esc(SHELF_LABEL[state.shelf]||state.shelf)}</button>`)
-    +parts.map((part,i)=>`<span class="crumb-sep">/</span><button class="crumb" data-depth="${i+1}">${esc(part)}</button>`).join('')
+    +(state.shelf==='all'?'':`<span class="crumb-sep">/</span><button class="crumb" data-drop-rel="${esc(state.shelf)}" data-depth="0">${esc(SHELF_LABEL[state.shelf]||state.shelf)}</button>`)
+    +parts.map((part,i)=>`<span class="crumb-sep">/</span><button class="crumb" data-drop-rel="${esc(state.shelf+'/'+parts.slice(0,i+1).join('/'))}" data-depth="${i+1}">${esc(part)}</button>`).join('')
     +(state.q?'<span class="crumb-sep">/</span><span class="crumb">Search results</span>':'');
   title.querySelector('[data-root]').onclick=goLibraryRoot;
   title.querySelectorAll('[data-depth]').forEach(button=>button.onclick=()=>{
@@ -2119,6 +2125,8 @@ function renderBreadcrumbs(){
 
 /* ── render */
 function render(){
+  closeFileMenu();
+  recordBrowserLocation();
   $('#scroll').classList.remove('feature-changing');
   const counts = {};
   const sizes = {};
@@ -2135,7 +2143,9 @@ function render(){
   });
   $('#q').placeholder=state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
   const libraryFiles=state.files.filter(f=>!MEDIA_SHELVES.has(f.shelf));
-  $('#librarySummary').textContent=`${libraryFiles.length} files · ${bytes(libraryFiles.reduce((n,f)=>n+f.size,0))}`;
+  const summaryFiles=state.shelf!=='all'?state.files.filter(f=>f.shelf===state.shelf):libraryFiles;
+  $('.library-heading h2').textContent=MEDIA_SHELVES.has(state.shelf)&&state.mode==='files'?`${SHELF_LABEL[state.shelf]} files`:'Library';
+  $('#librarySummary').textContent=`${summaryFiles.length} files · ${bytes(summaryFiles.reduce((n,f)=>n+f.size,0))}`;
 
   // sidebar
   const rows = [`<button class="shelf ${state.mode==='files'&&state.shelf==='all'?'on':''}" data-shelf="all"><i class="ph ph-squares-four"></i><b>All files</b><em>${libraryFiles.length}</em></button>`];
@@ -2147,8 +2157,8 @@ function render(){
     b.onclick = () => { state.mode='files';state.showDetail=null;state.movieDetail=null;state.shelf = b.dataset.shelf; state.folder = ''; state.q='';$('#q').value='';state.picked.clear(); render(); $('#scroll').scrollTop = 0; };
   });
   const entertainmentShelves=[['movies','Movies'],['series','Shows'],['music','Music']].filter(([id])=>SHELF_ORDER.includes(id));
-  $('#entertainment').innerHTML=entertainmentShelves.map(([id,label])=>`<button class="ent-side ${state.mode==='entertainment'&&state.shelf===id?'on':''}" data-ent-side="${id}"><span>${icon(id==='movies'?'film-slate':id==='series'?'television-simple':'music-notes')}</span><b>${label}</b><em>${counts[id]||0}</em></button>`).join('');
-  $('#entertainment').querySelectorAll('[data-ent-side]').forEach((b)=>b.onclick=()=>{state.mode='entertainment';state.shelf=b.dataset.entSide;state.folder='';state.showDetail=null;state.movieDetail=null;state.q='';$('#q').value='';state.picked.clear();render();$('#scroll').scrollTop=0;});
+  $('#entertainment').innerHTML=entertainmentShelves.map(([id,label])=>`<button class="ent-side ${state.mode==='files'&&state.shelf===id?'on':''}" data-ent-side="${id}"><span>${icon(id==='movies'?'film-slate':id==='series'?'television-simple':'music-notes')}</span><b>${label}</b><em>${counts[id]||0}</em></button>`).join('');
+  $('#entertainment').querySelectorAll('[data-ent-side]').forEach((b)=>b.onclick=()=>{state.mode='files';state.shelf=b.dataset.entSide;state.folder='';state.showDetail=null;state.movieDetail=null;state.q='';$('#q').value='';state.picked.clear();render();$('#scroll').scrollTop=0;});
 
   // disk
   if(state.disk){
@@ -2229,6 +2239,7 @@ function render(){
            <p>${state.shelf === 'all' ? 'The vault is empty' : `Nothing on ${esc(where)} yet`}</p>
            <p class="empty-sub">Drop files or folders here, choose Add to Vault, or create a folder</p>
          </div>`;
+    wireFileInteractions(list);
     return;
   }
   $('#scroll').innerHTML = mediaHome ? mediaView(list) : (state.view==='list' ? listView(list) : gridView(list));
@@ -2326,11 +2337,11 @@ function folderRow(folder, i){
   const subtitle=folder.shelfRoot?`${folder.count} ${folder.count===1?'file':'files'}`:state.q?[SHELF_LABEL[folder.shelf],folder.dir].filter(Boolean).join(' / '):'Folder';
   return `<tr data-i="${i}" data-rel="${esc(folder.rel)}" class="folder-row ${on?'picked':''}">
     <td class="col-pick"><input type="checkbox" class="pick" aria-label="Select ${esc(folder.name)}" data-rel="${esc(folder.rel)}" ${on?'checked':''}></td>
-    <td><div class="f-name"><div class="glyph folder-glyph">${icon('folder')}</div><button class="file-name-button" data-act="folder" data-i="${i}" title="Open ${esc(folder.name)}"><b>${esc(folder.name)}<span class="folder-sub">${esc(subtitle)}</span></b></button></div></td>
+    <td><div class="f-name"><div class="glyph folder-glyph">${icon('folder')}</div><button class="file-name-button" data-act="options" data-i="${i}" title="Options for ${esc(folder.name)}"><b>${esc(folder.name)}<span class="folder-sub">${esc(subtitle)}</span></b></button></div></td>
     <td class="f-meta">${folder.shelfRoot?bytes(folder.size):'—'}</td>
     <td class="f-shelf col-shelf">${folder.shelfRoot?'Shelf':esc(SHELF_LABEL[folder.shelf]||'')}</td>
     <td class="f-meta col-added">${folder.modified?ago(folder.modified):'—'}</td>
-    <td><div class="acts"><button class="act" data-act="folder" data-i="${i}">Open</button><button class="act" data-act="get" data-i="${i}">Get folder</button></div></td>
+    <td><div class="acts"><button class="act" data-act="folder" data-i="${i}">Open</button><button class="act" data-act="get" data-i="${i}">Download</button></div></td>
   </tr>`;
 }
 
@@ -2340,14 +2351,14 @@ function fileRow(f, i, nested){
   return `<tr data-i="${i}" data-rel="${esc(f.rel)}" class="${nested?'nested':''} ${on?'picked':''}">
     <td class="col-pick"><input type="checkbox" class="pick" aria-label="Select ${esc(f.name)}" data-rel="${esc(f.rel)}" ${on?'checked':''}></td>
     <td><div class="f-name"><div class="glyph">${esc((f.ext||'?').slice(0,4).toUpperCase())}</div>
-      <b title="${esc(f.rel)}">${nested && f.ep ? `<span class="ep-no">E${String(f.ep.episode).padStart(2,'0')}</span>` : ''}${esc(f.name)}${showPath?`<span class="path-sub">${esc(SHELF_LABEL[f.shelf]||f.shelf)} / ${esc(f.dir)}</span>`:''}</b></div></td>
+      <button class="file-name-button" data-act="options" data-i="${i}"><b title="${esc(f.rel)}">${nested && f.ep ? `<span class="ep-no">E${String(f.ep.episode).padStart(2,'0')}</span>` : ''}${esc(f.name)}${showPath?`<span class="path-sub">${esc(SHELF_LABEL[f.shelf]||f.shelf)} / ${esc(f.dir)}</span>`:''}</b></button></div></td>
     <td class="f-meta">${bytes(f.size)}</td>
     <td class="f-shelf col-shelf">${esc(SHELF_LABEL[f.shelf]||'')}</td>
     <td class="f-meta col-added">${ago(f.modified)}</td>
     <td><div class="acts">
       ${playable(f)?`<button class="act" data-act="open" data-i="${i}">Open</button>`:''}
       ${f.ext==='mkv'?`<button class="act" data-act="convert" data-i="${i}">MP4</button>`:''}
-      <button class="act" data-act="get" data-i="${i}">Get</button>
+      <button class="act" data-act="get" data-i="${i}">Download</button>
       <button class="act" data-act="rename" data-i="${i}">Rename</button>
       <button class="act" data-act="share" data-i="${i}">Share</button>
       <button class="act" data-act="move" data-i="${i}">Move</button>
@@ -2359,10 +2370,10 @@ function fileRow(f, i, nested){
 function libraryGrid(list){
   return `<div class="tiles library-tiles">${list.map((f,i)=>`<article class="tile ${f.kind==='folder'?'folder-tile':''} ${state.picked.has(f.rel)?'picked':''}" data-rel="${esc(f.rel)}">
     <input type="checkbox" class="pick tile-pick" aria-label="Select ${esc(f.name)}" data-rel="${esc(f.rel)}" ${state.picked.has(f.rel)?'checked':''}>
-    <button class="tile-open" data-act="${f.kind==='folder'?'folder':playable(f)?'open':'get'}" data-i="${i}" title="${esc(f.name)}">
+    <button class="tile-open" data-act="options" data-i="${i}" title="${esc(f.name)}">
       <div class="tile-art blank">${f.kind==='folder'?icon('folder'):IMAGE.includes(f.ext)?`<img src="${url('stream',f.rel)}" alt="" loading="lazy">`:`<span>${esc((f.ext||'FILE').toUpperCase())}</span>`}</div>
       <span class="tile-body"><b>${esc(f.name)}</b><small>${f.shelfRoot?`${f.count} ${f.count===1?'file':'files'}`:f.kind==='folder'?'Folder':bytes(f.size)}</small></span>
-    </button><div class="tile-actions"><button class="act" data-act="get" data-i="${i}">${icon('download-simple')} Get${f.kind==='folder'?' folder':''}</button>${f.kind!=='folder'?`<button class="act" data-act="share" data-i="${i}">Share</button>`:''}</div>
+    </button><div class="tile-actions"><button class="act" data-act="get" data-i="${i}">${icon('download-simple')} Download</button>${f.kind!=='folder'?`<button class="act" data-act="share" data-i="${i}">Share</button>`:''}</div>
   </article>`).join('')}</div>`;
 }
 function gridView(list){
@@ -2546,6 +2557,7 @@ function wire(){
       const f = list[+el.dataset.i];
       if(!f) return;
       const act = el.dataset.act;
+      if(act==='options'){ showFileMenu(f,e); return; }
       if(act==='folder'){ openFolder(f); return; }
       if(act==='show'){ state.showDetail=el.dataset.show;state.q='';$('#q').value='';render();$('#scroll').scrollTop=0;return; }
       if(act==='movie'){ state.movieDetail=el.dataset.movie;state.q='';$('#q').value='';render();$('#scroll').scrollTop=0;return; }
@@ -2577,13 +2589,15 @@ function wire(){
     };
   });
 
+  wireFileInteractions(list);
+
   // ── selection
   $('#scroll').querySelectorAll('.pick').forEach((box) => {
     box.onclick = (e) => {
       e.stopPropagation();
       const rel = box.dataset.rel;
       box.checked ? state.picked.add(rel) : state.picked.delete(rel);
-      box.closest('[data-rel]').classList.toggle('picked', box.checked);
+      box.closest('tr,.tile').classList.toggle('picked', box.checked);
       updateBulkBar();
     };
   });
@@ -2595,7 +2609,7 @@ function wire(){
       boxes.forEach((b) => {
         b.checked = all.checked;
         b.checked ? state.picked.add(b.dataset.rel) : state.picked.delete(b.dataset.rel);
-        b.closest('[data-rel]').classList.toggle('picked', b.checked);
+        b.closest('tr,.tile').classList.toggle('picked', b.checked);
       });
       updateBulkBar();
     };
@@ -2744,9 +2758,9 @@ function updateBulkBar(){
   const bar = $('#bulk');
   bar.classList.toggle('on', n > 0);
   if(n) $('#bulkCount').textContent = `${n} selected`;
-  const foldersSelected=[...state.picked].some(rel=>!state.files.some(f=>f.rel===rel));
-  $('#bulkMove').hidden=foldersSelected;
-  $('#bulkDelete').hidden=foldersSelected;
+  const shelfSelected=[...state.picked].some(rel=>!rel.includes('/'));
+  $('#bulkMove').hidden=shelfSelected;
+  $('#bulkDelete').hidden=shelfSelected;
   const boxes=[...$('#scroll').querySelectorAll('.pick')], all=$('#pickAll');
   if(all){ all.checked=boxes.length>0&&boxes.every(b=>state.picked.has(b.dataset.rel)); all.indeterminate=boxes.some(b=>state.picked.has(b.dataset.rel))&&!all.checked; }
 }
@@ -2757,57 +2771,17 @@ $('#bulkClear').onclick = clearPicked;
 async function downloadSelection(rels){
   const button=$('#bulkGet'); button.disabled=true;
   try{
-    const response=await fetch('/api/files/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rels,validate:true})});
-    if(!response.ok){const error=await response.json();throw new Error(error.error);}
-    let frame=$('#downloadFrame');
-    if(!frame){frame=document.createElement('iframe');frame.id='downloadFrame';frame.name='vault-download';frame.hidden=true;document.body.append(frame);}
-    const form=document.createElement('form');form.method='POST';form.action='/api/files/download';form.target=frame.name;
-    const input=document.createElement('input');input.type='hidden';input.name='rels';input.value=JSON.stringify(rels);form.append(input);document.body.append(form);form.submit();form.remove();
+    const response=await fetch('/api/files/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rels,prepare:true})});
+    const result=await response.json();
+    if(!response.ok) throw new Error(result.error||'Could not prepare this download.');
+    const link=document.createElement('a');link.href=result.url;link.download='';document.body.append(link);link.click();link.remove();
     toast('ZIP download started');
   }catch(error){toast(error.message||'Download could not start. Try again.','bad');}
   finally{button.disabled=false;}
 }
 $('#bulkGet').onclick=()=>downloadSelection([...state.picked]);
-
-$('#bulkDelete').onclick = () => {
-  const n = state.picked.size;
-  sheet(`<span class="tag">Delete ${n} file${n===1?'':'s'}</span>
-    <p>Permanently delete the selected file${n===1?'':'s'}? This can't be undone.</p>
-    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Delete ${n}</button></div>`);
-  $('#no').onclick = closeSheet;
-  $('#yes').onclick = async () => {
-    const r = await fetch('/api/files/bulk', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'delete', rels:[...state.picked] }),
-    });
-    const d = await r.json().catch(()=>({}));
-    closeSheet();
-    toast(d.failed ? `Deleted ${d.done}, ${d.failed} failed` : `Deleted ${d.done}`, d.failed ? 'bad' : '');
-    state.picked.clear(); load();
-  };
-};
-
-$('#bulkMove').onclick = () => {
-  const n = state.picked.size;
-  sheet(`<span class="tag">Move ${n} file${n===1?'':'s'}</span>
-    <p>Pick a shelf.</p>
-    <div class="shelf-pick">${SHELF_ORDER.map((x)=>`<button data-s="${x}">${esc(SHELF_LABEL[x])}</button>`).join('')}</div>
-    <div class="sheet-row"><button class="ghost" id="no">Cancel</button></div>`);
-  $('#no').onclick = closeSheet;
-  $('#sheet').querySelectorAll('[data-s]').forEach((b) => {
-    b.onclick = async () => {
-      const r = await fetch('/api/files/bulk', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'move', rels:[...state.picked], shelf:b.dataset.s }),
-      });
-      const d = await r.json().catch(()=>({}));
-      closeSheet();
-      toast(d.failed ? `Moved ${d.done}, ${d.failed} failed` : `Moved ${d.done} to ${SHELF_LABEL[b.dataset.s]}`,
-            d.failed ? 'bad' : '');
-      state.picked.clear(); load();
-    };
-  });
-};
+$('#bulkDelete').onclick=()=>askDeleteItems([...state.picked]);
+$('#bulkMove').onclick=()=>askMoveItems([...state.picked]);
 
 /* ── durable MP4 conversion */
 function askConvert(f){
@@ -3341,16 +3315,7 @@ $('#modal').addEventListener('click', (e) => { if(e.target.id === 'modal') close
   });
 });
 
-function askDelete(f){
-  sheet(`<span class="tag">Delete file</span>
-    <p>Permanently delete <b>${esc(f.name)}</b>? This can't be undone.</p>
-    <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Delete</button></div>`);
-  $('#no').onclick = closeSheet;
-  $('#yes').onclick = async () => {
-    await fetch(`/api/file?rel=${encodeURIComponent(f.rel)}`, { method:'DELETE' });
-    closeSheet(); toast(`Deleted ${f.name}`); load();
-  };
-}
+function askDelete(f){ askDeleteItems([f.rel]); }
 
 /* Rename — the server already accepts a `name` on PATCH /api/file and
    sanitises it, so this is purely the missing front door. */
@@ -3359,9 +3324,9 @@ function askRename(f){
   const stem = dot > 0 ? f.name.slice(0, dot) : f.name;
   const tail = dot > 0 ? f.name.slice(dot) : '';
 
-  sheet(`<span class="tag">Rename file</span>
+  sheet(`<span class="tag">Rename ${f.kind==='folder'?'folder':'file'}</span>
     <div class="rename-field"><input id="rn" value="${esc(f.name)}" spellcheck="false" autocomplete="off"></div>
-    <div class="rename-hint">Keep the extension so it stays on the right shelf.</div>
+    <div class="rename-hint">${f.kind==='folder'?'Choose a name for this folder.':'Keep the extension so the file opens correctly.'}</div>
     <div class="gate-error mono" id="rnErr" style="margin:0 0 14px"></div>
     <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Rename</button></div>`);
 
@@ -3382,7 +3347,7 @@ function askRename(f){
       const d = await r.json().catch(() => ({}));
       return void ($('#rnErr').textContent = d.error || 'Could not rename that file.');
     }
-    closeSheet(); toast(`Renamed to ${name}`); load();
+    state.picked.clear();closeSheet(); toast(`Renamed to ${name}`); load();
   };
 
   $('#no').onclick = closeSheet;
@@ -3390,22 +3355,7 @@ function askRename(f){
   input.addEventListener('keydown', (e) => { if(e.key === 'Enter') go(); });
 }
 
-function askMove(f){
-  sheet(`<span class="tag">Move to shelf</span>
-    <p><b>${esc(f.name)}</b></p>
-    <div class="shelf-pick">${SHELF_ORDER.map((s)=>`<button data-s="${s}" class="${f.shelf===s?'on':''}">${SHELF_LABEL[s]}</button>`).join('')}</div>
-    <div class="sheet-row"><button class="ghost" id="no">Cancel</button></div>`);
-  $('#no').onclick = closeSheet;
-  $('#sheet').querySelectorAll('[data-s]').forEach((b) => {
-    b.onclick = async () => {
-      await fetch('/api/file', {
-        method:'PATCH', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ rel: f.rel, shelf: b.dataset.s }),
-      });
-      closeSheet(); toast(`Moved to ${SHELF_LABEL[b.dataset.s]}`); load();
-    };
-  });
-}
+function askMove(f){ askMoveItems([f.rel]); }
 
 /* ── share links */
 function askShare(f){
@@ -3712,6 +3662,7 @@ function toast(msg, kind){
   el.className = `toast${kind ? ' ' + kind : ''}`;
   el.textContent = msg;
   wrap.appendChild(el);
+  while(wrap.children.length>3)wrap.firstElementChild.remove();
   requestAnimationFrame(() => el.classList.add('in'));
   setTimeout(() => {
     el.classList.remove('in');
@@ -3947,7 +3898,7 @@ $('#folderPicker').onchange = () => {
 
 $('#btnNewFolder').onclick = () => {
   if(!SHELF_ORDER.length) return toast('No writable shelves available', 'bad');
-  const folderShelves=state.mode==='files'?libraryShelves():SHELF_ORDER;
+  const folderShelves=state.mode==='files'&&state.shelf==='all'?libraryShelves():SHELF_ORDER;
   if(!folderShelves.length)return toast('Create a Library shelf in Manage first.','bad');
   const current = state.shelf !== 'all' ? state.shelf : folderShelves[0];
   sheet(`<span class="tag">New folder</span>
@@ -4227,6 +4178,7 @@ window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('dragleave', () => { if(--dragDepth <= 0){ dragDepth = 0; $('#drop').classList.remove('on'); } });
 window.addEventListener('drop', async (e) => {
   e.preventDefault();
+  if(e.dataTransfer?.types.includes('application/x-vault-items'))return;
   dragDepth = 0; $('#drop').classList.remove('on');
   const files = await filesFromDrop(e.dataTransfer || {});
   if(state.user && files.length) chooseShelf(files);
@@ -4270,6 +4222,8 @@ document.addEventListener('keydown', (e) => {
   const dialogOpen = $('#modal').classList.contains('on') || $('#viewer').classList.contains('on');
 
   if(!typing && !dialogOpen && state.user){
+    if(e.altKey && e.key==='ArrowLeft' && navIndex>0){e.preventDefault();history.back();return;}
+    if(e.altKey && e.key==='ArrowRight' && navIndex<navMax){e.preventDefault();history.forward();return;}
     if(e.altKey && e.key==='ArrowUp'){e.preventDefault();goUp();return;}
     if(e.key === 'j' || e.key === 'ArrowDown'){ e.preventDefault(); return moveCursor(1); }
     if(e.key === 'k' || e.key === 'ArrowUp'){ e.preventDefault(); return moveCursor(-1); }
@@ -4284,6 +4238,7 @@ document.addEventListener('keydown', (e) => {
     }
   }
   if(e.key === 'Escape'){
+    if(closeFileMenu(true)) return;
     if(layers.length) return void closeLayer();
     if(state.picked.size) clearPicked();
   }

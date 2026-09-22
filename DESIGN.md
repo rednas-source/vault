@@ -238,7 +238,7 @@ The three primary spaces live in a segmented pill. The active space inverts to w
 
 ### Library Hierarchy and File Tools
 
-All files presents non-media shelves as folders rather than flattening their contents. Entering a shelf or folder exposes its immediate children; breadcrumbs and Up preserve that hierarchy. Search stays within the active Library scope and searches descendants. Movies, series, and music shelves are excluded from Library browsing, search, and its file summary; their navigation leads to entertainment surfaces.
+All files presents non-media shelves as folders rather than flattening their contents. Entering a shelf or folder exposes its immediate children; breadcrumbs and Up preserve that hierarchy. Search stays within the active Library scope and searches descendants. Movies, series, and music shelves are excluded from All files and its search. Their lower-left shortcuts open an explicit file-browsing scope with the same folder tools. Only the top Watch and Listen tabs enter the playback surfaces.
 
 Names and selection stay visible while desktop actions appear on hover or keyboard focus. Metadata yields to actions only in the wide desktop row treatment; compact and touch layouts keep actions on their own line. Grid tiles preserve explicit selection and Get/Get folder controls. The bulk surface reports selection and exposes the applicable actions. Keep folder navigation, downloading, sharing, and owner tools practical without introducing a Library hero, decorative metrics, or a new visual world.
 
@@ -269,3 +269,10 @@ Controls float over the video rather than occupying a permanent panel. Transport
 - **Don't** use mono for body copy, large headings, or atmosphere.
 - **Don't** interpret icon sizes as typography tokens or extend this Library refresh into new Watch or Listen styling.
 - **Don't** make metadata, artwork, transcoding, or network access prerequisites for reaching the original file.
+
+
+### File Selection, Actions, and Navigation
+
+Single-clicking a filename selects the item and opens a compact action menu anchored below its row; double-click opens it. The body-level menu remains inside the viewport, offers keyboard navigation and Escape, and uses shared panel, divider, accent, and text tokens. Checkboxes and Ctrl/Cmd-click support multiple selection. Download is explicit in row, menu, grid, and bulk controls; folders download as ZIP archives. Move and delete support folders as well as files, while shelf roots remain protected.
+
+Folders, shelf shortcuts, and breadcrumbs accept internal drag-and-drop moves with an accent outline. Move to… provides a folder browser with an explicit Move here button. Destructive actions retain confirmation and name that folders include their contents. Back, Forward, and Up remain beside the breadcrumbs; browser/mouse history follows folder and space navigation. The existing dialog history shares the same location state.
