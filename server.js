@@ -31,7 +31,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-listen-mobile-20260923';
+const BUILD_ID = 'vault-collaborative-folder-shares-20260923';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -259,21 +259,21 @@ function flushLog() {
 
 // ---------------------------------------------------------------- shares
 /**
- * A share is an unauthenticated door into one specific file. That makes it the
+ * A share is an unauthenticated capability URL. File links stay read-only;
  * most dangerous thing in this codebase, so it is deliberately narrow:
  *
  *  - the id is 24 random bytes, not a guessable counter
- *  - it names exactly one file, resolved and re-validated on every use
- *  - it can expire, and it can be limited to a number of opens
- *  - it grants read only: no listing, no directory, no sibling files
- *  - revoking is instant, and revocation survives a restart
+ *  - a folder link is a deliberately writable workspace
+ *  - every operation is jailed beneath the shared folder and rejects symlinks
+ *  - expiry and revocation are re-validated for every request and upload chunk
+ *  - file links retain their existing open limits and expose no neighbours
  *
  * The permission that created it is checked at creation time, not at use time —
  * a share outliving its creator's access is intentional, the same way handing
  * someone a copy of a file is. Revoke it if that isn't what you want.
  */
 const SHARES_PATH = path.join(__dirname, 'shares.json');
-let shares = {};              // id -> { rel, by, created, expires, maxUses, uses, label }
+let shares = {}; // id -> { rel, kind, writable, by, created, expires, maxUses, uses, label }
 
 function loadShares() {
   try { shares = JSON.parse(fs.readFileSync(SHARES_PATH, 'utf8')); }
@@ -291,7 +291,11 @@ function resolveShare(id) {
   const sh = shares[id];
   if (!sh) return { error: 'missing' };
   if (sh.expires && Date.now() > sh.expires) return { error: 'expired' };
-  if (sh.maxUses && sh.uses >= sh.maxUses) return { error: 'used-up' };
+  // Folder links are ongoing workspaces, not one file-open. They use expiry
+  // and explicit revocation; file links retain their optional open limit.
+  if (sh.kind !== 'folder' && sh.maxUses && sh.uses >= sh.maxUses) {
+    return { error: 'used-up' };
+  }
 
   // Re-check the path every time: the file may have been renamed, moved, or
   // deleted since, and the stored string is not trusted on its own.
@@ -304,12 +308,110 @@ function pruneShares() {
   const now = Date.now();
   let changed = false;
   for (const [id, sh] of Object.entries(shares)) {
-    const dead = (sh.expires && now > sh.expires) || (sh.maxUses && sh.uses >= sh.maxUses);
+    const dead = (sh.expires && now > sh.expires)
+      || (sh.kind !== 'folder' && sh.maxUses && sh.uses >= sh.maxUses);
     // Keep spent shares briefly so the UI can show why a link stopped working.
     if (dead && now - (sh.lastUsed || sh.created) > 7 * 864e5) { delete shares[id]; changed = true; }
   }
   if (changed) saveShares();
 }
+
+/** A strict path grammar for anything that arrives through a folder link. */
+function cleanShareRelative(value, { allowEmpty = true } = {}) {
+  const raw = String(value || '').replace(/\\/g, '/').trim();
+  if (!raw) return allowEmpty ? '' : null;
+  if (raw.includes('\0') || raw.startsWith('/') || /^[a-z]:\//i.test(raw)) return null;
+  const parts = raw.split('/');
+  if (!parts.length || parts.length > 32 || parts.some((part) => !part || part === '.' || part === '..')) return null;
+  for (const part of parts) {
+    if (part.startsWith('.') || part.length > 200 || safeName(part) !== part) return null;
+  }
+  const clean = parts.join('/');
+  return clean.length <= 1000 ? clean : null;
+}
+
+const pathWithin = (root, candidate) =>
+  candidate === root || candidate.startsWith(root + path.sep);
+
+const shareActor = (id) => `share:${String(id || '').slice(0, 8)}`;
+
+/** Resolve only a deliberately writable folder capability. */
+async function folderShareContext(id) {
+  const resolved = resolveShare(id);
+  if (resolved.error) return resolved;
+  const { share, full } = resolved;
+  if (share.kind !== 'folder' || share.writable !== true) return { error: 'read-only' };
+  try {
+    const rootStat = await fsp.lstat(full);
+    if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) return { error: 'missing' };
+    const [vaultReal, rootReal] = await Promise.all([fsp.realpath(ROOT), fsp.realpath(full)]);
+    if (!pathWithin(vaultReal, rootReal)) return { error: 'missing' };
+    return { share, full, real: rootReal };
+  } catch { return { error: 'missing' }; }
+}
+
+/**
+ * Resolve an existing descendant one component at a time. Rejecting symlinks
+ * at every level prevents a link already present in the shared tree from
+ * escaping the shared root.
+ */
+async function existingShareEntry(context, relative, { allowRoot = false } = {}) {
+  const clean = cleanShareRelative(relative, { allowEmpty: allowRoot });
+  if (clean === null || (!clean && !allowRoot)) return { error: 'bad-path' };
+  let current = context.full;
+  let stat = await fsp.lstat(current);
+  for (const part of clean ? clean.split('/') : []) {
+    current = path.join(current, part);
+    if (!pathWithin(context.full, current)) return { error: 'bad-path' };
+    try { stat = await fsp.lstat(current); } catch { return { error: 'missing' }; }
+    if (stat.isSymbolicLink()) return { error: 'bad-path' };
+  }
+  try {
+    const real = await fsp.realpath(current);
+    if (!pathWithin(context.real, real)) return { error: 'bad-path' };
+  } catch { return { error: 'missing' }; }
+  return { full: current, stat, relative: clean };
+}
+
+/** Safely create (or validate) a descendant directory for folder uploads. */
+async function ensureShareDirectory(context, relative) {
+  const clean = cleanShareRelative(relative);
+  if (clean === null) return { error: 'bad-path' };
+  let current = context.full;
+  for (const part of clean ? clean.split('/') : []) {
+    current = path.join(current, part);
+    if (!pathWithin(context.full, current)) return { error: 'bad-path' };
+    try {
+      const st = await fsp.lstat(current);
+      if (st.isSymbolicLink() || !st.isDirectory()) return { error: 'bad-path' };
+    } catch (error) {
+      if (error.code !== 'ENOENT') return { error: 'failed' };
+      try { await fsp.mkdir(current); }
+      catch (mkdirError) {
+        if (mkdirError.code !== 'EEXIST') return { error: 'failed' };
+        const st = await fsp.lstat(current).catch(() => null);
+        if (!st || st.isSymbolicLink() || !st.isDirectory()) return { error: 'bad-path' };
+      }
+    }
+  }
+  return { full: current, relative: clean };
+}
+
+function folderShareFailure(res, error) {
+  const status = ['expired', 'used-up', 'missing', 'bad'].includes(error) ? 410
+    : error === 'read-only' ? 403
+    : error === 'bad-path' ? 400 : 500;
+  const message = status === 410 ? 'This shared folder is no longer available.'
+    : status === 403 ? 'This link is read-only.'
+    : status === 400 ? 'That path is not allowed.'
+    : 'The shared folder operation failed.';
+  return res.status(status).json({ error: message });
+}
+
+const folderUploadIdFor = (shareId, name, size, directory = '') =>
+  crypto.createHmac('sha256', SECRET)
+    .update(`folder-share\u0000${shareId}\u0000${name}\u0000${size}\u0000${directory}`)
+    .digest('hex').slice(0, 32);
 
 // ---------------------------------------------------------------- watch state
 /**
@@ -3280,25 +3382,34 @@ app.post('/api/shares', auth, async (req, res) => {
   const shelf = shelfOf(rel);
   // You can only share what you can already reach.
   if (!full || !shelf || !canUse(req.user, shelf)) return res.status(404).json({ error: 'Not found' });
+  const shelfRoot = path.resolve(ROOT, shelf);
+  if (!pathWithin(shelfRoot, full)) return res.status(404).json({ error: 'Not found' });
+
+
+  let stat;
   try {
-    const st = await fsp.stat(full);
-    if (!st.isFile()) throw new Error('not a file');
+    stat = await fsp.lstat(full);
+    if (stat.isSymbolicLink() || (!stat.isFile() && !stat.isDirectory())) throw new Error('unsupported');
+    const [vaultReal, targetReal] = await Promise.all([fsp.realpath(ROOT), fsp.realpath(full)]);
+    if (!pathWithin(vaultReal, targetReal)) throw new Error('outside vault');
   } catch { return res.status(404).json({ error: 'Not found' }); }
 
+  const kind = stat.isDirectory() ? 'folder' : 'file';
   const days = Math.min(Math.max(parseInt(req.body.days, 10) || 0, 0), 365);
-  const maxUses = Math.min(Math.max(parseInt(req.body.maxUses, 10) || 0, 0), 10000);
+  const requestedMaxUses = Math.min(Math.max(parseInt(req.body.maxUses, 10) || 0, 0), 10000);
+  const maxUses = kind === 'folder' ? 0 : requestedMaxUses;
 
   const id = crypto.randomBytes(24).toString('base64url');   // 32 chars
   shares[id] = {
-    rel, by: req.user.name,
+    rel, kind, writable: kind === 'folder', by: req.user.name,
     label: String(req.body.label || '').slice(0, 60),
     created: Date.now(),
     expires: days ? Date.now() + days * 864e5 : 0,
     maxUses, uses: 0,
   };
   saveShares();
-  note(req.user.name, 'share-create', rel);
-  res.json({ id, url: `/s/${id}` });
+  note(req.user.name, kind === 'folder' ? 'folder-share-create' : 'share-create', rel);
+  res.json({ id, url: `/s/${id}`, kind, writable: kind === 'folder' });
 });
 
 app.delete('/api/shares/:id', auth, (req, res) => {
@@ -3390,7 +3501,18 @@ app.get('/s/:id', async (req, res) => {
   if (error) return shareGone(res, error);
 
   let st;
-  try { st = await fsp.stat(full); } catch { return shareGone(res, 'missing'); }
+  try { st = await fsp.lstat(full); } catch { return shareGone(res, 'missing'); }
+  if (st.isSymbolicLink()) return shareGone(res, 'missing');
+
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.setHeader('Cache-Control', 'no-store');
+  if (st.isDirectory()) {
+    if (share.kind !== 'folder' || share.writable !== true) return shareGone(res, 'missing');
+    share.lastUsed = Date.now();
+    saveShares();
+    return res.sendFile(path.join(__dirname, 'public', 'share-folder.html'));
+  }
+  if (!st.isFile()) return shareGone(res, 'missing');
 
   const e = ext(full);
   let kind = ['mp4', 'm4v', 'webm', 'mov'].includes(e) ? 'video'
@@ -3404,15 +3526,248 @@ app.get('/s/:id', async (req, res) => {
     if (info && info.remuxable) kind = 'remux';
   }
 
-  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   res.type('html').send(sharePage({
     name: path.basename(full), id: req.params.id, kind, size: bytesHuman(st.size),
   }));
 });
 
+/** List one level of a writable shared folder. */
+app.get('/api/share/:id/list', async (req, res) => {
+  const context = await folderShareContext(req.params.id);
+  if (context.error) return folderShareFailure(res, context.error);
+  const target = await existingShareEntry(context, req.query.dir || '', { allowRoot: true });
+  if (target.error) return folderShareFailure(res, target.error);
+  if (!target.stat.isDirectory()) return res.status(400).json({ error: 'That is not a folder.' });
+
+  let children;
+  try { children = await fsp.readdir(target.full, { withFileTypes: true }); }
+  catch { return res.status(500).json({ error: 'Could not read this folder.' }); }
+  const entries = [];
+  for (const child of children) {
+    if (child.name.startsWith('.') || child.isSymbolicLink()) continue;
+    try {
+      const stat = await fsp.lstat(path.join(target.full, child.name));
+      if (stat.isSymbolicLink() || (!stat.isDirectory() && !stat.isFile())) continue;
+      const relative = [target.relative, child.name].filter(Boolean).join('/');
+      entries.push({
+        name: child.name,
+        path: relative,
+        kind: stat.isDirectory() ? 'folder' : 'file',
+        size: stat.isFile() ? stat.size : 0,
+        modified: stat.mtimeMs,
+      });
+    } catch { /* vanished while listing */ }
+  }
+  entries.sort((a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name, undefined, { numeric: true })
+    : a.kind === 'folder' ? -1 : 1));
+  context.share.lastUsed = Date.now();
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({
+    root: path.basename(context.full), path: target.relative, entries,
+    writable: true, maxFileBytes: MAX_BYTES,
+  });
+});
+
+/** Download or open one file below the shared root, with normal range support. */
+app.get('/api/share/:id/item', async (req, res) => {
+  const context = await folderShareContext(req.params.id);
+  if (context.error) return folderShareFailure(res, context.error);
+  const target = await existingShareEntry(context, req.query.path);
+  if (target.error) return folderShareFailure(res, target.error);
+  if (!target.stat.isFile()) return res.status(400).json({ error: 'That is not a file.' });
+
+  const name = path.basename(target.full);
+  res.setHeader('Accept-Ranges', 'bytes');
+  res.setHeader('Content-Type', MIME[ext(name)] || 'application/octet-stream');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.setHeader('Content-Disposition',
+    `${req.query.dl ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(name)}`);
+  const range = req.headers.range;
+  if (range) {
+    const match = /bytes=(\d*)-(\d*)/.exec(range);
+    const start = match && match[1] ? parseInt(match[1], 10) : 0;
+    const end = match && match[2] ? parseInt(match[2], 10) : target.stat.size - 1;
+    if (!match || !Number.isFinite(start) || !Number.isFinite(end) || start > end || end >= target.stat.size) {
+      res.setHeader('Content-Range', `bytes */${target.stat.size}`);
+      return res.status(416).end();
+    }
+    res.status(206);
+    res.setHeader('Content-Range', `bytes ${start}-${end}/${target.stat.size}`);
+    res.setHeader('Content-Length', end - start + 1);
+    return fs.createReadStream(target.full, { start, end }).pipe(res);
+  }
+  res.setHeader('Content-Length', target.stat.size);
+  fs.createReadStream(target.full).pipe(res);
+});
+
+app.post('/api/share/:id/folders', async (req, res) => {
+  const context = await folderShareContext(req.params.id);
+  if (context.error) return folderShareFailure(res, context.error);
+  const parent = await existingShareEntry(context, req.body.directory || '', { allowRoot: true });
+  if (parent.error) return folderShareFailure(res, parent.error);
+  if (!parent.stat.isDirectory()) return res.status(400).json({ error: 'That is not a folder.' });
+  const name = String(req.body.name || '').trim();
+  if (!name || name.startsWith('.') || safeName(name) !== name) {
+    return res.status(400).json({ error: 'Choose a valid folder name.' });
+  }
+  const destination = path.join(parent.full, name);
+  if (!pathWithin(context.full, destination)) return folderShareFailure(res, 'bad-path');
+  try { await fsp.mkdir(destination); }
+  catch (error) {
+    return res.status(error.code === 'EEXIST' ? 409 : 500).json({
+      error: error.code === 'EEXIST' ? 'Something with that name already exists.' : 'Could not create the folder.',
+    });
+  }
+  context.share.lastUsed = Date.now();
+  saveShares();
+  const relative = [parent.relative, name].filter(Boolean).join('/');
+  note(shareActor(req.params.id), 'share-folder-create', `${context.share.rel}/${relative}`);
+  res.json({ ok: true, path: relative });
+});
+
+app.patch('/api/share/:id/item', async (req, res) => {
+  const context = await folderShareContext(req.params.id);
+  if (context.error) return folderShareFailure(res, context.error);
+  const target = await existingShareEntry(context, req.body.path);
+  if (target.error) return folderShareFailure(res, target.error);
+  const name = String(req.body.name || '').trim();
+  if (!name || name.startsWith('.') || safeName(name) !== name) {
+    return res.status(400).json({ error: 'Choose a valid name.' });
+  }
+  const destination = path.join(path.dirname(target.full), name);
+  if (!pathWithin(context.full, destination)) return folderShareFailure(res, 'bad-path');
+  try {
+    await fsp.access(destination);
+    return res.status(409).json({ error: 'Something with that name already exists.' });
+  } catch { /* available */ }
+  try { await fsp.rename(target.full, destination); }
+  catch { return res.status(500).json({ error: 'Could not rename this item.' }); }
+  const parent = target.relative.includes('/') ? target.relative.slice(0, target.relative.lastIndexOf('/')) : '';
+  const relative = [parent, name].filter(Boolean).join('/');
+  context.share.lastUsed = Date.now();
+  saveShares();
+  note(shareActor(req.params.id), 'share-rename', `${context.share.rel}/${target.relative} -> ${name}`);
+  res.json({ ok: true, path: relative, name });
+});
+
+app.delete('/api/share/:id/item', async (req, res) => {
+  const context = await folderShareContext(req.params.id);
+  if (context.error) return folderShareFailure(res, context.error);
+  const target = await existingShareEntry(context, req.query.path);
+  if (target.error) return folderShareFailure(res, target.error);
+  try { await fsp.rm(target.full, { recursive: target.stat.isDirectory(), force: false }); }
+  catch { return res.status(500).json({ error: 'Could not delete this item.' }); }
+  context.share.lastUsed = Date.now();
+  saveShares();
+  note(shareActor(req.params.id), 'share-delete', `${context.share.rel}/${target.relative}`);
+  res.json({ ok: true });
+});
+
+async function checkedFolderUpload(shareId, uploadId) {
+  if (!HEX32.test(uploadId || '')) return { error: 'bad-upload' };
+  const meta = await readMeta(uploadId);
+  if (!meta || meta.kind !== 'folder-share' || meta.shareId !== shareId) return { error: 'bad-upload' };
+  const context = await folderShareContext(shareId);
+  if (context.error) return context;
+  return { meta, context };
+}
+
+app.post('/api/share/:id/upload/init', async (req, res) => {
+  const context = await folderShareContext(req.params.id);
+  if (context.error) return folderShareFailure(res, context.error);
+  const size = Number(req.body.size);
+  if (!Number.isSafeInteger(size) || size < 0 || size > MAX_BYTES) {
+    return res.status(400).json({ error: `Files may be at most ${bytesHuman(MAX_BYTES)}.` });
+  }
+  const sourceName = String(req.body.name || '');
+  const name = safeName(sourceName);
+  if (!sourceName || name.startsWith('.')) return res.status(400).json({ error: 'Choose a valid file.' });
+  const directory = cleanShareRelative(req.body.directory || '');
+  if (directory === null) return folderShareFailure(res, 'bad-path');
+  const parent = await ensureShareDirectory(context, directory);
+  if (parent.error) return folderShareFailure(res, parent.error);
+
+  const id = folderUploadIdFor(req.params.id, name, size, directory);
+  const previous = await readMeta(id);
+  if (previous && (previous.kind !== 'folder-share' || previous.shareId !== req.params.id
+      || previous.name !== name || previous.size !== size || previous.directory !== directory)) {
+    await discardUpload(id);
+  }
+  if (!await readMeta(id)) {
+    await fsp.writeFile(metaPath(id), JSON.stringify({
+      kind: 'folder-share', shareId: req.params.id, name, size, directory, created: Date.now(),
+    }));
+  }
+  await fsp.appendFile(partPath(id), Buffer.alloc(0));
+  const received = Math.min(await partSize(id), size);
+  res.json({ id, name, size, received });
+});
+
+app.get('/api/share/:id/upload/status/:uploadId', async (req, res) => {
+  const checked = await checkedFolderUpload(req.params.id, req.params.uploadId);
+  if (checked.error) return checked.error === 'bad-upload'
+    ? res.status(404).json({ error: 'Upload not found.' }) : folderShareFailure(res, checked.error);
+  res.json({ received: Math.min(await partSize(req.params.uploadId), checked.meta.size), size: checked.meta.size });
+});
+
+app.post('/api/share/:id/upload/chunk/:uploadId',
+  express.raw({ type: 'application/octet-stream', limit: '66mb' }), async (req, res) => {
+    const id = req.params.uploadId;
+    const checked = await checkedFolderUpload(req.params.id, id);
+    if (checked.error) return checked.error === 'bad-upload'
+      ? res.status(404).json({ error: 'Upload not found.' }) : folderShareFailure(res, checked.error);
+    if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: 'Empty chunk.' });
+    if (writing.has(id)) return res.status(409).json({ error: 'Another chunk is being written.', received: await partSize(id) });
+    writing.add(id);
+    try {
+      const received = await partSize(id);
+      const offset = Number(req.query.offset);
+      if (!Number.isSafeInteger(offset) || offset !== received) {
+        return res.status(409).json({ error: 'Upload offset changed.', received });
+      }
+      if (received + req.body.length > checked.meta.size) {
+        return res.status(400).json({ error: 'Chunk exceeds the declared file size.', received });
+      }
+      await fsp.appendFile(partPath(id), req.body);
+      res.json({ received: received + req.body.length });
+    } finally { writing.delete(id); }
+  });
+
+app.post('/api/share/:id/upload/finish/:uploadId', async (req, res) => {
+  const id = req.params.uploadId;
+  const checked = await checkedFolderUpload(req.params.id, id);
+  if (checked.error) return checked.error === 'bad-upload'
+    ? res.status(404).json({ error: 'Upload not found.' }) : folderShareFailure(res, checked.error);
+  if (writing.has(id)) return res.status(409).json({ error: 'The final chunk is still being written.' });
+  const received = await partSize(id);
+  if (received !== checked.meta.size) return res.status(409).json({ error: 'Upload is incomplete.', received });
+  const parent = await ensureShareDirectory(checked.context, checked.meta.directory);
+  if (parent.error) return folderShareFailure(res, parent.error);
+  const finalName = await uniqueName(parent.full, checked.meta.name);
+  const destination = path.join(parent.full, finalName);
+  try { await fsp.rename(partPath(id), destination); }
+  catch { return res.status(500).json({ error: 'Could not finish this upload.' }); }
+  await fsp.rm(metaPath(id), { force: true }).catch(() => {});
+  checked.context.share.lastUsed = Date.now();
+  saveShares();
+  const relative = [checked.meta.directory, finalName].filter(Boolean).join('/');
+  note(shareActor(req.params.id), 'share-upload', `${checked.context.share.rel}/${relative}`);
+  res.json({ ok: true, name: finalName, path: relative });
+});
+
+app.delete('/api/share/:id/upload/:uploadId', async (req, res) => {
+  const checked = await checkedFolderUpload(req.params.id, req.params.uploadId);
+  if (checked.error) return checked.error === 'bad-upload'
+    ? res.status(404).json({ error: 'Upload not found.' }) : folderShareFailure(res, checked.error);
+  if (writing.has(req.params.uploadId)) return res.status(409).json({ error: 'A chunk is still being written.' });
+  await discardUpload(req.params.uploadId);
+  res.json({ ok: true });
+});
+
 app.get('/api/share/:id/media', async (req, res) => {
   const { share, full, error } = resolveShare(req.params.id);
   if (error) return res.status(410).end();
+  if (share.kind === 'folder') return res.status(404).end();
   if (!HAS_FFMPEG) return res.status(503).end();
 
   try { await fsp.stat(full); } catch { return res.status(404).end(); }

@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-listen-mobile-20260923">
+<meta name="vault-build" content="vault-collaborative-folder-shares-20260923">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1132,6 +1132,9 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 .media-folders button{flex:0 0 auto;display:flex;align-items:center;gap:8px;border:1px solid var(--line);padding:9px 13px;font-size:13px;color:var(--dim);border-radius:3px}
 .media-folders button:hover{border-color:var(--star-edge);color:var(--text)}
 .media-folders span{color:var(--star)}
+.media-folder-chip{display:flex;flex:0 0 auto}.media-folder-chip>button:first-child{border-radius:3px 0 0 3px}
+.media-folder-chip .media-folder-share{border-left:0;border-radius:0 3px 3px 0;padding-inline:9px;color:var(--star)}
+.media-folder-chip .media-folder-share:hover{background:var(--star-wash)}
 .music-library .media-hero{min-height:clamp(300px,44vh,520px);background-image:linear-gradient(90deg,var(--void),rgba(7,8,9,.56)),radial-gradient(circle at 74% 48%,rgba(127,217,255,.22),transparent 25%),var(--hero)}
 
 /* Metadata-led private cinema */
@@ -2051,12 +2054,17 @@ function musicTrackRow(f,i,n){
   return `<button class="spotify-track" data-act="music" data-i="${i}" ${musicMeta}><span class="track-no">${n}</span><span class="track-eq">${icon('play','ph-fill')}</span><span class="track-title"><b>${esc(cleanMediaTitle(f.name))}</b><small>${esc(f.dir||'Vault Music')}</small></span><span class="track-album">${esc((f.dir||'Loose tracks').split('/').pop())}</span><span class="track-added">${ago(f.modified)}</span><span class="track-type">${esc(f.ext.toUpperCase())}</span></button>`;
 }
 
+function mediaFolderChip(f,list){
+  const i=list.indexOf(f);
+  return `<div class="media-folder-chip"><button data-act="folder" data-i="${i}"><span>▰</span>${esc(f.name)}</button><button class="media-folder-share" data-act="share" data-i="${i}" title="Share this folder">Share</button></div>`;
+}
+
 function musicView(files,list,folders){
   const albums=new Map();for(const f of files){const key=f.dir||'Loose tracks';if(!albums.has(key))albums.set(key,[]);albums.get(key).push(f);}
   const feature=files[0];const featureAlbum=(feature.dir||'Your music').split('/').pop();
   return `<div class="media-library spotify-library listen-space">
     <section class="spotify-hero listen-hero" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',feature.rel))}"`:''}><div class="listen-ambient" aria-hidden="true"></div><div class="spotify-disc listen-cover">${icon('waveform')}</div><div class="listen-hero-copy"><h2>${esc(featureAlbum)}</h2><p><span data-music-artist>Private collection</span> · ${files.length} tracks · ${albums.size} albums</p><button class="spotify-play-all" data-music-all>${icon('play','ph-fill')} Play album</button></div></section>
-    ${folders.length?`<div class="media-folders">${folders.map((f)=>`<button data-act="folder" data-i="${list.indexOf(f)}"><span>${icon('folder')}</span>${esc(f.name)}</button>`).join('')}</div>`:''}
+    ${folders.length?`<div class="media-folders">${folders.map((f)=>mediaFolderChip(f,list)).join('')}</div>`:''}
     <section class="spotify-albums listen-library"><div class="media-row-head"><h3>Albums and folders</h3><span>${albums.size}</span></div><div class="spotify-album-grid album-rail">${[...albums.entries()].map(([name,tracks],n)=>{const f=tracks[0];return `<button class="spotify-album album-card" data-act="music" data-i="${list.indexOf(f)}" ${state.musicMetadata?`data-music-meta="${esc(url('music-meta',f.rel))}"`:''}><span class="album-cover" style="--album-hue:${(n*47)%360}">${icon('vinyl-record')}<span class="album-play">${icon('play','ph-fill')}</span></span><b>${esc(name.split('/').pop())}</b><small>${tracks.length} tracks</small></button>`;}).join('')}</div></section>
     <section class="spotify-tracks track-library"><div class="media-row-head"><h3>Tracks</h3><span>${files.length}</span></div><div class="spotify-track-head"><span>#</span><span>Title</span><span>Album</span><span>Added</span><span>Type</span></div>${files.map((f,n)=>musicTrackRow(f,list.indexOf(f),n+1)).join('')}</section>
   </div>`;
@@ -2071,7 +2079,7 @@ function mediaView(list){
   const feature = files.find((f)=>f.watch && !f.watch.done) || files[0];
   const featureIndex = list.indexOf(feature);
   const folderStrip = folders.length ? `<div class="media-folders">${folders.map((f)=>
-    `<button data-act="folder" data-i="${list.indexOf(f)}"><span>${icon('folder')}</span>${esc(f.name)}</button>`).join('')}</div>` : '';
+    mediaFolderChip(f,list)).join('')}</div>` : '';
 
   if(state.shelf === 'movies'){
     const movies=movieGroups(files);const detail=state.movieDetail&&movies.find((movie)=>movie.key===state.movieDetail);if(detail)return movieDetailView(detail,list);
@@ -3063,8 +3071,12 @@ function askMove(f){ askMoveItems([f.rel]); }
 
 /* ── share links */
 function askShare(f){
-  sheet(`<span class="tag">Share a link</span>
-    <p>Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.</p>
+  const folder = f.kind === 'folder';
+  sheet(`<span class="tag">${folder?'Share collaborative folder':'Share a link'}</span>
+    <p>${folder
+      ? `Anyone with the link can browse, upload, create subfolders, rename, and delete inside <b>${esc(f.name)}</b> without signing in.`
+      : `Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.`}</p>
+    ${folder?'<div class="rename-hint" style="margin-bottom:14px">This is edit access. Revoking the link stops every operation immediately.</div>':''}
     <div class="rename-field"><input id="shLabel" placeholder="who is it for? (optional)" autocomplete="off"></div>
     <div class="opt-row">
       <div>
@@ -3074,24 +3086,25 @@ function askShare(f){
             `<button data-v="${v}" class="${i===2?'on':''}">${l}</button>`).join('')}
         </div>
       </div>
-      <div>
+      ${folder?'':`<div>
         <div class="opt-tag">Opens</div>
         <div class="opt-pick" id="usePick">
           ${[[0,'Unlimited'],[1,'Once'],[5,'5'],[25,'25']].map(([v,l],i)=>
             `<button data-v="${v}" class="${i===0?'on':''}">${l}</button>`).join('')}
         </div>
-      </div>
+      </div>`}
     </div>
     <div class="gate-error mono" id="shareErr" style="margin:0 0 14px"></div>
     <div class="sheet-row">
       <button class="ghost" id="manage">Shared links</button>
       <span style="flex:1"></span>
       <button class="ghost" id="no">Cancel</button>
-      <button class="ghost accent" id="yes">Create link</button>
+      <button class="ghost accent" id="yes">Create ${folder?'edit ':''}link</button>
     </div>`);
 
   const pickOne = (sel) => {
     const box = $(sel);
+    if(!box) return () => 0;
     box.querySelectorAll('button').forEach((b) => {
       b.onclick = () => { box.querySelectorAll('button').forEach((x)=>x.classList.remove('on')); b.classList.add('on'); };
     });
@@ -3116,9 +3129,9 @@ function askShare(f){
 function showShareLink(f, id){
   const link = `${location.origin}/s/${id}`;
   sheet(`<span class="tag">Link ready</span>
-    <p>Send this to whoever needs <b>${esc(f.name)}</b>.</p>
+    <p>${f.kind==='folder'?'Anyone holding this link can edit':'Send this to whoever needs'} <b>${esc(f.name)}</b>.</p>
     <div class="token-box mono" id="lkVal">${esc(link)}</div>
-    <div class="rename-hint">Revoke it any time from <b>Shared links</b>.</div>
+    <div class="rename-hint">${f.kind==='folder'?'Uploads, renames, new folders, and deletions are enabled. ':''}Revoke it any time from <b>Shared links</b>.</div>
     <div class="sheet-row">
       <button class="ghost" id="manage">Shared links</button>
       <span style="flex:1"></span>
@@ -3522,6 +3535,9 @@ const ACT_LABEL = {
   'folder-create':'created folder', convert:'converted video',
   'convert-replace':'converted and replaced video',
   'ai-subtitles':'generated AI subtitles',
+  'share-create':'created a file share', 'share-revoke':'revoked a share',
+  'folder-share-create':'created an editable folder share', 'share-upload':'uploaded through a share',
+  'share-folder-create':'created a folder through a share', 'share-rename':'renamed through a share', 'share-delete':'deleted through a share',
 };
 const ACT_KIND = (a) =>
   a.includes('delete') ? 'bad' : (a === 'login-failed' ? 'warn' : '');
