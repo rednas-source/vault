@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T07:52:11.819657+00:00",
+  "generatedAt": "2026-09-23T08:53:18.551960+00:00",
   "title": "Design System: Vault — Library, Watch, Listen, and Apps",
   "extensions": {
     "colorMeta": {
@@ -712,6 +712,38 @@
           "oklch(95% 0 0)"
         ],
         "scope": "Listen; primitive is normative in DESIGN.md. Tonal ramp is preview metadata, not a runtime scale."
+      },
+      "player-stage": {
+        "role": "neutral",
+        "displayName": "Player Stage"
+      },
+      "player-shell": {
+        "role": "neutral",
+        "displayName": "Player Shell"
+      },
+      "player-menu": {
+        "role": "neutral",
+        "displayName": "Player Menu"
+      },
+      "player-menu-hover": {
+        "role": "neutral",
+        "displayName": "Player Menu Hover"
+      },
+      "player-menu-line": {
+        "role": "neutral",
+        "displayName": "Player Menu Line"
+      },
+      "player-control": {
+        "role": "neutral",
+        "displayName": "Player Control"
+      },
+      "player-muted": {
+        "role": "neutral",
+        "displayName": "Player Muted"
+      },
+      "player-cue-ground": {
+        "role": "neutral",
+        "displayName": "Player Cue Ground"
       }
     },
     "typographyMeta": {
@@ -798,6 +830,18 @@
       "shared-search": {
         "displayName": "Shared Search",
         "purpose": "Centered global search; sans in every section."
+      },
+      "player-title": {
+        "displayName": "Player Title",
+        "purpose": "Video identity; compact phone and mini variants."
+      },
+      "player-menu": {
+        "displayName": "Player Menu",
+        "purpose": "Playback menu option text."
+      },
+      "player-cue": {
+        "displayName": "Player Cue",
+        "purpose": "Native subtitle cues; 18px phone and 14px mini variants."
       }
     },
     "shadows": [
@@ -825,6 +869,16 @@
         "name": "appearance",
         "value": "0 12px 36px rgba(0,0,0,.3)",
         "purpose": "Settings popover."
+      },
+      {
+        "name": "player-mini",
+        "value": "0 10px 36px #0008",
+        "purpose": "Floating video dock only; theater and menus remain shadow-free."
+      },
+      {
+        "name": "player-cue-text",
+        "value": "0 1px 3px #000",
+        "purpose": "Native cue text-shadow over translucent black cue ground."
       }
     ],
     "motion": [
@@ -852,6 +906,26 @@
         "name": "listen-state",
         "value": "180ms ease",
         "purpose": "Album background, play opacity and transform. Disabled with smooth scrolling under reduced motion."
+      },
+      {
+        "name": "player-chrome",
+        "value": "200ms ease",
+        "purpose": "Opacity fade after 2600ms idle playback; paused, menu, and keyboard-focus states retain chrome."
+      },
+      {
+        "name": "player-controls",
+        "value": "150ms ease",
+        "purpose": "Control color/background and seek-knob opacity."
+      },
+      {
+        "name": "player-volume",
+        "value": "180ms ease",
+        "purpose": "Volume slider opacity on hover/focus."
+      },
+      {
+        "name": "player-buffer-trace",
+        "value": "1400ms linear infinite",
+        "purpose": "V trace dash offset to -112; buffering/seeking overlay delayed 240ms. Reduced motion disables transitions and leaves a static continuous trace."
       }
     ],
     "breakpoints": [
@@ -990,6 +1064,27 @@
       "persistence": "Liked songs, recent listening (30 entries), and playlists are per-account browser-local records under vault-listen:<account>; files remain Music shelf files, with metadata enrichment and no Spotify catalog.",
       "assets": "Runtime music metadata supplies album artwork. Neutral icon fallbacks and CSS liked-song gradient work without art. No new shipping raster assets. Review screenshots are evidence, not runtime assets.",
       "detectorGuidance": "The earlier .qa/listen-detector.json has 35 color/type/radius advisories against stale DESIGN.md. Compare each to the documented Listen palette, functional sans scale, responsive variants, and small radii. These scoped values do not authorize arbitrary new values, blanket suppressions, or changes to Library/Watch. Selected-filter hover contrast was corrected in the final listen.css rule before this documentation pass."
+    },
+    "player": {
+      "sources": [
+        "public/player.css",
+        "public/player.js",
+        "public/index.html",
+        "public/appearance.js"
+      ],
+      "authority": "User-approved extension of the incumbent Watch world with top-tier Netflix / YouTube-style execution; no new visual identity.",
+      "layout": "Integrated edge-to-edge theater below shared header: 68px desktop, 112px at <=1100px, 150px at <=600px. Contained black video stage; 32px desktop gutters, 14px phone. Fullscreen fills viewport.",
+      "mini": "16:9, min(460px, calc(100vw - 32px)); right/bottom 22px. At <=600px: viewport minus 24px, 12px offsets. Active music raises bottom to 100px. Section navigation docks playback; mode changes preserve the video and buffer.",
+      "palette": "Dark playback surfaces regardless of Library theme. --player-accent-rgb maps the explicit Appearance palette to its dark variant; default video remains orange across spaces. Accent progress/selection/buffering; white primary play and focus. Primitive colors live in DESIGN.md.",
+      "menus": "300px menus, 450px episodes; right 32px, bottom 100px, bounded scrolling. Phone right 12px and bounded width/height; mini menus open 10px above dock. Settings groups Quality, Playback speed, Viewing mode, MKV conversion, stream detail. Quality/speed have Back; current options carry accent/check. Episodes has sticky season selector and persistent current/watched/resume labels.",
+      "states": "Original / direct first; 4K/1080p/720p disabled with explanation when encoder unavailable. Subtitles always opens: loading, empty, lookup error/retry, unavailable tracks, Off, AI switch/status/generation/cancellation/failure. Playback error offers Try again and Download file; PiP failure suggests mini-player.",
+      "captions": "White native cues: 24px desktop, 18px <=600px, 14px mini; 1.4 line height. Visible chrome lifts ordinary bottom cues above measured bar height plus 18px. Authored percentage-positioned cues above that boundary retain placement. Hidden chrome restores original line/snapToLines/lineAlign. Resize, selection/load, stream, and chrome updates recalculate placement.",
+      "interaction": "40px controls, 34x38px phone, 32px mini. 2px white focus outline/3px offset. Volume reveals on hover/focus; seek knob on hover/focus. Menus pin chrome; Escape dismisses menus. Timing offset -10..10 seconds, 0.1 steps and +/-0.5 buttons, reset; track/timing selection persists locally.",
+      "motion": "Chrome opacity only; idle 2600ms while playing. V stroke buffering; 240ms short-seek debounce. Reduced motion disables player transitions and trace animation. Timings live in extensions.motion.",
+      "review": {
+        "disposition": "SHIP",
+        "scope": "Fresh reviewer follow-up on the single caption-placement finding, resolved on desktop and mobile. No broader re-review claimed."
+      }
     }
   },
   "components": [
@@ -1084,11 +1179,19 @@
       "description": "Inline status and progressive per-title attention disclosure in the existing Watch panel treatment; zero-match and missing-key guidance remain explicit.",
       "html": "<section class=\"ds-scan\"><h2 role=\"status\">0 of 2 titles matched</h2><p>No titles matched. Check the details below, then scan again.</p><p class=\"ds-scan-notice\">Movie metadata needs a TMDB API key. Open Metadata settings to add your key, then scan again. TV shows can use TVmaze without a key.</p><details><summary>2 titles need attention</summary><p>Review the title and year, then try matching again.</p></details><div class=\"ds-scan-actions\"><button>Scan again</button><button class=\"ds-scan-settings\">Metadata settings</button></div></section>",
       "css": ".ds-scan{padding:22px;background:#202020;color:#f5f5f5;border:1px solid #3a3a3a;border-radius:8px;font-family:var(--sans,Arial,sans-serif)}.ds-scan h2{margin:0 0 8px;font-size:18px}.ds-scan p{font-size:13px;line-height:1.6;color:#b6b6b6;margin:0 0 14px;max-width:75ch}.ds-scan .ds-scan-notice{color:#eee}.ds-scan summary{padding:8px 0;cursor:pointer;font-size:13px}.ds-scan-actions{display:flex;align-items:center;gap:20px;margin-top:16px}.ds-scan button{border:0;border-radius:4px;background:rgba(100,100,100,.55);color:#fff;padding:9px 14px;min-height:46px;font-size:12px;font-weight:650;cursor:pointer}.ds-scan button:hover{background:#555}.ds-scan button.ds-scan-settings{background:none;color:#c9c9c9;font-size:13px;font-weight:400;padding:8px}.ds-scan button.ds-scan-settings:hover{color:#fff}.ds-scan button:focus-visible,.ds-scan summary:focus-visible{outline:2px solid #fff;outline-offset:4px}.ds-scan button:active{transform:translateY(1px)}@media(max-width:600px){.ds-scan{padding:18px}.ds-scan h2{font-size:16px}.ds-scan-actions{gap:12px;flex-wrap:wrap}}"
+    },
+    {
+      "name": "Player Menu Option",
+      "kind": "button",
+      "refersTo": "player-menu-option",
+      "description": "Charcoal playback menu with accent/check selection, hover, and visible white focus.",
+      "html": "<div class=\"ds-player-menu\"><button class=\"selected\"><span>Original / direct</span><svg viewBox=\"0 0 24 24\" width=\"19\" height=\"19\" aria-hidden=\"true\"><path d=\"m5 12 4 4 10-10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg></button><button><span>1080p</span></button></div>",
+      "css": ".ds-player-menu{width:300px;max-width:100%;overflow:hidden;background:#222;border:1px solid #454545;border-radius:10px;color:#fff}.ds-player-menu button{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:11px 16px;border:0;background:none;color:#eee;text-align:left;font:13px/1.4 var(--sans,Arial,sans-serif);cursor:pointer}.ds-player-menu button span{flex:1}.ds-player-menu button:hover{background:#333}.ds-player-menu button.selected{background:#ffffff0d;color:rgb(var(--player-accent-rgb,255,107,60))}.ds-player-menu button:focus-visible{outline:2px solid #fff;outline-offset:-3px}"
     }
   ],
   "narrative": {
     "northStar": "A private archive with familiar streaming rooms",
-    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration and video playback retain their established structures. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
+    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated content-first theater, docked mini-player, and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
     "keyCharacteristics": [
       "Near-black tonal layering with distinct file, video, and music compositions.",
       "One configurable accent; default orange in Library/Watch and light blue in Listen.",

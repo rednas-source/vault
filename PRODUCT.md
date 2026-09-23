@@ -81,3 +81,13 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - Apps is the fourth top-level section, after Listen. It extends the quiet Library visual language with a compact personal tool directory and a full-width embedded workspace. FlowForge’s existing hosted browser app is the initial entry.
 - Each account can add, edit and remove web apps, choose embedded or new-tab opening, and save installed Office document launch links. Browser applications and native desktop applications remain distinct; native Excel cannot run inside an iframe.
 - Watch’s local navigation exposes Scan metadata beside Search. Scans run in the background for Movies, TV Shows or both on Home, retry cached misses, and report progress and unmatched titles. Movie metadata requires a TMDB API key; administrators can configure it from the scan panel. TVmaze remains available for shows without setup.
+
+
+## Integrated video player — September 2026
+
+- Playback opens in edge-to-edge theater mode beneath the shared header. Fullscreen and a compact docked mini-player use the same video element and stream. Changing sections docks an open video; the mini-player leaves the library usable.
+- Transport keeps play/pause, icon-only ten-second skips, a hover/focus volume slider, buffered progress, and a numeric buffered-ahead readout. Picture-in-picture and the mini-player action sit in the top-right corner.
+- A custom animated V mark represents preparation/buffering, with reduced-motion support. Short seeks avoid flashing the buffering overlay; seeks inside downloaded HLS segments keep the current encoder session.
+- Subtitles always open a selector, including loading, empty and failed lookup states. AI subtitle generation, enable/disable, cancellation and failure status belong inside this selector; generated tracks and timing offsets remain reusable.
+- Bottom-right Settings holds Original/direct, 4K/1080p/720p, speed, viewing modes, MP4 conversion and stream details. New playback always tries Original first. Conversion qualities require the server encoder; the UI explains when unavailable.
+- Shows use a bottom-right episode panel with a season selector, thumbnails, titles and watched/current state. Playback surfaces remain dark and use the readable dark variant of the selected accent, including when Library is in light mode.

@@ -472,3 +472,16 @@ The **Apps** tab to the right of Listen keeps a personal list of projects and so
 Choose **Vault** for an embedded web app, **New browser tab** for sites that block embedding, or **Desktop** for an installed Office application’s document link (for example `ms-excel:ofe|u|https://example.com/workbook.xlsx`). Desktop links open the installed app; they do not run Excel inside the browser. Arbitrary executable commands and file-system URLs are not supported.
 
 Embedded apps keep their own hosting, sign-in and storage. Vault does not copy their source or grant them access to the file library. The sandbox permits app scripts, forms, downloads and new windows, while preventing top-level navigation. A visible **Open in new tab** link handles sites whose sign-in or frame policy prevents embedding. FlowForge’s own browser autosave remains its source of truth; closing its workspace ends that embedded session.
+
+
+## Video player
+
+Video opens in **Theater** mode within the Vault shell. Use the top-right **Mini player** button to browse while playback continues, or **Fullscreen** at the bottom right. The top-right picture-in-picture button opens the browser’s separate video window when supported. Switching modes keeps the existing video element, buffer and stream.
+
+The bottom bar keeps play/pause, ten-second rewind/forward, mute and a volume slider revealed on hover or keyboard focus. The timeline shows downloaded video and the adjacent readout shows contiguous buffered time ahead. Buffered HLS seeks reuse the session; unbuffered seeks prepare a stream at the requested position.
+
+**Subtitles** always opens, even when no tracks exist. It includes track selection, per-track timing, and an **AI subtitles** switch. With the existing AI engine installed, turning it on generates and selects a reusable subtitle track; turning it off disables the track or cancels an active job. Generation progress and errors appear in the same menu. AI worker installation remains required for generation.
+
+**Settings** contains quality, playback speed, viewing modes, MP4 conversion for MKV files, and stream details. Every new video begins with **Original / direct**, independent of the conversion dialog’s saved quality. Native-compatible files play directly; compatible MKV streams are copied into HLS. Unsupported native playback can fall back to the server encoder. The 4K, 1080p and 720p choices retain the current position and speed and require FFmpeg. Resume progress keeps the full source duration across quality changes.
+
+The episode button opens seasons and episodes inside the player. Keyboard controls include Space/K for play, J/L and arrow keys for seeking, M for mute, F for fullscreen, T for theater/mini, and C for subtitles; focused sliders and menu controls keep their native keyboard behavior. Escape closes an open player menu before closing playback.

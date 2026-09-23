@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-apps-scan-20260923">
+<meta name="vault-build" content="vault-player-20260923">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1311,12 +1311,13 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-apps-scan-20260923">
-<link rel="stylesheet" href="/library.css?v=vault-apps-scan-20260923">
-<link rel="stylesheet" href="/watch.css?v=vault-apps-scan-20260923">
-<link rel="stylesheet" href="/listen.css?v=vault-apps-scan-20260923">
-<link rel="stylesheet" href="/appearance.css?v=vault-apps-scan-20260923">
-<link rel="stylesheet" href="/apps.css?v=vault-apps-scan-20260923">
+<link rel="stylesheet" href="/chromatic.css?v=vault-player-20260923">
+<link rel="stylesheet" href="/library.css?v=vault-player-20260923">
+<link rel="stylesheet" href="/watch.css?v=vault-player-20260923">
+<link rel="stylesheet" href="/listen.css?v=vault-player-20260923">
+<link rel="stylesheet" href="/appearance.css?v=vault-player-20260923">
+<link rel="stylesheet" href="/apps.css?v=vault-player-20260923">
+<link rel="stylesheet" href="/player.css?v=vault-player-20260923">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1548,15 +1549,16 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-apps-scan-20260923"></script>
-<script src="/listen.js?v=vault-apps-scan-20260923"></script>
-<script src="/watch-model.js?v=vault-apps-scan-20260923"></script>
-<script src="/watch.js?v=vault-apps-scan-20260923"></script>
-<script src="/apps.js?v=vault-apps-scan-20260923"></script>
-<script src="/document-reader.js?v=vault-apps-scan-20260923"></script>
-<script src="/library-tools.js?v=vault-apps-scan-20260923"></script>
-<script src="/library-sort.js?v=vault-apps-scan-20260923"></script>
-<script src="/library-actions.js?v=vault-apps-scan-20260923"></script>
+<script src="/appearance.js?v=vault-player-20260923"></script>
+<script src="/listen.js?v=vault-player-20260923"></script>
+<script src="/watch-model.js?v=vault-player-20260923"></script>
+<script src="/watch.js?v=vault-player-20260923"></script>
+<script src="/player.js?v=vault-player-20260923"></script>
+<script src="/apps.js?v=vault-player-20260923"></script>
+<script src="/document-reader.js?v=vault-player-20260923"></script>
+<script src="/library-tools.js?v=vault-player-20260923"></script>
+<script src="/library-sort.js?v=vault-player-20260923"></script>
+<script src="/library-actions.js?v=vault-player-20260923"></script>
 <script>
 'use strict';
 
@@ -1602,6 +1604,7 @@ document.addEventListener('click', (e) => {
 document.querySelectorAll('[data-space]').forEach((button) => {
   button.addEventListener('click', () => {
     const space = button.dataset.space;
+    $('#rmx')?.__setViewMode?.('mini');
     if(space === 'library'){
       state.mode = 'files';
       if(['movies','series','music'].includes(state.shelf)) state.shelf = 'all';
@@ -2859,7 +2862,13 @@ async function pollConversion(id, name){
 }
 
 /* ── viewer */
+let viewerRequest=0;
 async function openViewer(f){
+  const request=++viewerRequest;
+  const old=$('#rmx');
+  if(old){old.__report?.();old.__destroyStream?.();old.pause();old.removeAttribute('src');old.load();}
+  $('#viewer').classList.remove('mini','theater');
+  document.body.classList.remove('video-theater');
   $('#vTitle').textContent = f.name;
   $('#vDl').onclick = () => { location.href = url('download', f.rel); };
   $('#viewer').classList.add('on');
@@ -2884,7 +2893,9 @@ async function openViewer(f){
 
   // Formats the browser won't open. Ask the server whether it can prepare a
   // browser-compatible stream before promising anything.
-  $('#vBody').innerHTML = `<div class="viewer-note"><p>Checking what's inside…</p></div>`;
+  $('#viewer').classList.add('playing','theater');document.body.classList.add('video-theater');
+  $('#vBody').innerHTML = `<div class="player"><div class="pl-head"><div class="pl-titles"><b>${esc(cleanMediaTitle(f.name))}</b></div><div class="pl-head-tools"><button class="pl-btn" id="plPrepareClose" aria-label="Close player">${icon('x')}</button></div></div><div class="pl-stage"><div class="pl-buffer-overlay on" role="status"><div class="buffer-signal"><svg class="vault-buffer-logo" viewBox="0 0 64 64" aria-hidden="true"><path class="vault-buffer-ghost" d="M12 14L32 51L52 14"/><path class="vault-buffer-trace" d="M12 14L32 51L52 14"/><path class="vault-buffer-inner" d="M25 14L32 27L39 14"/></svg><b>Preparing playback</b><span>Checking the original stream</span></div></div></div></div>`;
+  $('#plPrepareClose').onclick=closeViewer;
   let info = {};
   let mediaInfoError = '';
   try{
@@ -2892,6 +2903,8 @@ async function openViewer(f){
     if(!r.ok) throw new Error(`media inspection returned HTTP ${r.status}`);
     info = await r.json();
   }catch(err){ mediaInfoError = err.message || 'media inspection failed'; }
+
+  if(request!==viewerRequest||!$('#viewer').classList.contains('on'))return;
 
   // For an MKV, ffprobe is an optimisation rather than a requirement. When
   // inspection fails (or returns unusable data), explicitly tell /api/media to
@@ -2910,6 +2923,7 @@ async function openViewer(f){
   // A failed metadata probe no longer blocks playback. The server can let
   // ffmpeg inspect the input directly and use its universal conversion path.
   if(!info.remuxable){
+    $('#viewer').classList.remove('playing','theater');document.body.classList.remove('video-theater');
     $('#vBody').innerHTML = `<div class="viewer-note">
       <p>${info.probed
           ? (info.video && info.transcodeAvailable === false
@@ -2941,358 +2955,6 @@ function playRemuxed(f, info){
  * encoder and retains the browser buffer; only seek, quality, or close replaces
  * the private session.
  */
-function mountPlayer(f, { src, native, info = {} }){
-  $('#viewer').classList.add('playing');
-  const duration = native ? 0 : (info.duration || 0);
-  const ep = f.shelf==='series'?watchEpisode(f):null;
-  const heading = ep ? ep.show : f.name;
-  const subheading = ep
-    ? `${watchSeasonName(ep.season)}${ep.episode!==null?' · Episode '+ep.episode:''} · ${ep.title}`
-    : (info.width ? `${info.width}×${info.height}` : bytes(f.size));
-  const names = {720:'720p',1080:'1080p',2160:'4K',original:'Original'};
-  let quality = native ? 'original' : (()=>{try{return localStorage.getItem('vault-quality')||'1080';}catch{return '1080';}})();
-  if(!names[quality]) quality='1080';
-  const episodeChoices=ep?state.files.filter(item=>item.shelf==='series'&&VIDEO.includes(item.ext)&&watchEpisode(item).key===ep.key&&watchEpisode(item).season===ep.season).sort((a,b)=>(watchEpisode(a).episode??Infinity)-(watchEpisode(b).episode??Infinity)||a.name.localeCompare(b.name,undefined,{numeric:true})):[];
-
-  $('#vBody').innerHTML=`<div class="player" id="pl">
-    <div class="pl-head"><div class="pl-titles"><b>${esc(heading)}</b><small>${esc(subheading)}</small></div>${episodeChoices.length?`<nav class="pl-episode-strip" aria-label="Episodes">${episodeChoices.map((item)=>{const itemEp=watchEpisode(item);const index=state.files.indexOf(item);return `<button class="${item.rel===f.rel?'on':''}" data-player-index="${index}" title="Play ${esc(itemEp.title)}"><b>S${String(itemEp.season).padStart(2,'0')}E${itemEp.episode===null?'—':String(itemEp.episode).padStart(2,'0')}</b><span>${esc(itemEp.title)}</span></button>`;}).join('')}</nav>`:''}<button class="pl-x" id="plClose" title="Close player" aria-label="Close player">${icon('x')}</button></div>
-    <div class="pl-stage" id="plStage"><video id="rmx" playsinline preload="auto"></video><div class="pl-veil"><button class="pl-big" id="plBig" title="Play" aria-label="Play">${icon('play','ph-fill')}</button></div><div class="pl-buffer-overlay on" id="plBufferOverlay" aria-live="polite"><div class="buffer-signal"><span class="buffer-orbit" aria-hidden="true"></span><b id="plBufferTitle">Preparing playback</b><span id="plBufferDetail">Reading the local stream</span></div></div></div>
-    <div class="pl-bar">
-      <div class="pl-scrub"><div class="pl-time" id="plAt">0:00</div><div class="pl-track" id="plTrack"><div class="pl-buf" id="plBuf"></div><div class="pl-fill" id="plFill"></div><div class="pl-knob" id="plKnob"></div></div><div class="pl-time pl-rem" id="plRem">-0:00</div></div>
-      <div class="pl-row">
-        <button class="pl-btn pl-play" id="plPlay" title="Play or pause" aria-label="Play or pause">${icon('play','ph-fill')}</button>
-        <button class="pl-btn" id="plBack" title="Back 10 seconds" aria-label="Back 10 seconds"><span class="pl-skip">${icon('arrow-counter-clockwise')}<i>10</i></span></button><button class="pl-btn" id="plFwd" title="Forward 10 seconds" aria-label="Forward 10 seconds"><span class="pl-skip">${icon('arrow-clockwise')}<i>10</i></span></button><div class="pl-sep"></div>
-        <button class="pl-btn" id="plMute" title="Mute" aria-label="Mute">${icon('speaker-high')}</button><div class="pl-vol" id="plVol" role="slider" aria-label="Volume" aria-valuemin="0" aria-valuemax="100"><div class="pl-vol-track"></div><div class="pl-vol-fill" id="plVolFill"></div><div class="pl-vol-knob" id="plVolKnob"></div></div><span class="pl-buffer-state" id="plBufferState"><i></i><span id="plBuffer">Starting</span></span><div class="pl-gap"></div>
-        <button class="pl-btn pl-cc-btn" id="plCC" title="Subtitles" aria-label="Subtitles" hidden>${icon('closed-captioning')}<span id="plCCName" class="sr-only">Off</span></button>
-        <button class="pl-btn pl-quality" id="plQuality" title="Stream quality" ${native?'hidden':''}>${icon('monitor-play')}<span id="plQualityLabel">${names[quality]}</span></button>
-        <button class="pl-btn" id="plGear" title="Playback speed" aria-label="Playback speed">${icon('speedometer')}</button><button class="pl-btn" id="plAI" title="Generate AI subtitles" aria-label="Generate AI subtitles">${icon('sparkle')}</button><button class="pl-btn" id="plConvert" title="Convert to MP4" aria-label="Convert to MP4" ${f.ext==='mkv'?'':'hidden'}>${icon('film-reel')}</button>
-        <button class="pl-btn" id="plPip" title="Picture in picture" aria-label="Picture in picture">${icon('picture-in-picture')}</button><button class="pl-btn" id="plTheater" title="Theatre mode" aria-label="Theatre mode">${icon('corners-in')}</button><button class="pl-btn" id="plFull" title="Fullscreen" aria-label="Fullscreen">${icon('corners-out')}</button>
-      </div>
-    </div>
-    <div class="pl-menu" id="plMenu" hidden></div><div class="pl-menu" id="plSpeed" hidden></div><div class="pl-menu" id="plQualityMenu" hidden></div>
-    <div class="pl-note" id="plNote">${native?'Original file · direct range stream':'Ready to prepare '+names[quality]}</div>
-  </div>`;
-
-  const player=$('#pl'),stage=$('#plStage'),video=$('#rmx');
-  if(info.width&&info.height) stage.style.aspectRatio=`${info.width} / ${info.height}`;
-  else{stage.style.aspectRatio='16 / 9';video.addEventListener('loadedmetadata',function ratio(){if(this.videoWidth)stage.style.aspectRatio=`${this.videoWidth} / ${this.videoHeight}`;this.removeEventListener('loadedmetadata',ratio);});}
-
-  let base=0,pausedAt=0,hls=null,hlsId='',version=0;
-  let suppress=false,wantsPlay=false,preparing=false,theater=false,chromeTimer=null,keyHandler=null,keepAliveTimer=null,pauseFillTimer=null;
-  let pausedBuffering=false,sessionFrozen=false,freezeInFlight=false,pauseCycle=0;
-  const PAUSE_BUFFER_SECONDS=300;
-  const alive=()=>!!document.getElementById('pl')&&!!$('#plPlay');
-  const setBuffering=(on,title='Buffering',detail='Preparing the next frames')=>{const overlay=$('#plBufferOverlay');if(!overlay)return;overlay.classList.toggle('on',!!on);const heading=$('#plBufferTitle'),copy=$('#plBufferDetail');if(heading)heading.textContent=title;if(copy)copy.textContent=detail;};
-  const now=()=>native?(video.currentTime||0):base+(video.currentTime||0);
-  const total=()=>duration||(f.watch&&f.watch.dur)||(native&&isFinite(video.duration)?video.duration:0)||0;
-  const bufferedEnd=()=>{
-    if(!video.buffered.length)return now();
-    const local=video.currentTime||0;
-    for(let i=0;i<video.buffered.length;i++){
-      if(local>=video.buffered.start(i)-.25&&local<=video.buffered.end(i)+.25)return (native?0:base)+video.buffered.end(i);
-    }
-    return (native?0:base)+video.buffered.end(video.buffered.length-1);
-  };
-  const bufferAhead=()=>Math.max(0,bufferedEnd()-now());
-  const pauseBufferTarget=()=>{const t=total();return t?Math.max(0,Math.min(PAUSE_BUFFER_SECONDS,t-now())):PAUSE_BUFFER_SECONDS;};
-  const drawBuffer=()=>{
-    if(!alive())return;const t=total(),at=now(),end=Math.max(at,bufferedEnd()),ahead=bufferAhead();
-    if(t)$('#plBuf').style.width=`${Math.min(100,end/t*100)}%`;
-    const stateEl=$('#plBufferState'),label=$('#plBuffer');if(!stateEl||!label)return;
-    stateEl.classList.toggle('ready',ahead>=30);stateEl.classList.toggle('low',!video.paused&&ahead<8);
-    label.textContent=ahead>=1?`${fmtTime(ahead)} ahead`:(video.paused?'Buffer ready':'Buffering…');
-  };
-  const draw=()=>{if(!alive())return;const t=total(),at=now(),p=t?Math.min(100,at/t*100):0;$('#plFill').style.width=`${p}%`;$('#plKnob').style.left=`${p}%`;$('#plAt').textContent=fmtTime(at);$('#plRem').textContent=t?`-${fmtTime(Math.max(0,t-at))}`:'';drawBuffer();};
-  const closeMenus=()=>['plMenu','plSpeed','plQualityMenu'].forEach((id)=>{const el=$('#'+id);if(el)el.hidden=true;});
-  const showChrome=()=>{if(!alive())return;clearTimeout(chromeTimer);player.classList.remove('chrome-hidden');};
-  const scheduleChrome=()=>{showChrome();chromeTimer=setTimeout(()=>{if(alive()&&theater&&!video.paused&&!['plMenu','plSpeed','plQualityMenu'].some((id)=>!$('#'+id).hidden))player.classList.add('chrome-hidden');},2200);};
-  const setPlaying=(on)=>{if(!alive())return;$('#plPlay').innerHTML=icon(on?'pause':'play','ph-fill');player.classList.toggle('playing',on);if(on)setBuffering(false);on?scheduleChrome():showChrome();};
-
-  const release=()=>{
-    const old=hlsId;hlsId='';suppress=true;
-    clearInterval(keepAliveTimer);keepAliveTimer=null;
-    clearInterval(pauseFillTimer);pauseFillTimer=null;pauseCycle++;pausedBuffering=false;sessionFrozen=false;freezeInFlight=false;
-    if(hls){hls.destroy();hls=null;}
-    if(!native){video.pause();video.removeAttribute('src');video.load();}
-    if(old)fetch(`/api/hls/${encodeURIComponent(old)}`,{method:'DELETE',keepalive:true}).catch(()=>{});
-  };
-  const controlSession=async(action)=>{
-    if(!hlsId)return {ok:false};
-    const r=await fetch(`/api/hls/${encodeURIComponent(hlsId)}/control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})});
-    const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`Could not ${action} playback session`);return data;
-  };
-  const fail=async(message)=>{
-    if(!alive()||suppress)return;
-    let server='';if(hlsId){try{const r=await fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`,{cache:'no-store'});const d=await r.json();if(d&&!d.ok)server=d.error||'';}catch{}}
-    if(!alive())return;wantsPlay=false;preparing=false;setBuffering(false);release();
-    $('#vBody').innerHTML=`<div class="viewer-note"><p>Playback failed: ${esc(server||message||'The stream stopped unexpectedly.')}</p><p>Download the file, or open this link in VLC:</p><p class="viewer-link">${location.origin}${url('stream',f.rel)}</p></div>`;
-  };
-  const freezePausedSession=async()=>{
-    if(native||wantsPlay||!pausedBuffering||sessionFrozen||freezeInFlight||!hlsId)return;
-    clearInterval(pauseFillTimer);pauseFillTimer=null;if(hls)hls.stopLoad();freezeInFlight=true;const mine=pauseCycle;
-    try{
-      await controlSession('pause');
-      // A quick play click can race the pause request through the tunnel. Undo
-      // that late pause immediately so playback can never freeze underneath it.
-      if(mine!==pauseCycle||wantsPlay||!pausedBuffering){await controlSession('resume').catch(()=>{});if(hls)hls.startLoad(-1);return;}
-      sessionFrozen=true;drawBuffer();if($('#plNote'))$('#plNote').textContent=`Paused · ${pauseBufferTarget()<PAUSE_BUFFER_SECONDS-1?'remainder buffered':'five-minute buffer ready'} · transcoder sleeping`;
-    }catch(error){if($('#plNote'))$('#plNote').textContent=`Paused · ${fmtTime(bufferAhead())} buffered · ${error.message}`;}
-    finally{freezeInFlight=false;}
-  };
-  const fillPausedBuffer=()=>{
-    clearInterval(pauseFillTimer);pauseFillTimer=null;if(hls&&!sessionFrozen)hls.startLoad(-1);
-    const check=()=>{
-      if(!alive()||wantsPlay||!pausedBuffering){clearInterval(pauseFillTimer);pauseFillTimer=null;return;}
-      const ahead=bufferAhead(),target=pauseBufferTarget();drawBuffer();
-      if($('#plNote')&&!sessionFrozen)$('#plNote').textContent=`Paused · filling buffer ${fmtTime(Math.min(ahead,target))} / ${fmtTime(target)}`;
-      // HLS segments are two seconds long. Freeze one segment early so the
-      // final in-flight append lands at, rather than beyond, the chosen ceiling.
-      if(ahead>=Math.max(0,target-2))freezePausedSession();
-    };
-    check();if(!sessionFrozen)pauseFillTimer=setInterval(check,500);
-  };
-  const pauseConverted=()=>{
-    if(native)return;pausedAt=now();if(video.__report)video.__report();wantsPlay=false;preparing=false;setPlaying(false);draw();
-    if(!pausedBuffering){pausedBuffering=true;pauseCycle++;}
-    fillPausedBuffer();
-  };
-
-  const resumeConverted=()=>{
-    if(!hlsId)return startHls(pausedAt||now(),true);
-    const wasFrozen=sessionFrozen;pauseCycle++;pausedBuffering=false;sessionFrozen=false;clearInterval(pauseFillTimer);pauseFillTimer=null;
-    wantsPlay=true;preparing=false;suppress=false;if(hls)hls.startLoad(-1);
-    // Play the already-buffered media immediately. Waking ffmpeg is background
-    // maintenance and must not add a network round-trip to the play button.
-    video.play().catch((error)=>{wantsPlay=false;setPlaying(false);if($('#plNote'))$('#plNote').textContent=`Buffer preserved · press play to resume${error&&error.message?` · ${error.message}`:''}`;});
-    if($('#plNote'))$('#plNote').textContent=`Playing · ${fmtTime(bufferAhead())} buffered ahead`;
-    if(wasFrozen||freezeInFlight)controlSession('resume').then(()=>{freezeInFlight=false;if(hls)hls.startLoad(-1);}).catch(()=>{freezeInFlight=false;const at=now();release();startHls(at,true);});
-  };
-
-  const startHls=async(at,autoplay=true)=>{
-    const mine=++version;release();base=Math.max(0,at||0);pausedAt=base;wantsPlay=autoplay;preparing=true;suppress=true;draw();
-    setBuffering(true,'Preparing playback',`${names[quality]} · ${state.transcoder?state.transcoder.label:'H.264 encoder'}`);$('#plNote').textContent=`Preparing ${names[quality]} · ${state.transcoder?state.transcoder.label:'H.264 encoder'}`;
-    try{
-      const r=await fetch(`${url('hls/start',f.rel)}?t=${base.toFixed(2)}&quality=${encodeURIComponent(quality)}`,{method:'POST'});const data=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(data.error||`HLS preparation returned HTTP ${r.status}`);
-      if(mine!==version||!alive()){fetch(`/api/hls/${encodeURIComponent(data.id)}`,{method:'DELETE',keepalive:true}).catch(()=>{});return;}
-      hlsId=data.id;
-      clearInterval(keepAliveTimer);keepAliveTimer=setInterval(()=>{if(hlsId)fetch(`/api/hls/${encodeURIComponent(hlsId)}/status`,{cache:'no-store'}).catch(()=>{});},45000);
-      const ready=()=>{if(mine!==version||!alive())return;preparing=false;suppress=false;setBuffering(false);$('#plNote').textContent=`${data.qualityLabel||names[quality]} · ${data.direct?'direct stream copy':data.encoder||'H.264 / AAC'}`;if(wantsPlay)video.play().catch(()=>{});else pauseConverted();};
-      if(window.Hls&&Hls.isSupported()){
-        const compactBuffer=matchMedia('(max-width:760px)').matches;
-        hls=new Hls({
-          enableWorker:true,lowLatencyMode:false,startPosition:0,startFragPrefetch:true,
-          backBufferLength:compactBuffer?30:90,
-          maxBufferLength:PAUSE_BUFFER_SECONDS,
-          maxMaxBufferLength:PAUSE_BUFFER_SECONDS,
-          maxBufferSize:compactBuffer?128*1024*1024:384*1024*1024,
-          maxBufferHole:.35,highBufferWatchdogPeriod:2,nudgeMaxRetry:5,
-        });
-        hls.on(Hls.Events.ERROR,(_e,d)=>{if(mine===version&&d.fatal){suppress=false;fail(`HLS ${d.type||'stream'} error: ${d.details||'unknown failure'}`);}});
-        hls.on(Hls.Events.MEDIA_ATTACHED,()=>{if(mine===version)hls.loadSource(data.url);});hls.on(Hls.Events.MANIFEST_PARSED,ready);hls.attachMedia(video);
-      }else if(video.canPlayType('application/vnd.apple.mpegurl')){video.src=data.url;video.addEventListener('loadedmetadata',ready,{once:true});}
-      else throw new Error('This browser does not support HLS or Media Source playback');
-    }catch(err){preparing=false;suppress=false;if(mine===version)fail(err.message||'Could not prepare playback');}
-  };
-  const go=(at)=>{
-    at=Math.max(0,Math.min(total()?total()-.25:1e9,at||0));
-    if(!native)return startHls(at);
-    const play=()=>{try{video.currentTime=at;}catch{}video.play().catch(()=>{});};video.readyState?play():video.addEventListener('loadedmetadata',play,{once:true});
-  };
-  const toggle=()=>{if(native){video.paused?video.play().catch(()=>{}):video.pause();return;}if(!video.paused){video.pause();return;}if(preparing&&wantsPlay){pauseConverted();return;}resumeConverted();};
-  const jump=(seconds)=>{const at=Math.max(0,Math.min(total()?total()-.25:1e9,now()+seconds));if(native)video.currentTime=at;else startHls(at,!video.paused);};
-
-  video.onplay=()=>{wantsPlay=true;setPlaying(true);drawBuffer();};video.onpause=()=>{setPlaying(false);drawBuffer();if(!native&&!suppress)pauseConverted();};video.ontimeupdate=draw;
-  video.onprogress=drawBuffer;video.onwaiting=()=>{drawBuffer();if(!video.paused)setBuffering(true,'Buffering','Holding the frame while the stream catches up');};video.onstalled=()=>setBuffering(true,'Reconnecting','The local stream is taking longer than expected');video.onseeking=()=>setBuffering(true,'Seeking','Finding the requested frame');video.oncanplay=()=>{drawBuffer();if(!preparing)setBuffering(false);};video.onseeked=()=>{if(!preparing)setBuffering(false);};
-  video.onerror=()=>{if(!suppress)fail(video.error?`browser media error ${video.error.code}`:'browser media error');};
-  $('#plPlay').onclick=toggle;$('#plBig').onclick=toggle;video.onclick=toggle;$('#plBack').onclick=()=>jump(-10);$('#plFwd').onclick=()=>jump(10);$('#plClose').onclick=closeViewer;
-
-  const track=$('#plTrack');let drag=false;
-  const trackPos=(e)=>{const r=track.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));};
-  const preview=(p)=>{const t=total();$('#plFill').style.width=`${p*100}%`;$('#plKnob').style.left=`${p*100}%`;if(t){$('#plAt').textContent=fmtTime(p*t);$('#plRem').textContent=`-${fmtTime(t-p*t)}`;}};
-  track.onpointerdown=(e)=>{if(!total())return;drag=true;track.setPointerCapture(e.pointerId);preview(trackPos(e));};track.onpointermove=(e)=>{if(drag)preview(trackPos(e));};
-  track.onpointerup=(e)=>{if(!drag)return;drag=false;const at=trackPos(e)*total();if(native)go(at);else startHls(at,!video.paused);};
-
-  const savedVol=(()=>{try{return parseFloat(localStorage.getItem('vault-vol'));}catch{return NaN;}})();video.volume=isFinite(savedVol)?savedVol:1;
-  const drawVol=()=>{if(!alive())return;const n=video.muted?0:video.volume;$('#plVolFill').style.width=`${n*100}%`;$('#plVolKnob').style.left=`${n*100}%`;$('#plVol').setAttribute('aria-valuenow',String(Math.round(n*100)));$('#plMute').innerHTML=icon(n===0?'speaker-slash':n<.5?'speaker-low':'speaker-high');};
-  $('#plMute').onclick=()=>{video.muted=!video.muted;drawVol();};const vol=$('#plVol');let volDrag=false;
-  const setVol=(e)=>{const r=vol.getBoundingClientRect();video.volume=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));video.muted=false;try{localStorage.setItem('vault-vol',String(video.volume));}catch{}drawVol();};
-  vol.onpointerdown=(e)=>{volDrag=true;vol.setPointerCapture(e.pointerId);setVol(e);};vol.onpointermove=(e)=>{if(volDrag)setVol(e);};vol.onpointerup=()=>{volDrag=false;};drawVol();
-
-  const full=()=>document.fullscreenElement?document.exitFullscreen():player.requestFullscreen&&player.requestFullscreen().catch(()=>{});
-  const theaterMode=()=>{theater=!theater;player.classList.toggle('theater',theater);$('#viewer').classList.toggle('theater',theater);$('#plTheater').classList.toggle('on',theater);theater?scheduleChrome():showChrome();};
-  $('#plFull').onclick=full;$('#plTheater').onclick=theaterMode;$('#plConvert').onclick=()=>askConvert(f);$('#plAI').onclick=()=>askAiSubtitles([f],'episode');
-  $('#plPip').onclick=()=>{if(!document.pictureInPictureEnabled)return toast('This browser has no picture-in-picture','bad');document.pictureInPictureElement?document.exitPictureInPicture().catch(()=>{}):video.requestPictureInPicture().catch(()=>toast('Picture-in-picture unavailable','bad'));};
-  $('#plGear').onclick=()=>{const menu=$('#plSpeed'),open=menu.hidden;closeMenus();menu.innerHTML=[.5,.75,1,1.25,1.5,2].map((r)=>`<button data-r="${r}" class="${video.playbackRate===r?'on':''}">${r===1?'Normal':r+'×'}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{video.playbackRate=+b.dataset.r;menu.hidden=true;$('#plGear').classList.toggle('on',video.playbackRate!==1);});menu.hidden=!open;showChrome();};
-  if(!native)$('#plQuality').onclick=()=>{const menu=$('#plQualityMenu'),open=menu.hidden;closeMenus();menu.innerHTML=[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original / direct']].map(([id,label])=>`<button data-q="${id}" class="${quality===id?'on':''}">${label}</button>`).join('');menu.querySelectorAll('button').forEach((b)=>b.onclick=()=>{const at=now(),playing=!video.paused;quality=b.dataset.q;$('#plQualityLabel').textContent=names[quality];try{localStorage.setItem('vault-quality',quality);}catch{}menu.hidden=true;startHls(at,playing);});menu.hidden=!open;showChrome();};
-
-  player.onpointermove=scheduleChrome;player.onmouseleave=()=>{if(theater&&!video.paused)scheduleChrome();};
-  keyHandler=(e)=>{if(!alive()){document.removeEventListener('keydown',keyHandler,true);return;}if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;const stop=()=>{e.preventDefault();e.stopPropagation();};switch(e.key){case ' ':case 'k':stop();toggle();break;case 'ArrowRight':stop();jump(10);break;case 'ArrowLeft':stop();jump(-10);break;case 'l':stop();jump(30);break;case 'j':stop();jump(-30);break;case 'ArrowUp':stop();video.volume=Math.min(1,video.volume+.1);video.muted=false;drawVol();break;case 'ArrowDown':stop();video.volume=Math.max(0,video.volume-.1);drawVol();break;case 'm':stop();video.muted=!video.muted;drawVol();break;case 'f':stop();full();break;case 't':stop();theaterMode();break;case 'c':stop();if(!$('#plCC').hidden)$('#plCC').click();break;default:return;}};
-  const reloadSubtitles=async()=>{
-    if(!alive())return [];
-    video.querySelectorAll('track[data-vault-track]').forEach((track)=>track.remove());
-    const tracks=await attachSubtitles(video,f);
-    if(alive())buildCCMenu(video,f,tracks);
-    return tracks;
-  };
-  video.__reloadSubtitles=reloadSubtitles;
-  document.addEventListener('keydown',keyHandler,true);trackProgress(video,f,()=>native?0:base,duration);reloadSubtitles();
-  const from=f.watch&&f.watch.pos>5&&(!total()||f.watch.pos<total()-20)?f.watch.pos:0;pausedAt=from;base=native?0:from;
-  if(native){video.src=src;go(from);}else startHls(from);
-  video.__destroyStream=()=>{version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearInterval(keepAliveTimer);clearInterval(pauseFillTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater');release();};
-  player.querySelectorAll('[data-player-index]').forEach((button)=>button.onclick=()=>{const next=state.files[+button.dataset.playerIndex];if(!next||next.rel===f.rel)return;if(video.__report)video.__report();video.__destroyStream();video.pause();video.removeAttribute('src');video.load();$('#viewer').classList.remove('playing','theater');openViewer(next);});
-}
-
-/** The part of an episode filename after the SxxExx marker, if there is one. */
-function epTitle(name){
-  const m = /[Ss]\d{1,2}[\s._-]*[Ee]\d{1,3}[\s._-]*(.+)$/.exec(name.replace(/\.[^.]+$/, ''));
-  return m ? m[1].replace(/[._]+/g, ' ').replace(/^[\s-]+/, '').trim() : '';
-}
-
-function subtitleStorageKey(f, trackId){
-  return `vault-cc-offset:${f.rel}:${trackId}`;
-}
-
-function applySubtitleOffset(entry, seconds){
-  const cues=entry.track&&entry.track.cues;if(!cues)return;
-  entry.originalTimes=entry.originalTimes||new WeakMap();
-  for(const cue of cues){
-    let original=entry.originalTimes.get(cue);
-    if(!original){original=[cue.startTime,cue.endTime];entry.originalTimes.set(cue,original);}
-    cue.startTime=Math.max(0,original[0]+seconds);
-    cue.endTime=Math.max(cue.startTime+.05,original[1]+seconds);
-  }
-}
-
-/** Track selector plus per-track sync controls. */
-function buildCCMenu(v,f,entries=[]){
-  const btn = $('#plCC'), menu = $('#plMenu');
-  // Subtitles arrive asynchronously — the viewer may already be gone.
-  if(!btn || !menu || !document.contains(v)) return;
-  if(v.__ccUpdatedHandler)v.removeEventListener('vault-subtitles-updated',v.__ccUpdatedHandler);
-  if(!entries.length){btn.hidden=true;btn.classList.remove('on');menu.hidden=true;menu.innerHTML='';const name=$('#plCCName');if(name)name.textContent='Off';return;}
-  const tracks=entries.map((entry)=>entry.track);
-  btn.hidden = false;
-  menu.classList.add('cc-menu');
-  tracks.forEach((t) => { t.mode = 'disabled'; });
-
-  for(const entry of entries){
-    try{entry.offset=parseFloat(localStorage.getItem(subtitleStorageKey(f,entry.id)))||0;}catch{entry.offset=0;}
-  }
-
-  const select=(pick)=>{
-    tracks.forEach((t,i)=>{t.mode=i===pick?'showing':'disabled';});
-    if(pick>=0)applySubtitleOffset(entries[pick],entries[pick].offset||0);
-    btn.classList.toggle('on',pick>=0);
-    try{localStorage.setItem(`vault-cc-track:${f.rel}`,pick>=0?entries[pick].id:'');}catch{}
-  };
-  try{
-    const saved=localStorage.getItem(`vault-cc-track:${f.rel}`);
-    const pick=entries.findIndex((entry)=>entry.id===saved);
-    if(pick>=0)select(pick);
-  }catch{}
-
-  const draw = () => {
-    const active = tracks.findIndex((t) => t.mode === 'showing');
-    const name = $('#plCCName');
-    if(name) name.textContent=active<0?'Off':(entries[active].label||'On');
-    const chosen=active>=0?entries[active]:null;
-    const offset=chosen?(chosen.offset||0):0;
-    menu.innerHTML=`<div class="cc-menu-head">Available subtitles</div><button class="cc-track ${active<0?'on':''}" data-cc-track="-1">Off</button>`+
-      entries.map((entry,i)=>`<button class="cc-track ${active===i?'on':''}" data-cc-track="${i}" ${entry.failed?'disabled':''}>${esc(entry.label||('Track '+(i+1)))}${entry.loading?' · loading…':entry.failed?' · unavailable':''}</button>`).join('')+
-      `<div class="cc-offset" ${chosen?'':'hidden'}><div class="cc-offset-top"><span>Subtitle sync</span><b id="ccOffsetValue">${offset>=0?'+':''}${offset.toFixed(1)}s</b></div><input id="ccOffset" type="range" min="-10" max="10" step="0.1" value="${offset}"><div class="cc-offset-steps"><button data-cc-step="-.5">−0.5s</button><button data-cc-reset>Reset</button><button data-cc-step=".5">+0.5s</button></div><small>Negative shows captions earlier. Positive delays them. Each track keeps its own setting.</small></div>`;
-    menu.querySelectorAll('[data-cc-track]').forEach((b) => {
-      b.onclick = () => {
-        const pick=+b.dataset.ccTrack;select(pick);
-        draw(); menu.hidden = true;
-      };
-    });
-    if(chosen){
-      const setOffset=(value)=>{
-        chosen.offset=Math.max(-10,Math.min(10,Math.round(value*10)/10));
-        applySubtitleOffset(chosen,chosen.offset);
-        try{localStorage.setItem(subtitleStorageKey(f,chosen.id),String(chosen.offset));}catch{}
-        const valueEl=$('#ccOffsetValue'),range=$('#ccOffset');if(valueEl)valueEl.textContent=`${chosen.offset>=0?'+':''}${chosen.offset.toFixed(1)}s`;if(range)range.value=chosen.offset;
-      };
-      $('#ccOffset').oninput=(e)=>setOffset(+e.target.value);
-      menu.querySelectorAll('[data-cc-step]').forEach((b)=>b.onclick=()=>setOffset(chosen.offset+(+b.dataset.ccStep)));
-      const reset=menu.querySelector('[data-cc-reset]');if(reset)reset.onclick=()=>setOffset(0);
-    }
-  };
-  btn.onclick = () => {
-    const sp = $('#plSpeed'), qm = $('#plQualityMenu'); if(sp) sp.hidden = true; if(qm) qm.hidden = true;
-    draw(); menu.hidden = !menu.hidden;
-  };
-  v.__ccUpdatedHandler=()=>{
-    const active=tracks.findIndex((t)=>t.mode==='showing');if(active>=0)applySubtitleOffset(entries[active],entries[active].offset||0);
-    if(!menu.hidden)draw();
-  };
-  v.addEventListener('vault-subtitles-updated',v.__ccUpdatedHandler);
-  draw();
-}
-
-/**
- * Report position every few seconds and once on the way out. Throttled because
- * timeupdate fires several times a second and each report is a write.
- */
-function trackProgress(video, f, baseOf, knownDur){
-  let last = 0;
-  const send = (pos, dur) => {
-    if(!dur) return;
-    fetch('/api/progress', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ rel:f.rel, pos, dur }),
-      keepalive: true,        // survives the page or dialog going away
-    }).catch(()=>{});
-  };
-  /**
-   * A fragmented-MP4 stream doesn't carry a reliable duration — the element
-   * reports whatever it has buffered. Prefer the figure ffprobe gave us.
-   */
-  const total = () => knownDur
-    || (isFinite(video.duration) && video.duration > 0 ? video.duration : 0)
-    || (f.watch && f.watch.dur) || 0;
-
-  const report = () => send(baseOf() + (video.currentTime || 0), total());
-
-  video.addEventListener('timeupdate', () => {
-    if(Date.now() - last < 5000) return;
-    last = Date.now();
-    report();
-  });
-  video.addEventListener('pause', report);
-  video.__report = report;
-}
-
-/** Attach any subtitle tracks the server can produce for this file. */
-async function attachSubtitles(video, f){
-  try{
-    const r = await fetch(url('subs', f.rel),{cache:'no-store'});
-    if(!r.ok) return;
-    const { tracks } = await r.json();
-    if(!tracks || !tracks.length) return;
-    const entries=[];
-    tracks.forEach((t) => {
-      const el = document.createElement('track');
-      el.kind = 'subtitles';
-      el.dataset.vaultTrack = '1';
-      el.label = t.label;
-      if(t.lang) el.srclang = t.lang;
-      el.src = `${url('sub', f.rel)}?track=${encodeURIComponent(t.id)}&v=${Date.now()}`;
-      const entry={id:t.id,label:t.label,source:t.source,element:el,track:el.track,loading:true,failed:false,offset:0};
-      el.addEventListener('load',()=>{entry.loading=false;entry.failed=false;if(entry.track.mode==='hidden')entry.track.mode='disabled';video.dispatchEvent(new Event('vault-subtitles-updated'));});
-      el.addEventListener('error',()=>{entry.loading=false;entry.failed=true;video.dispatchEvent(new Event('vault-subtitles-updated'));});
-      video.appendChild(el);
-      // Hidden mode makes browsers fetch and parse the cues without putting
-      // them on screen before the viewer has made a choice.
-      el.track.mode='hidden';
-      entries.push(entry);
-    });
-    toast(`${tracks.length} subtitle track${tracks.length===1?'':'s'} available`);
-    return entries;
-  }catch{ /* no subtitles, no problem */ }
-  return [];
-}
 
 function fmtTime(sec){
   if(!sec || !isFinite(sec)) return '0:00';
@@ -3301,11 +2963,16 @@ function fmtTime(sec){
            : `${m}:${String(s).padStart(2,'0')}`;
 }
 
-function closeViewer(){ closeLayer() || teardownViewer(); }
+function closeViewer(){
+  if($('#viewer').classList.contains('playing')&&!layers.some(layer=>layer.name==='viewer')){teardownViewer();return;}
+  closeLayer() || teardownViewer();
+}
 
 function teardownViewer(){
+  viewerRequest++;document.body.classList.remove('video-theater');
+  if(document.fullscreenElement===$('#viewer'))document.exitFullscreen().catch(()=>{});
   previewAbort?.abort();previewAbort=null;
-  $('#viewer').classList.remove('playing','theater','reading');
+  $('#viewer').classList.remove('playing','theater','mini','reading');
   // Blank the source first: leaving it set keeps the live ffmpeg job running.
   const v = $('#vBody').querySelector('video, audio');
   if(v){

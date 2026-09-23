@@ -15,6 +15,7 @@ function applyAppearance(){
   const name=vaultAppearance.accent==='default'?(listen?'blue':'orange'):vaultAppearance.accent;
   const rgb=vaultPalettes[name][light?'light':'dark'],root=document.documentElement;
   for(const [key,value] of Object.entries({'accent-rgb':rgb,accent:`rgb(${rgb})`,'accent-soft':`rgb(${rgb})`,star:`rgb(${rgb})`,'star-soft':`rgba(${rgb},.12)`,'star-edge':`rgba(${rgb},.42)`,flare:`rgb(${rgb})`,'flare-edge':`rgba(${rgb},.42)`,sky:`rgba(${rgb},.09)`,select:`rgba(${rgb},.3)`}))root.style.setProperty('--'+key,value);
+  root.style.setProperty('--player-accent-rgb',vaultPalettes[vaultAppearance.accent==='default'?'orange':name].dark);
   root.classList.toggle('icon-navigation',vaultAppearance.icons);
   try{localStorage.setItem('vault-appearance',JSON.stringify(vaultAppearance));}catch{}
   if(!document.getElementById('appearancePanel')?.hidden)renderAppearance();

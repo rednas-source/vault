@@ -56,7 +56,29 @@ colors:
   listen-liked-gradient-end: "#75bce9"
   listen-hero-meta: "#dedede"
   listen-slider-unfilled: "#4a4a4a"
+  player-stage: "#000"
+  player-shell: "#090909"
+  player-menu: "#222"
+  player-menu-hover: "#333"
+  player-menu-line: "#454545"
+  player-control: "#eee"
+  player-muted: "#c9c9c9"
+  player-cue-ground: "#000b"
 typography:
+  player-title:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "20px"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "-0.015em"
+  player-menu:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+    lineHeight: 1.4
+  player-cue:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "24px"
+    lineHeight: 1.4
   watch-display:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(38px, 4.5vw, 68px)"
@@ -176,6 +198,9 @@ typography:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "13px"
 rounded:
+  player-control: "6px"
+  player-menu: "10px"
+  player-mini: "8px"
   apps-surface: "10px"
   listen-panel: "8px"
   appearance-panel: "12px"
@@ -191,6 +216,8 @@ rounded:
   feature: "16px"
   pill: "999px"
 spacing:
+  player-gutter: "32px"
+  player-gutter-mobile: "14px"
   listen-panel-gap: "8px"
   listen-gutter: "24px"
   listen-collection-gutter: "28px"
@@ -204,6 +231,26 @@ spacing:
   lg: "18px"
   xl: "26px"
 components:
+  player-control:
+    textColor: "{colors.player-control}"
+    rounded: "{rounded.player-control}"
+    size: "40px"
+    padding: "0"
+  player-menu:
+    backgroundColor: "{colors.player-menu}"
+    textColor: "{colors.watch-action}"
+    rounded: "{rounded.player-menu}"
+    width: "300px"
+  player-menu-option:
+    textColor: "{colors.player-control}"
+    typography: "{typography.player-menu}"
+    padding: "11px 16px"
+  player-menu-option-hover:
+    backgroundColor: "{colors.player-menu-hover}"
+  player-cue:
+    backgroundColor: "{colors.player-cue-ground}"
+    textColor: "{colors.watch-action}"
+    typography: "{typography.player-cue}"
   apps-button:
     textColor: "{colors.warm-white}"
     rounded: "{rounded.library-toolbar}"
@@ -296,7 +343,7 @@ components:
 
 Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.
 
-Library retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration and video playback retain their established structures. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.
+Library retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated, content-first theater and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.
 
 Appearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.
 
@@ -316,6 +363,8 @@ The archive palette is almost monochrome until state or media calls for an accen
 Library inherits the shared dark/light variables from `public/chromatic.css`: `--night`, `--night-raised`, `--panel`, `--light`, `--muted`, `--accent`, and the existing divider and selection variables. Its toolbar, rows, and tiles use these same theme roles; there is no Library-only palette or new media color system.
 
 Apps inherits those same theme variables, including Appearance's accent. App symbols use the existing soft accent ground, directory rows use quiet dividers, and the inline editor uses Raised Surface. The frontmatter's Apps button colors record the dark defaults; runtime theme roles also support the light theme. Watch's metadata report uses its existing Panel, Line, and Muted roles.
+
+Playback uses Player Stage black and Player Menu charcoal with white sans controls. Appearance supplies the dark variant of the selected palette through `--player-accent-rgb`, even over a light Library; default playback remains orange when docked in Listen. Progress, the buffering trace, selected menu options, and the enabled AI switch use that accent. White remains the main play and focus color.
 
 ### Primary
 
@@ -370,6 +419,8 @@ Icon-font `font-size` values describe glyph geometry, not text roles: shelf icon
 
 Listen uses a heavy collection display, compact section headings, 15px album titles, 14px track/sidebar titles, 13px body and controls, and 12px metadata. Sidebar/panel headings are 16px/650; now-playing titles are 22px/700. Queue and dock metadata use 11px; transport time uses 10px and tabular figures. At 1250px and below collection titles become 48px; at 760px they become 34px, section headings 23px, album titles 14px, track titles 13px, and supporting metadata 11–12px. Empty-state headings are 28px (25px on phones). Icon sizes remain geometry, not new text roles.
 
+Player title and subtitle context use the dedicated sans title role and 13px supporting text. Titles reduce to 15px on phones and 13px in mini mode; context becomes 11px and 10px respectively. Menus use the player menu role, with 12px headings and 11px values. Transport time is 12px with tabular figures (11px phone, 10px mini). Caption cues use the player cue role, reduced to 18px on phones and 14px in mini mode.
+
 ## Layout
 
 Desktop uses a 68px command bar, a 208px Library shelf rail, and a flexible content field. Library has a small heading with summary, followed by a 58px minimum-height breadcrumb toolbar. The file surface has 18px side padding, a 38px column header, and 49px minimum-height rows. Watch and Listen dismiss the file shelf rail; Listen supplies its own music library sidebar.
@@ -378,7 +429,7 @@ Watch retains the shared header and uses an internally scrolling content pane. I
 
 Watch adapts at 1000px to a 510px minimum feature, 145px minimum catalog columns, and 160px episode thumbnails. At 700px and below, the gutter is 20px, local navigation is 56px, artwork sits above the title within a 590px minimum home feature, and home rails overlap by 24px. Catalogs and seasons become two columns; poster rails use 145px cards and resume rails use 280px cards. Detail features have a 540px minimum height. Episode rows use a 110px thumbnail, flexible text, and a 30px options column; the redundant number column disappears. Desktop rail arrows disappear while touch scrolling remains. At 1800px and above, home features reach a 680px minimum and catalog columns a 205px minimum. These changes belong only to Watch.
 
-At 1100px and below, the Library rail becomes 180px and rows reduce to selection, name, and size. Wide desktop rows retain size, shelf, and added metadata on hover and focus; actions live in the context menu rather than replacing those columns. Non-hover input and phone layouts add one persistent Options control beside the size. The shared header becomes two rows at 1100px and below and three rows at 600px and below. At 700px the layout becomes one vertical flow: shelves and entertainment links become horizontal bands, the toolbar wraps, and file-surface side padding reduces to 12px. Mobile rows have a 48px minimum height. Primary navigation, New folder, and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens. The full-viewport video player retains its established styling; Listen follows its own panel and transport rules below.
+At 1100px and below, the Library rail becomes 180px and rows reduce to selection, name, and size. Wide desktop rows retain size, shelf, and added metadata on hover and focus; actions live in the context menu rather than replacing those columns. Non-hover input and phone layouts add one persistent Options control beside the size. The shared header becomes two rows at 1100px and below and three rows at 600px and below. At 700px the layout becomes one vertical flow: shelves and entertainment links become horizontal bands, the toolbar wraps, and file-surface side padding reduces to 12px. Mobile rows have a 48px minimum height. Primary navigation, New folder, and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens. The video theater reserves the shared header; Listen follows its own panel and transport rules below.
 
 Library grid uses auto-filled columns with a 180px minimum. Each tile keeps its checkbox separate from its open target and uses the same context-menu actions as rows; touch and phone layouts provide the persistent Options control. Selected rows and tiles use the shared accent-tinted selection surface, with an accent border on tiles.
 
@@ -396,12 +447,20 @@ Listen fills the remaining viewport with 8px gaps and 8px outer panel spacing. I
 
 At 1250px Listen narrows its sidebar to 225px (210px with the panel open), uses two quick-shortcut columns, reduces collection art to 180px, and overlays the 300px side panel. At 1100px track album columns disappear and album grids start at 140px. At 760px the sidebar disappears into the mobile Library entry; album/playlist grids become two columns, collection artwork stacks above copy, and tracks become at least 62px with title, like, and options. Number/duration columns disappear; play and like actions remain visible. At 600px panel outer padding is 6px. The dock is 92px tall on desktop and 80px at 760px and below, with content space reserved so it does not cover the library.
 
+Video theater fills the viewport below the shared header: top offset 68px on desktop, 112px at 1100px and below, and 150px at 600px and below. The black video stage contains the image without cropping. Top context and tools use 25px top / 32px side padding; the bottom transport uses 32px sides and 22px bottom. Phone gutters reduce to 14px. Fullscreen uses the whole viewport and the same video element.
+
+The mini-player docks 22px from the right and bottom, at 16:9 and `min(460px, calc(100vw - 32px))`. At 600px and below it uses viewport width minus 24px and 12px offsets. Active music moves the mini-player to 100px above the bottom; theater hides the music dock. Section changes dock video without rebuilding the video element or losing its buffer. Mini transport wraps as needed.
+
+Player menus sit above the bottom controls, 32px from the right and 100px from the bottom; they scroll inside the available height. The standard menu uses the frontmatter width; the episode menu expands to 450px with a sticky season header. Phone menus use 12px side clearance and viewport-bounded heights. Mini menus open above the dock and remain viewport-bounded.
+
 ## Elevation & Depth
 
-The archive combines tonal layers with soft ambient depth. Working rows and navigation stay flat; established administration and video-player layers retain their existing depth. Listen uses flat charcoal panels, modest artwork shadows, and a full-width, shadow-free black dock. Watch relies on neutral tonal layers and a readability scrim, without ornamental card shadows or glow. Its poster hover/focus moves the art upward by 4px and brightens it slightly over 220ms; play overlays fade over 180ms. Watch never automatically rotates its feature, and reduced motion removes transitions and smooth scrolling.
+The archive combines tonal layers with soft ambient depth. Working rows and navigation stay flat; established administration retains its existing depth. The video theater is flat and shadow-free, with top and bottom readability scrims; only its floating mini-player uses ambient depth. Listen uses flat charcoal panels, modest artwork shadows, and a full-width, shadow-free black dock. Watch relies on neutral tonal layers and a readability scrim, without ornamental card shadows or glow. Its poster hover/focus moves the art upward by 4px and brightens it slightly over 220ms; play overlays fade over 180ms. Watch never automatically rotates its feature, and reduced motion removes transitions and smooth scrolling.
 
 ### Shadow Vocabulary
 
+- **Player Mini** (`0 10px 36px #0008`): Docked video only; theater and menus have no shadow.
+- **Caption Legibility** (`0 1px 3px #000` text shadow): White native cues on their translucent dark ground.
 - **Listen Album Art** (`0 8px 22px #0004`): Square cover art on album cards.
 - **Listen Collection Art** (`0 8px 28px #0005`): Larger collection cover.
 - **Listen Play** (`0 6px 16px #0003`): Circular collection and album play controls.
@@ -419,6 +478,8 @@ Compact work controls use 5–7px corners. Owner surfaces retain 12–16px corne
 Library refines that compact vocabulary: 4px view-toggle buttons, 5px menu and bulk Download actions, 6px toolbar controls, ZIP fields, and mobile shelf bands, 7px grid tiles and context menus, and a 9px bulk-action surface. These are corner sizes, independent of the text and icon scales.
 
 Apps uses flat divided rows, 6px action corners, 5px input corners, and the Apps Surface radius for its symbol tiles and inline form. The metadata report uses the existing 8px panel radius and 5px key-field corners. Neither surface adds ornamental elevation.
+
+Video theater is edge-to-edge with square corners. Its controls use Player Control corners, charcoal menus Player Menu corners, and the floating dock Player Mini corners with a 7px inner stage. The central paused play target is a 70px circle with a translucent dark fill and fine white border. Episode thumbnails retain compact 4px corners.
 
 ## Components
 
@@ -493,7 +554,19 @@ Episode image and title targets play the file; watched text or resume percentage
 
 ### Player
 
-Controls float over the video rather than occupying a permanent panel. Transport is icon-led; episode context sits in the top strip on wide screens, the close control owns the opposite corner, buffering uses the active accent signal, and advanced utilities recede before core playback controls.
+Playback extends the incumbent Watch identity. Original / direct is the initial quality; the main composition keeps content visible beneath a lightweight title/episode strip and bottom controls. Top-right actions are picture-in-picture, mini-player (Restore in mini mode), and Close. The bottom row contains play/pause, ten-second backward/forward skips, volume, buffered-ahead time, Episodes when applicable, Subtitles, Settings, and Fullscreen. The separate 4px seek rail shows downloaded buffer beneath accent progress; its accent knob appears on hover or focus. Volume reveals its slider on hover/focus, using a small popover on phones and in mini mode. Desktop controls are 40px square; phone controls are 34px wide / 38px high, and mini controls 32px square. Focus uses a 2px white outline with 3px offset.
+
+Settings groups Quality and Playback speed above Viewing mode (Theater, Mini player, Fullscreen), applicable MKV conversion, and stream information. Quality offers Original / direct, 4K, 1080p, and 720p; unavailable encoder qualities stay disabled with an explanation. Speed offers 0.5×, 0.75×, Normal, 1.25×, 1.5×, and 2×. Both submenus provide Back. Menus use 42px-minimum options, charcoal hover, accent selection with a check, and subdued disabled text. Episode selection uses a season selector and thumbnail/title rows with Now playing, Watched, Continue watching, or episode labels; the current row uses accent selection.
+
+Subtitles always opens its selector. Off precedes available tracks; loading, no tracks, failed lookup with Retry subtitle lookup, and unavailable individual tracks are explicit. The AI switch sits in a separated group with local generation status, progress, cancellation, failure, and unavailable-server copy. Generated tracks can be enabled or disabled again. A selected track exposes timing from −10 to +10 seconds, 0.1-second slider steps, ±0.5-second buttons, and Reset; selection and per-track timing persist locally.
+
+White native caption cues sit on a translucent black ground with a small black text shadow. While chrome is visible, ordinary bottom cues move above the measured transport bar plus 18px clearance; authored percentage-positioned cues already above this boundary keep their placement. Hiding chrome restores each cue's original line, line alignment, and line-snapping behavior. Placement updates on player resize, caption selection/loading, stream changes, and chrome visibility, so desktop, phone, mini, and fullscreen use the actual available height.
+
+The custom stroked V communicates preparation and buffering: an accent trace loops over a faint outline and a static white inner V. Buffering/seeking waits 240ms before showing the overlay, avoiding flashes on short seeks. Chrome fades by opacity over 200ms after 2.6 seconds of inactivity during playback, remaining visible while paused, a menu is open, or keyboard focus is visible. Controls and seek knob use 150ms feedback; volume uses 180ms opacity. The V trace loops linearly every 1.4 seconds. Reduced motion removes player transitions and makes the trace static and continuous.
+
+Playback failure uses a centered dark alert with a concise message, Try again, and Download file. Unsupported picture-in-picture shows an inline message suggesting mini-player. These feedback surfaces keep the same dark palette, sans typography, and modest corners. Escape closes open menus; focus and pointer movement reveal chrome. Viewing mode changes retain the same video and buffered stream.
+
+The final fresh reviewer disposition was **SHIP** after the single caption-placement finding was resolved on desktop and mobile. This records that scoped follow-up only; it does not claim a new review of all other surfaces.
 
 ### File Selection, Actions, and Navigation
 
