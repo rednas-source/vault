@@ -112,3 +112,9 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - Plain white captions by default, with font, size, optional outline, and remembered drag positioning in the subtitle menu. Keyboard movement and reset provide the same control.
 - Captions expire during silence and clear on seeking/ending/Off. New AI transcripts use word timing; old AI tracks with implausibly long cues have a playback-only duration guard. External caption timestamps are preserved.
 - Theater, fullscreen, and the site mini player use the caption layer. Native video-only surfaces receive the selected native track, with browser-dependent presentation.
+
+### Mobile Listen — September 2026
+
+Listen at widths up to 900px follows a mobile music-app layout in the established grey/blue palette. Home, Search, and Your Library sit in bottom navigation; the active-track mini player stays above it. Browsing uses horizontal artwork shelves, larger album artwork, simple song rows, and bottom-sheet song actions. A compact Vault header retains spaces and Appearance, with upload/activity/management in Vault tools.
+
+Tapping the mini-player identity opens a full-screen Now playing surface with transport, seeking, likes, shuffle/repeat, volume, and queue. Closing it, swiping down its header, or browser Back returns to browsing without replacing the audio element. The view accounts for safe areas, small phones, tablets, and landscape; desktop panels and transport remain intact. Validation uses browser/device emulation, not physical iOS/Android hardware.

@@ -1,0 +1,94 @@
+/* Mobile Listen is an app-shaped surface; desktop retains its three panels. */
+.listen-bottom-nav,.listen-phone-heading,#app>header #listenVaultTools{display:none!important}
+.listen-library-page>.listen-filters{margin-bottom:22px}
+.listen-search-input{display:flex;align-items:center;gap:12px;background:#fff;color:#171717;border-radius:6px;padding:0 14px;margin-bottom:28px;min-height:48px}
+.listen-search-input>i{font-size:24px;flex:none}
+.listen-search-input input{width:100%;min-width:0;font:16px var(--sans);height:48px;padding:0;background:none;border:0;color:#171717;box-shadow:none;outline:none}
+.listen-search-input input::placeholder{color:#575757}
+.listen-search-input:focus-within{outline:2px solid var(--accent);outline-offset:3px}
+.listen-search-intro h2{font-size:22px;margin:0 0 10px}.listen-search-intro p{font-size:16px;color:#b3b3b3;margin-bottom:24px}
+.listen-search-count{font-size:16px!important;margin:0 0 16px!important}
+.listen-library-items .listen-side-item{padding:10px 0}.listen-library-items .listen-side-item>.listen-art,.listen-library-items .listen-side-item>.listen-liked-cover,.listen-library-items .listen-side-item>.listen-playlist-cover{width:64px;height:64px}
+.listen-library-items .listen-side-item b{font-size:16px}.listen-library-items .listen-side-item small{font-size:14px}
+.listen-expanded[hidden]{display:none}
+.listen-expanded{position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#243c50,#19232d 48%,#121212);color:#fff;overflow:auto;overscroll-behavior:contain;font-family:var(--sans);color-scheme:dark;animation:listen-player-enter .25s cubic-bezier(.16,1,.3,1)}
+.listen-expanded-inner{min-height:100%;width:min(100%,540px);margin:auto;display:flex;flex-direction:column;padding:max(8px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));gap:24px}
+.listen-expanded-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;height:auto;padding:0;border:0;background:none;backdrop-filter:none;touch-action:pan-x;flex:none}
+.listen-expanded-head h1{font-size:16px;line-height:1.4;font-weight:600;margin:0;text-align:center}
+.listen-expanded .listen-icon{width:44px;height:44px;min-width:44px;color:#fff;font-size:26px}
+.listen-expanded .listen-icon.on{color:var(--accent)}.listen-expanded .listen-icon:disabled{opacity:.35}
+.listen-expanded-art{width:min(100%,42dvh,420px);margin:auto;flex:none}
+.listen-expanded-art .listen-art{width:100%;border-radius:6px;font-size:84px;background:#2c3c4a;color:#c4d4df}
+.listen-expanded-body{display:flex;flex-direction:column;gap:14px;margin-top:auto}
+.listen-expanded-title{display:flex;align-items:center;gap:14px}.listen-expanded-title>div{flex:1;min-width:0}
+.listen-expanded-title h2{font-size:24px;letter-spacing:-.02em;line-height:1.25;margin:0;overflow-wrap:anywhere}
+.listen-expanded-title p{font-size:16px;line-height:1.5;color:#c3c9ce;margin:7px 0 0}
+.listen-expanded input[type=range]{--range-progress:0%;width:100%;min-width:0;appearance:none;-webkit-appearance:none;height:32px;min-height:32px;background:linear-gradient(to right,#fff var(--range-progress),#ffffff40 var(--range-progress)) center/100% 4px no-repeat;border:0;padding:0;border-radius:0;accent-color:var(--accent);cursor:pointer}
+.listen-expanded input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;background:#fff;border-radius:50%;border:0}
+.listen-expanded input[type=range]::-moz-range-thumb{width:12px;height:12px;background:#fff;border-radius:50%;border:0}
+.listen-expanded-seek>div{display:flex;justify-content:space-between;font:12px var(--sans);font-variant-numeric:tabular-nums;color:#c3c9ce}
+.listen-expanded-transport{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0}
+.listen-expanded-transport .listen-expanded-play{width:68px;height:68px;background:#f5f5f5;color:#111;font-size:34px}
+.listen-expanded-tools{display:flex;align-items:center;gap:12px;margin-top:8px}.listen-expanded-tools>input{max-width:160px}.listen-expanded-tools #listenNowQueue{margin-left:auto}
+.listen-expanded-queue h2{font-size:18px;margin:24px 0 14px}.listen-expanded-queue .listen-queue-item{padding:12px 0;gap:14px;min-height:72px}.listen-expanded-queue .listen-art{width:52px;height:52px;flex:none;font-size:26px}
+.listen-expanded-queue .listen-queue-item>span:last-of-type,.listen-queue-current>span:last-child{min-width:0;flex:1}.listen-expanded-queue .listen-queue-item>b{flex:none}
+.listen-expanded-queue .listen-queue-item b,.listen-queue-current b{font-size:16px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.listen-expanded-queue .listen-queue-item small,.listen-queue-current small{font-size:14px;display:block;color:#c3c9ce;margin-top:5px}
+.listen-queue-current{display:flex;gap:14px;align-items:center;color:var(--accent)}
+.listen-expanded :is(button,input):focus-visible{outline:2px solid #fff;outline-offset:3px}
+.listen-expanded-open{overflow:hidden}
+@keyframes listen-player-enter{from{opacity:.8;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){
+  body.listen-mode{--listen-nav-height:64px;--listen-footer-space:calc(var(--listen-nav-height) + env(safe-area-inset-bottom));background:#121212}
+  body.listen-mode.music-playing{--listen-footer-space:calc(var(--listen-nav-height) + 72px + env(safe-area-inset-bottom))}
+  body.listen-mode #app.on{height:100dvh;display:grid;grid-template-rows:52px minmax(0,1fr);overflow:hidden}
+  body.listen-mode #app>header.app-header{position:relative;height:52px;min-height:52px;padding:0 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:52px;gap:8px;background:#121212;border-bottom:0}
+  body.listen-mode #app>header .brand,body.listen-mode #app>header .global-search{display:none}
+  body.listen-mode #app>header .space-nav{grid-row:1;grid-column:1;width:100%;gap:2px;justify-content:flex-start;justify-self:start}
+  body.listen-mode #app>header .space-nav button,html.icon-navigation body.listen-mode #app>header .space-nav button{min-width:44px;height:44px;flex:1;padding:0 7px;font-size:12px;border-radius:6px}
+  body.listen-mode #app>header .head-right{grid-column:2;grid-row:1;gap:0}
+  body.listen-mode #app>header .head-right .header-icon:not(#btnAppearance):not(#listenVaultTools){display:none!important}
+  body.listen-mode #app>header .head-right #btnAppearance,body.listen-mode #app>header #listenVaultTools{display:inline-flex!important;width:44px;height:44px;min-height:44px}
+  body.listen-mode #app>main{min-height:0;height:auto;padding:0;background:#121212;overflow:hidden}
+  body.listen-mode #scroll{background:#121212}.listen-shell,.listen-shell.has-panel{display:block;height:100%}
+  .listen-sidebar,.listen-side-panel{display:none!important}.listen-main{height:100%;border-radius:0;padding-bottom:calc(var(--listen-footer-space) + 20px);scroll-padding-bottom:var(--listen-footer-space);background:linear-gradient(rgba(var(--accent-rgb),.08),transparent 320px),#121212;overscroll-behavior-y:contain}
+  .listen-nav{padding:4px 16px 10px;min-height:56px;gap:8px;background:#121212;position:relative;top:auto}
+  .listen-nav>div:first-child,.listen-mobile-library{display:none}.listen-nav>.listen-queue-toggle{width:44px;height:44px}
+  .listen-filters{gap:8px;overflow:auto;scrollbar-width:none}.listen-filters button{min-height:40px;padding:8px 16px;font-size:14px}
+  .listen-phone-heading{display:block!important;font-size:26px;font-weight:700;letter-spacing:-.025em;padding:12px 16px 4px;margin:0}
+  .listen-main[data-listen-view=search]>.listen-nav,.listen-main[data-listen-view=library]>.listen-nav{display:none}
+  .listen-main:is([data-listen-view=album],[data-listen-view=playlist],[data-listen-view=liked])>.listen-nav{position:sticky;top:0;z-index:5;background:#18212a}
+  .listen-main:is([data-listen-view=album],[data-listen-view=playlist],[data-listen-view=liked]) .listen-nav>div:first-child{display:flex}
+  .listen-main:is([data-listen-view=album],[data-listen-view=playlist],[data-listen-view=liked]) [data-listen-forward],.listen-main:is([data-listen-view=album],[data-listen-view=playlist],[data-listen-view=liked]) .listen-filters{display:none}
+  .listen-nav>div:first-child button{width:44px;height:44px;background:none}
+  .listen-home{padding:8px 16px 24px}.listen-section{padding:20px 16px}.listen-section h1,.listen-section h2{font-size:23px}
+  .listen-section-heading>button{min-height:44px;flex:none}.listen-section-heading>span{font-size:14px}
+  .listen-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:6px 0 28px}.listen-quick{min-height:56px;gap:8px}.listen-quick .listen-art,.listen-quick .listen-liked-cover{width:56px;height:56px}.listen-quick b{font-size:12px}
+  .listen-home .listen-album-grid{display:flex;overflow-x:auto;gap:16px;margin:0;padding:0 0 12px;scroll-snap-type:x proximity;scrollbar-width:none}
+  .listen-home .listen-album-card{flex:0 0 43%;scroll-snap-align:start}.listen-album-open{padding:0}.listen-album-open>b{font-size:16px}.listen-album-open>span:last-child{font-size:14px}
+  .listen-album-card>.listen-round-play{display:none}.listen-album-card:hover,.listen-album-card:focus-within{background:none}
+  .listen-album-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 16px;margin:0}.listen-album-card .listen-art{margin-bottom:10px;box-shadow:none;border-radius:3px}
+  .listen-album-hero{display:flex;flex-direction:column;align-items:stretch;gap:20px;min-height:0;padding:12px 20px 20px}.listen-album-hero .listen-collection-art{width:min(66vw,290px);height:auto;max-width:none;margin:0 auto;box-shadow:0 8px 28px #0005}
+  .listen-album-hero h1{font-size:28px;margin:0 0 12px;letter-spacing:-.025em;line-height:1.15}.listen-album-hero p{font-size:14px}
+  .listen-collection-body{padding:4px 16px 28px}.listen-collection-actions{gap:16px;margin:0 0 16px;padding:0}.listen-collection-actions [data-play-collection]{margin-left:auto;order:5}.listen-collection-actions [data-shuffle-collection]{order:4;margin-left:auto}.listen-collection-actions>span{margin-left:0;order:-1;font-size:14px}.listen-collection-actions .listen-round-play{width:56px;height:56px}
+  .listen-track-head,.listen-track-number,.listen-track-duration,.listen-track-album,.listen-track-like{display:none!important}
+  .listen-track,.album-tracklist .listen-track{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;min-height:66px;padding:4px 0}
+  .listen-track-title{min-height:52px;gap:12px}.listen-track-title b{font-size:16px;font-weight:500}.listen-track-title small{font-size:14px}.listen-track-title .listen-art{width:48px;height:48px}
+  .listen-track .listen-icon,.listen-collection-actions .listen-icon,.listen-library-page .listen-icon{width:44px;height:44px;font-size:24px}.listen-track>button:last-child{opacity:1}
+  .listen-helper,.listen-empty p{font-size:16px}.listen-empty{padding:36px 20px}.listen-files-link{font-size:14px;min-height:48px}.listen-pill-button{min-height:44px;font-size:14px}
+  .listen-bottom-nav{display:flex!important;position:fixed;inset:auto 0 0;z-index:64;height:calc(var(--listen-nav-height) + env(safe-area-inset-bottom));padding:0 16px env(safe-area-inset-bottom);background:#121212;justify-content:space-around}
+  .listen-bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:64px;min-width:64px;flex:1;color:#b3b3b3;font:12px var(--sans)}
+  .listen-bottom-nav i{font-size:25px}.listen-bottom-nav [aria-current=page]{color:#fff}.listen-bottom-nav [aria-current=page] i{color:var(--accent)}
+  body.listen-mode #musicDock.music-dock{display:grid;position:fixed;grid-row:auto;inset:auto 8px calc(64px + env(safe-area-inset-bottom) + 4px);width:auto;height:64px;padding:8px;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:44px;gap:0 4px;background:#283b4b;border-radius:6px;overflow:hidden}
+  body.listen-mode:not(.music-playing) #musicDock{display:none}
+  body.listen-mode #musicDock .music-now{gap:8px;grid-column:1;grid-row:1}body.listen-mode #musicDock .music-now-art{width:44px;height:44px}body.listen-mode #musicDock #musicNowTitle{font-size:14px;line-height:1.5}body.listen-mode #musicDock .music-now-copy small{font-size:12px;color:#d0d8df;margin-top:1px}
+  body.listen-mode #musicDock .music-center{display:contents}body.listen-mode #musicDock .music-transport{grid-column:2;grid-row:1;gap:0}body.listen-mode #musicDock .music-main-play,body.listen-mode #musicDock #musicNext{width:44px;height:44px;min-width:44px;background:none;color:#fff;font-size:26px}
+  body.listen-mode #musicDock :is(#musicShuffle,#musicRepeat,#musicPrev,#musicLike,.music-player-tools){display:none!important}
+  body.listen-mode #musicDock .music-timeline{position:absolute;left:0;right:0;bottom:-6px;height:16px;display:flex;grid-row:auto}body.listen-mode .music-timeline>span{display:none}
+  body.listen-mode #musicDock #musicSeek{height:16px;min-height:16px;background:linear-gradient(to right,#fff var(--range-progress),#ffffff30 var(--range-progress)) center/100% 2px no-repeat;margin:0}body.listen-mode #musicDock #musicSeek::-webkit-slider-thumb{width:0;height:0}body.listen-mode #musicDock #musicSeek::-moz-range-thumb{width:0;height:0}
+  body.listen-mode .appearance-panel{top:52px;max-height:calc(100dvh - 68px)}
+  body.listen-mode :is(.listen-icon,.listen-bottom-nav button,.listen-track-title,.listen-album-open,.listen-quick):focus-visible{outline:2px solid #fff;outline-offset:-2px}
+  body.listen-mode #modal{align-items:end;padding:0}body.listen-mode #sheet{width:100%;max-width:600px;max-height:85dvh;margin:0 auto;border-radius:16px 16px 0 0;padding-bottom:max(24px,env(safe-area-inset-bottom))}body.listen-mode .listen-track-menu button{min-height:48px;font-size:16px}body.listen-mode #sheet .sheet-row button{min-height:44px;min-width:64px;font-size:14px}
+}
+@media(min-width:601px) and (max-width:900px){.listen-home .listen-album-card{flex-basis:27%}.listen-album-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.listen-expanded-inner{max-width:560px}}
+@media(max-width:900px) and (max-height:500px){.listen-expanded-inner:not(.queue-view){width:100%;max-width:900px;display:grid;grid-template-columns:minmax(160px,.9fr) minmax(260px,1.1fr);gap:12px 28px;padding:8px 24px 16px}.listen-expanded-head{grid-column:1/-1}.listen-expanded-art{width:min(100%,60dvh);grid-column:1;margin:auto}.listen-expanded-body{grid-column:2;margin:auto 0;gap:4px}.listen-expanded-title h2{font-size:20px}.listen-expanded-tools{margin:0}.listen-expanded-transport .listen-expanded-play{width:56px;height:56px}}
+@media(prefers-reduced-motion:reduce){.listen-expanded{animation:none}}

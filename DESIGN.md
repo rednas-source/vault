@@ -56,6 +56,15 @@ colors:
   listen-liked-gradient-end: "#75bce9"
   listen-hero-meta: "#dedede"
   listen-slider-unfilled: "#4a4a4a"
+  listen-search-placeholder: "#575757"
+  listen-expanded-start: "#243c50"
+  listen-expanded-mid: "#19232d"
+  listen-expanded-art: "#2c3c4a"
+  listen-expanded-art-ink: "#c4d4df"
+  listen-expanded-muted: "#c3c9ce"
+  listen-collection-nav-mobile: "#18212a"
+  listen-mini-mobile: "#283b4b"
+  listen-mini-artist: "#d0d8df"
   player-stage: "#000"
   player-shell: "#090909"
   player-menu: "#222"
@@ -194,6 +203,28 @@ typography:
     fontSize: "12px"
     fontWeight: 400
     lineHeight: 1.5
+  listen-phone-heading:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "26px"
+    fontWeight: 700
+    letterSpacing: "-0.025em"
+  listen-collection-title-mobile:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "28px"
+    lineHeight: 1.15
+    letterSpacing: "-0.025em"
+  listen-expanded-title:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "24px"
+    lineHeight: 1.25
+    letterSpacing: "-0.02em"
+  listen-track-title-mobile:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "16px"
+    fontWeight: 500
+  listen-track-meta-mobile:
+    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "14px"
   shared-search:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "13px"
@@ -203,6 +234,9 @@ rounded:
   player-mini: "8px"
   apps-surface: "10px"
   listen-panel: "8px"
+  listen-art-mobile: "3px"
+  listen-mini-mobile: "6px"
+  listen-sheet-mobile: "16px 16px 0 0"
   appearance-panel: "12px"
   watch-nav: "3px"
   watch-control: "4px"
@@ -222,6 +256,8 @@ spacing:
   listen-gutter: "24px"
   listen-collection-gutter: "28px"
   listen-section-gap: "30px"
+  listen-gutter-mobile: "16px"
+  listen-expanded-gutter: "24px"
   watch-gutter: "clamp(20px, 4.2vw, 76px)"
   watch-rail-gap: "16px"
   watch-rail-separation: "38px"
@@ -285,6 +321,19 @@ components:
     rounded: "{rounded.library-toggle}"
     typography: "{typography.listen-track-title}"
     height: "58px"
+  listen-bottom-nav:
+    backgroundColor: "{colors.listen-ground}"
+    height: "64px"
+  listen-mini-mobile:
+    backgroundColor: "{colors.listen-mini-mobile}"
+    textColor: "{colors.listen-selected-hover}"
+    rounded: "{rounded.listen-mini-mobile}"
+    height: "64px"
+    padding: "8px"
+  listen-track-mobile:
+    typography: "{typography.listen-track-title-mobile}"
+    height: "66px"
+    padding: "4px 0"
   watch-button-primary:
     backgroundColor: "{colors.watch-action}"
     textColor: "{colors.watch-ground}"
@@ -343,7 +392,7 @@ components:
 
 Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.
 
-Library retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated, content-first theater and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.
+Library retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated, content-first theater and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search. Listen at 900px and below uses a compact header, dedicated Search view, and Home / Search / Your Library bottom navigation.
 
 Appearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.
 
@@ -385,7 +434,7 @@ Playback uses Player Stage black and Player Menu charcoal with white sans contro
 - **Watch Text / Muted / Quiet / Faint:** Neutral text roles, with sans metadata and persistent title labels.
 - **Watch Line / Line Soft / Artwork Fallback / Progress:** Restrained separators, selected navigation ground, missing-art tiles, and playback progress. Artwork supplies the color; interface decoration does not.
 
-Listen uses its shell, ground, raised, panel, and hover neutrals with cool-white text and legible muted metadata. Selected filter pills use a light fill with dark text; their hover stays light. The liked-songs cover uses Listen Liked Gradient Start and Listen Liked Gradient End as its blue gradient endpoints, while missing album and playlist artwork uses a neutral icon tile. Listen Hero Meta supplies the light-gray collection-hero supporting text. Listen Slider Unfilled supplies the unplayed seek and volume track, against neutral or accent-filled progress.
+Listen uses its shell, ground, raised, panel, and hover neutrals with cool-white text and legible muted metadata. Selected filter pills use a light fill with dark text; their hover stays light. The liked-songs cover uses Listen Liked Gradient Start and Listen Liked Gradient End as its blue gradient endpoints, while missing album and playlist artwork uses a neutral icon tile. Listen Hero Meta supplies the light-gray collection-hero supporting text. Listen Slider Unfilled supplies the unplayed desktop seek and volume track, against neutral or accent-filled progress. Mobile Listen adds a blue-grey mini-player ground with pale artist text, a cool collection navigation ground, and a dark blue-grey expanded-player gradient. Expanded missing-art tiles use a lighter blue-grey ground and pale icon; secondary text uses Listen Expanded Muted. The white in-surface search field uses Listen Search Placeholder. These are scoped structural and contrast roles, preserving the grey/blue identity.
 
 **The Signal Rarity Rule.** The active accent identifies interaction, progress, and current state. Listen permits restrained translucent accent layers behind navigation and collections; Watch browsing keeps neutral local playback actions and progress. The shared header follows Appearance rather than a fixed orange rule.
 
@@ -417,7 +466,7 @@ Library deliberately uses sans for its compact data as well as names: 25px/600 f
 
 Icon-font `font-size` values describe glyph geometry, not text roles: shelf icons are 17px, Up is 18px, row folders are 24px, and grid folders are 38px. Do not add these to the typography ramp merely because they are implemented with an icon font.
 
-Listen uses a heavy collection display, compact section headings, 15px album titles, 14px track/sidebar titles, 13px body and controls, and 12px metadata. Sidebar/panel headings are 16px/650; now-playing titles are 22px/700. Queue and dock metadata use 11px; transport time uses 10px and tabular figures. At 1250px and below collection titles become 48px; at 760px they become 34px, section headings 23px, album titles 14px, track titles 13px, and supporting metadata 11–12px. Empty-state headings are 28px (25px on phones). Icon sizes remain geometry, not new text roles.
+Listen desktop uses a heavy collection display, compact section headings, 15px album titles, 14px track/sidebar titles, 13px body and controls, and 12px metadata. Sidebar/panel headings are 16px/650; now-playing side-panel titles are 22px/700. Queue and dock metadata use 11px; transport time uses 10px and tabular figures. At 1250px and below desktop collection titles become 48px. At 900px and below the app layout uses 26px/700 Home headings, 23px section headings, 28px collection titles, 16px track/album titles, and 14px artist text. Expanded Now playing uses a 24px title (20px in short landscape), 16px artist, and 12px tabular time. Mobile mini-player title/artist are 14px/12px. Empty-state headings remain 28px, reducing to 25px at 760px. Icon sizes, including 26px expanded controls and 84px fallback symbols, remain geometry rather than text roles.
 
 Player title and subtitle context use the dedicated sans title role and 13px supporting text. Titles reduce to 15px on phones and 13px in mini mode; context becomes 11px and 10px respectively. Menus use the player menu role, with 12px headings and 11px values. Transport time is 12px with tabular figures (11px phone, 10px mini). Caption cues default to Arial with 1.35 line height. Their base size follows stage width / 50, capped at 24px and floored at 18px in theater/fullscreen or 14px in mini; the selected size multiplier applies afterward.
 
@@ -429,7 +478,7 @@ Watch retains the shared header and uses an internally scrolling content pane. I
 
 Watch adapts at 1000px to a 510px minimum feature, 145px minimum catalog columns, and 160px episode thumbnails. At 700px and below, the gutter is 20px, local navigation is 56px, artwork sits above the title within a 590px minimum home feature, and home rails overlap by 24px. Catalogs and seasons become two columns; poster rails use 145px cards and resume rails use 280px cards. Detail features have a 540px minimum height. Episode rows use a 110px thumbnail, flexible text, and a 30px options column; the redundant number column disappears. Desktop rail arrows disappear while touch scrolling remains. At 1800px and above, home features reach a 680px minimum and catalog columns a 205px minimum. These changes belong only to Watch.
 
-At 1100px and below, the Library rail becomes 180px and rows reduce to selection, name, and size. Wide desktop rows retain size, shelf, and added metadata on hover and focus; actions live in the context menu rather than replacing those columns. Non-hover input and phone layouts add one persistent Options control beside the size. The shared header becomes two rows at 1100px and below and three rows at 600px and below. At 700px the layout becomes one vertical flow: shelves and entertainment links become horizontal bands, the toolbar wraps, and file-surface side padding reduces to 12px. Mobile rows have a 48px minimum height. Primary navigation, New folder, and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens. The video theater reserves the shared header; Listen follows its own panel and transport rules below.
+At 1100px and below, the Library rail becomes 180px and rows reduce to selection, name, and size. Wide desktop rows retain size, shelf, and added metadata on hover and focus; actions live in the context menu rather than replacing those columns. Non-hover input and phone layouts add one persistent Options control beside the size. Outside mobile Listen, the shared header becomes two rows at 1100px and below and three rows at 600px and below. At 700px the layout becomes one vertical flow: shelves and entertainment links become horizontal bands, the toolbar wraps, and file-surface side padding reduces to 12px. Mobile rows have a 48px minimum height. Primary navigation, New folder, and Upload remain directly reachable; protected owner tools stay behind Manage on wider screens. The video theater reserves the shared header; Listen follows its own panel and transport rules below.
 
 Library grid uses auto-filled columns with a 180px minimum. Each tile keeps its checkbox separate from its open target and uses the same context-menu actions as rows; touch and phone layouts provide the persistent Options control. Selected rows and tiles use the shared accent-tinted selection surface, with an accent border on tiles.
 
@@ -437,7 +486,7 @@ Shared links occupies the same Library workspace and sidebar. Its desktop rows a
 
 Archive spacing follows a compact 4/8/12 rhythm inside controls and an 18/26 rhythm between surfaces. Headings receive more space above than below. Watch uses its own responsive gutter, rail gap, and rail separation from the frontmatter.
 
-The shared header is 68px high on desktop, with brand and section tabs left, centered search (260–400px wide, 38px high), and 38px circular utilities right. At 1100px it becomes 112px tall with search on its second row. At 600px it becomes 150px tall with utilities, section navigation, and search on separate rows; search is 36px high and utilities 33px wide. Appearance is a 330px-wide bounded scrolling popover, with a three-column palette selector.
+Outside Listen's 900px app layout, the shared header is 68px high on desktop, with brand and section tabs left, centered search (260–400px wide, 38px high), and 38px circular utilities right. At 1100px it becomes 112px tall with search on its second row. At 600px it becomes 150px tall with utilities, section navigation, and search on separate rows; search is 36px high and utilities 33px wide. Appearance is a 330px-wide bounded scrolling popover, with a three-column palette selector.
 
 Apps explicitly reserves those same 68px / 112px / 150px header rows within a 100dvh grid. Its directory is centered at a maximum width of 1100px with a flexible side gutter. Rows align application, opening mode, and edit action; at 600px the mode column disappears and the edit action remains. The inline editor has two columns on desktop and one on phones. Opening an embedded app reduces the directory to a compact title/action strip, capped at 185px, while the frame flexes to the bottom of the remaining viewport. Phone actions wrap to a full-width row without reducing the frame to a fixed-height preview. All four section tabs remain visible.
 
@@ -445,7 +494,9 @@ Watch places Scan metadata beside its local Search action. The disclosed report 
 
 Listen fills the remaining viewport with 8px gaps and 8px outer panel spacing. Its default desktop columns are 264px / flexible content, or 244px / flexible content / 280px when the side panel is open. Sidebar and main content scroll independently. The sticky music navigation is at least 70px high. Home has four quick-shortcut columns and album grids starting at 155px; collection art is 220px square beside the title. Track rows are at least 58px high, with aligned number, title, album, like, duration, and options; album tracks omit the redundant album column.
 
-At 1250px Listen narrows its sidebar to 225px (210px with the panel open), uses two quick-shortcut columns, reduces collection art to 180px, and overlays the 300px side panel. At 1100px track album columns disappear and album grids start at 140px. At 760px the sidebar disappears into the mobile Library entry; album/playlist grids become two columns, collection artwork stacks above copy, and tracks become at least 62px with title, like, and options. Number/duration columns disappear; play and like actions remain visible. At 600px panel outer padding is 6px. The dock is 92px tall on desktop and 80px at 760px and below, with content space reserved so it does not cover the library.
+At 1250px Listen narrows its sidebar to 225px (210px with the panel open), uses two quick-shortcut columns, reduces collection art to 180px, and overlays the 300px side panel. At 1100px track album columns disappear and album grids start at 140px. Above 900px the existing desktop panels and 92px full-width dock remain.
+
+At 900px and below, Listen fills a 100dvh grid beneath a 52px header. Main content has no outer panel gutter or rounded container. The sidebar and side panel give way to Home / Search / Your Library bottom navigation, 64px plus the device safe-area inset. Active playback adds a 64px mini player, inset 8px horizontally and 4px above navigation; content reserves navigation plus 72px and the safe area, with 20px extra end padding. Home has two quick columns and horizontally scrolling artwork cards at 43% width (27% at 601–900px). Other album grids have two columns, or three at 601–900px. Collection art centers above copy at min(66vw,290px). Track rows have a 66px minimum, title/artist and a persistent 44px Options target; number, album, duration, and inline like columns are hidden. Likes remain available in Options and Now playing. Expanded playback is viewport-filling with a centered 540px maximum inner column, 560px at 601–900px; portrait art is bounded by 42dvh and 420px. At widths up to 900px and heights up to 500px, Now playing uses side-by-side art and transport while Queue retains its vertical list.
 
 Video theater fills the viewport below the shared header: top offset 68px on desktop, 112px at 1100px and below, and 150px at 600px and below. The black video stage contains the image without cropping. Top context and tools use 25px top / 32px side padding; the bottom transport uses 32px sides and 22px bottom. Phone gutters reduce to 14px. Fullscreen uses the whole viewport and the same video element.
 
@@ -455,13 +506,13 @@ Player menus sit above the bottom controls, 32px from the right and 100px from t
 
 ## Elevation & Depth
 
-The archive combines tonal layers with soft ambient depth. Working rows and navigation stay flat; established administration retains its existing depth. The video theater is flat and shadow-free, with top and bottom readability scrims; only its floating mini-player uses ambient depth. Listen uses flat charcoal panels, modest artwork shadows, and a full-width, shadow-free black dock. Watch relies on neutral tonal layers and a readability scrim, without ornamental card shadows or glow. Its poster hover/focus moves the art upward by 4px and brightens it slightly over 220ms; play overlays fade over 180ms. Watch never automatically rotates its feature, and reduced motion removes transitions and smooth scrolling.
+The archive combines tonal layers with soft ambient depth. Working rows and navigation stay flat; established administration retains its existing depth. The video theater is flat and shadow-free, with top and bottom readability scrims; only its floating mini-player uses ambient depth. Listen uses flat charcoal desktop panels, modest artwork shadows, and a full-width, shadow-free black desktop dock. Mobile Listen removes album-card shadows, retains collection-art depth, and uses a shadow-free blue-grey mini player above bottom navigation. Watch relies on neutral tonal layers and a readability scrim, without ornamental card shadows or glow. Its poster hover/focus moves the art upward by 4px and brightens it slightly over 220ms; play overlays fade over 180ms. Watch never automatically rotates its feature, and reduced motion removes transitions and smooth scrolling.
 
 ### Shadow Vocabulary
 
 - **Player Mini** (`0 10px 36px #0008`): Docked video only; theater and menus have no shadow.
 - **Optional Caption Outline** (`1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000` text shadow): User-enabled black outline on white captions. The default is no shadow and a transparent background.
-- **Listen Album Art** (`0 8px 22px #0004`): Square cover art on album cards.
+- **Listen Album Art** (`0 8px 22px #0004`): Square cover art on desktop album cards; removed in the mobile app layout.
 - **Listen Collection Art** (`0 8px 28px #0005`): Larger collection cover.
 - **Listen Play** (`0 6px 16px #0003`): Circular collection and album play controls.
 - **Listen Overlay** (`0 8px 30px #0008`): Queue panel when overlaid at narrower widths.
@@ -473,7 +524,7 @@ The archive combines tonal layers with soft ambient depth. Working rows and navi
 
 ## Shapes
 
-Compact work controls use 5–7px corners. Owner surfaces retain 12–16px corners. Listen uses 4px tracks and small art, 5px cover art, 6px album targets, 7px now-playing art, and 8px main panels (7px on small phones). Its filters are pills and play/icon controls are circles. Shared search has 9px corners and Appearance 12px. Watch uses its dedicated small radii for shared-space tab selection, rectangular playback controls, and upright artwork; circular outlines are reserved for rail arrows and options. No tilted posters or decorative orbit framing belong to Watch.
+Compact work controls use 5–7px corners. Owner surfaces retain 12–16px corners. Listen desktop uses 4px tracks and small art, 5px cover art, 6px album targets, 7px now-playing art, and 8px main panels. Mobile Listen has square-edged main content, 3px album artwork, 6px expanded art/mini-player/search corners, and bottom sheets with 16px top corners. Its filters are pills and play/icon controls are circles. Shared search has 9px corners and Appearance 12px. Watch uses its dedicated small radii for shared-space tab selection, rectangular playback controls, and upright artwork; circular outlines are reserved for rail arrows and options. No tilted posters or decorative orbit framing belong to Watch.
 
 Library refines that compact vocabulary: 4px view-toggle buttons, 5px menu and bulk Download actions, 6px toolbar controls, ZIP fields, and mobile shelf bands, 7px grid tiles and context menus, and a 9px bulk-action surface. These are corner sizes, independent of the text and icon scales.
 
@@ -493,7 +544,7 @@ Video theater is edge-to-edge with square corners. Its controls use Player Contr
 
 ### Cards / Containers
 
-- **Scope:** The following legacy card vocabulary remains limited to other established surfaces; Listen uses square artwork with a flat album target that gains a charcoal hover/focus fill. Watch poster, resume, season, and episode artwork use the smaller Watch artwork radius and the layout ratios above.
+- **Scope:** The following legacy card vocabulary remains limited to other established surfaces; Listen uses square artwork with a flat album target that gains a charcoal hover/focus fill on desktop; mobile album targets keep the plain ground. Watch poster, resume, season, and episode artwork use the smaller Watch artwork radius and the layout ratios above.
 - **Corner Style:** 14px for legacy media cards; 16px for legacy feature fields. Listen uses the smaller scoped radii above.
 - **Background:** Tonal dark surfaces with real artwork when available and restrained mineral fallbacks when absent.
 - **Shadow Strategy:** Flat at rest for files; media cards lift and scale slightly on hover or keyboard focus.
@@ -508,7 +559,7 @@ Video theater is edge-to-edge with square corners. Its controls use Player Contr
 
 ### Navigation
 
-The four primary spaces appear in order: Library, Watch, Listen, Apps. They share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps the text labels for icons while preserving accessible labels and titles. Search stays centered, and Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
+The four primary spaces appear in order: Library, Watch, Listen, Apps. They share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps the text labels for icons while preserving accessible labels and titles. Search stays centered outside mobile Listen, and Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Mobile Listen retains the four space tabs in its 52px header, moves music search into Search, and groups permission-dependent utility actions in Vault tools beside Appearance. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
 
 ### Apps Directory and Workspace
 
@@ -526,11 +577,15 @@ Missing setup names the exact requirement: movie metadata needs a TMDB API key; 
 
 ### Listen Library, Collections, and Transport
 
-Your Library holds Liked Songs, playlists, and albums, with Albums / Playlists filter pills and Open music files. Home combines quick album shortcuts, recent listening, and album covers. A separate target opens an album while the circular play overlay starts it; focus reveals the same play affordance as hover, and phones keep it visible. Collection pages use square art, title and metadata, play/shuffle, and track rows. Track options provide queue, download, and playlist actions; liked songs have explicit pressed state. Empty music, empty collections, and no search results provide a relevant next action.
+Your Library holds Liked Songs, playlists, and albums, with Albums / Playlists filter pills and Open music files. Home combines quick album shortcuts, recent listening, and album covers. A separate target opens an album while the circular play overlay starts it; focus reveals the same play affordance as hover on desktop. Mobile cards open the album; its collection page provides the play action. Collection pages use square art, title and metadata, play/shuffle, and track rows. Track options provide queue, download, and playlist actions; liked songs have explicit pressed state. Empty music, empty collections, and no search results provide a relevant next action.
 
-Selected filter pills keep dark text on a light background, including hover. Current tracks and saved controls use the active accent. Track hover/focus exchanges the row number for play and exposes like, with phone likes always visible. The queue/now-playing side panel can close without stopping playback. Album-card and play feedback uses 180ms transitions; reduced motion disables Listen/dock transitions and smooth scrolling.
+Selected filter pills keep dark text on a light background, including hover. Current tracks and saved controls use the active accent. Desktop track hover/focus exchanges the row number for play and exposes like. Mobile rows retain Options; likes live in its bottom sheet and expanded Now playing. The queue/now-playing side panel can close without stopping playback. Album-card and play feedback uses 180ms transitions; reduced motion disables Listen/dock transitions and smooth scrolling.
 
-The full-width dock remains mounted across Library, Watch, and Listen while a track is active. Desktop places identity/like left, transport and seek centrally, and queue/volume right. It uses a white main play circle, neutral seek progress that takes the accent on hover, and active accent shuffle/repeat/like state. Mobile keeps identity, play, next, and seek; other transport functions move into Listen's mobile controls. Artwork is supplied by runtime music metadata; neutral icon fallbacks preserve layout. No new shipping raster assets were added.
+The shared music transport remains mounted across Library, Watch, and Listen while a track is active, with a full-width dock outside mobile Listen. Desktop places identity/like left, transport and seek centrally, and queue/volume right. It uses a white main play circle, neutral seek progress that takes the accent on hover, and active accent shuffle/repeat/like state. Mobile Listen keeps identity, play, next, and a slim progress rail in its mini player; full seeking and other transport functions are available in Now playing. Artwork is supplied by runtime music metadata; neutral icon fallbacks preserve layout. No new shipping raster assets were added.
+
+At widths up to 900px, Listen uses a compact 52px Vault header and fixed Home / Search / Your Library navigation above the device safe area. Vault tools collects upload, activity, and management; Appearance remains directly accessible. The 64px blue-grey mini player is shown only with an active track, just above navigation. Home's album art scrolls horizontally; collections center larger square artwork above simple 16px-title / 14px-artist track rows. Song actions use a bottom sheet, including likes. Search has an in-surface field; Your Library combines liked songs, playlists, and albums.
+
+The mini-player identity opens a full-screen Now playing layer with large art, title/artist, seeking, previous/play/next, shuffle/repeat, likes, volume, and a queue view. Its blue-grey ground retains white controls and blue accents. Closing, header swipe-down, and browser Back leave the shared audio element mounted. Focus is contained while open and returned when closed; the underlying app is inert until dismissal. Options can open above the player and dismiss independently. Interactive icon targets are at least 44px; song sheet actions are at least 48px. The expanded layer enters over 250ms from a 24px vertical offset, with animation removed under reduced motion. Phone landscape places art and transport beside each other; small portrait layouts scroll when needed. The mobile finish review received SHIP with no material findings. Browser verification covered 390×844, 320×740, 844×390, 768×1024, and 1440×1000, including persistent shared audio, navigation, controls, search, likes, options, queue, empty and missing-art states, realistic touch taps/swipes, and focus/inert cleanup. Physical iOS and Android devices remain unverified.
 
 Playlists, liked songs, and recent listening are stored per account in this browser; Appearance choices are browser-local. This is a private Music-file library, with no Spotify catalog integration. These scope statements belong in relevant empty/help copy rather than decorative technical labels.
 

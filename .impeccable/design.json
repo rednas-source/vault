@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T11:01:01Z",
+  "generatedAt": "2026-09-23T13:21:03.005799+00:00",
   "title": "Design System: Vault — Library, Watch, Listen, and Apps",
   "extensions": {
     "colorMeta": {
@@ -744,6 +744,51 @@
       "player-cue-ground": {
         "role": "neutral",
         "displayName": "Transparent Player Cue Ground"
+      },
+      "listen-search-placeholder": {
+        "role": "neutral",
+        "displayName": "Listen Search Placeholder",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-expanded-start": {
+        "role": "neutral",
+        "displayName": "Listen Expanded Start",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-expanded-mid": {
+        "role": "neutral",
+        "displayName": "Listen Expanded Mid",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-expanded-art": {
+        "role": "neutral",
+        "displayName": "Listen Expanded Art",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-expanded-art-ink": {
+        "role": "neutral",
+        "displayName": "Listen Expanded Art Ink",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-expanded-muted": {
+        "role": "neutral",
+        "displayName": "Listen Expanded Muted",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-collection-nav-mobile": {
+        "role": "neutral",
+        "displayName": "Listen Collection Nav Mobile",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-mini-mobile": {
+        "role": "neutral",
+        "displayName": "Listen Mini Mobile",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
+      },
+      "listen-mini-artist": {
+        "role": "neutral",
+        "displayName": "Listen Mini Artist",
+        "purpose": "Scoped mobile Listen search, expanded playback, collection navigation, or mini-player contrast; source public/listen-mobile.css."
       }
     },
     "typographyMeta": {
@@ -805,7 +850,7 @@
       },
       "listen-display": {
         "displayName": "Listen Display",
-        "purpose": "Collection titles, 48px at 1250px and below and 34px at 760px and below."
+        "purpose": "Desktop collection titles; 48px at 1250px and below while the desktop layout remains above 900px. Mobile uses listen-collection-title-mobile."
       },
       "listen-heading": {
         "displayName": "Listen Heading",
@@ -813,11 +858,11 @@
       },
       "listen-album-title": {
         "displayName": "Listen Album Title",
-        "purpose": "Album titles below square artwork; 14px on phones."
+        "purpose": "Desktop album titles below square artwork; mobile albums use 16px."
       },
       "listen-track-title": {
         "displayName": "Listen Track Title",
-        "purpose": "Track titles with persistent artist metadata; 13px on phones."
+        "purpose": "Desktop track titles with persistent artist metadata; mobile uses listen-track-title-mobile."
       },
       "listen-body": {
         "displayName": "Listen Body",
@@ -842,6 +887,26 @@
       "player-cue": {
         "displayName": "Player Cue",
         "purpose": "Custom captions default to Arial, 1.35 line height; base size is stage width / 50, capped at 24px and floored at 18px theater/fullscreen or 14px mini before the chosen multiplier."
+      },
+      "listen-phone-heading": {
+        "displayName": "Listen Phone Heading",
+        "purpose": "Mobile Home heading."
+      },
+      "listen-collection-title-mobile": {
+        "displayName": "Listen Collection Title Mobile",
+        "purpose": "Mobile collection title above tracks."
+      },
+      "listen-expanded-title": {
+        "displayName": "Listen Expanded Title",
+        "purpose": "Expanded Now playing title; 20px in short landscape."
+      },
+      "listen-track-title-mobile": {
+        "displayName": "Listen Track Title Mobile",
+        "purpose": "Mobile song title."
+      },
+      "listen-track-meta-mobile": {
+        "displayName": "Listen Track Meta Mobile",
+        "purpose": "Mobile artist and album supporting text."
       }
     },
     "shadows": [
@@ -931,6 +996,11 @@
         "name": "player-buffer-trace",
         "value": "1400ms linear infinite",
         "purpose": "V trace dash offset to -112; buffering/seeking overlay delayed 240ms. Reduced motion disables transitions and leaves a static continuous trace."
+      },
+      {
+        "name": "listen-player-enter",
+        "value": "250ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Expanded player enters from opacity .8 and translateY(24px); reduced motion removes animation."
       }
     ],
     "breakpoints": [
@@ -965,17 +1035,22 @@
       {
         "name": "shared-header-tablet",
         "value": "1100px",
-        "purpose": "112px header, search on second row. Apps explicitly reserves this grid row above its flexible workspace. Listen removes track album columns."
+        "purpose": "112px header, search on second row. Apps explicitly reserves this grid row above its flexible workspace. Listen removes track album columns. Mobile Listen instead uses its scoped 52px header at <=900px."
       },
       {
-        "name": "listen-phone",
-        "value": "760px",
-        "purpose": "Music sidebar hidden, two-column album grid, simplified tracks, 80px dock."
+        "name": "listen-mobile-app",
+        "value": "900px",
+        "purpose": "52px header, 64px safe-area bottom navigation, active 64px mini player, horizontal home albums, bottom sheets and fullscreen Now playing. Desktop panels stay above this breakpoint."
       },
       {
         "name": "shared-header-phone",
         "value": "600px",
-        "purpose": "150px three-row header with all four space tabs, 36px search and compact utilities. Apps uses a matching grid row, one-column form, wrapped workspace actions, and a frame that fills remaining height; Watch scan controls and key form wrap."
+        "purpose": "150px three-row header with all four space tabs, 36px search and compact utilities. Apps uses a matching grid row, one-column form, wrapped workspace actions, and a frame that fills remaining height; Watch scan controls and key form wrap. Mobile Listen instead uses its scoped 52px header at <=900px."
+      },
+      {
+        "name": "listen-short-landscape",
+        "value": "900px width / 500px height",
+        "purpose": "Now playing art and transport align side by side; Queue remains vertical."
       }
     ],
     "library": {
@@ -1046,7 +1121,7 @@
       ],
       "palette": "Six explicit palettes: Orange, Light blue, Purple, Green, Rose, Gold. Default restores orange in Library/Watch and blue in Listen. Light variants apply only to light Library; Watch and Listen keep dark surfaces.",
       "variables": "Runtime --accent-rgb, --accent, --accent-soft, --star, --star-soft, --star-edge, --flare, --flare-edge, --sky, and --select share the selected palette. Token primitives live in DESIGN.md.",
-      "layout": "68px desktop header; centered 260–400px search, 38px utilities. 112px at 1100px and below, 150px at 600px and below. 330px Appearance popover, three-column palette grid.",
+      "layout": "68px desktop header; centered 260–400px search, 38px utilities. 112px at 1100px and below, 150px at 600px and below. 330px Appearance popover, three-column palette grid. Listen overrides this at <=900px with a 52px header and an Appearance popover below it.",
       "navigation": "Unboxed section tabs with optional icon-only mode. Labels and titles remain accessible; owner controls retain existing permission visibility.",
       "persistence": "Accent choice and icon-navigation preference persist in vault-appearance in this browser; Library theme remains browser-local.",
       "states": "Popover Escape and outside click close it; controls preserve focus after selection, and closing from its control returns focus to Appearance."
@@ -1057,18 +1132,44 @@
         "public/listen.js",
         "public/appearance.css",
         "public/appearance.js",
-        "public/index.html"
+        "public/index.html",
+        "public/listen-mobile.css",
+        "public/listen-mobile.js"
       ],
       "authority": "User-pinned Spotify composition, grey/blue instead of grey/green; current direction contract in public/index.html. This supersedes Chromatic Listen guidance.",
-      "layout": "264px library / flexible main panel, or 244px / flexible main / 280px side panel. 8px gaps and panel corners; independently scrolling content. Sticky 70px navigation. Home quick shortcuts, square albums, collection hero and track rows.",
-      "responsive": "1250px: 225px sidebar or 210px with open overlay panel; 300px queue overlay, two quick columns, 180px collection art. 1100px: no track album column. 760px: hidden sidebar/mobile Library, two album columns, stacked art/title, 62px title/like/options tracks, visible likes/play. 600px: 6px outer padding.",
-      "transport": "Persistent, full-width black dock: 92px desktop, 80px at 760px. Identity/like left, transport/seek center, queue/volume right; mobile keeps identity/play/next/seek and exposes other transport functions in Listen. Mounted across sections while active; no blur, floating pill, or dock shadow.",
-      "states": "Selected filter fills remain light with dark text on hover. Active tracks, likes, repeat/shuffle use accent; album play appears on hover and focus and remains visible on phones. Shared accent focus outline is 2px with 3px offset. Empty music, collections and search offer relevant actions.",
-      "type": "10/11/12/13/14/15/16/22/24px functional sans scale; 28px empty heading; collection clamp(34px,4.6vw,70px) at weight 800. Phone/compact variants recorded in DESIGN.md. Icon-font geometry is not typography.",
-      "shapes": "4px tracks/small art, 5px album art, 6px album card, 7px now-playing art/small-phone panel, 8px panels, pill filters and circular play.",
+      "layout": "Desktop above 900px: 264px library / flexible main panel, or 244px / flexible main / 280px side panel. 8px gaps and panel corners; independently scrolling content. Sticky 70px navigation. Home quick shortcuts, square albums, collection hero and track rows.",
+      "responsive": "Above 900px the desktop panels remain: 1250px narrows sidebar and overlays queue, 1100px hides track album column. At 900px and below: 52px header, flat full-height content, hidden sidebar/side panel, Home / Search / Your Library bottom navigation at 64px plus safe area. Two quick columns; horizontal home albums at 43% width, 27% at 601–900px. Other album grids are two columns, three at 601–900px. Centered min(66vw,290px) collection art; 66px minimum rows with title/artist and 44px Options, no inline like/number/duration/album columns. Expanded Now playing becomes two columns at <=900px width and <=500px height; Queue remains vertical.",
+      "transport": "One persistent audio element across sections and views. Desktop retains its 92px full-width black dock. Within mobile Listen, active playback shows a 64px blue-grey mini player, inset 8px and 4px above 64px bottom navigation plus safe area. Identity, play/next and slim progress remain; identity opens fullscreen Now playing with art, title/artist, seek, all transport controls, likes, volume and Queue. Main content reserves footer space; mini player is hidden without an active track.",
+      "states": "Selected filter pills keep dark text on light fill, including hover. Active tracks, likes and repeat/shuffle use the selected accent. Desktop album play appears on hover/focus; mobile cards open collections. Mobile options stay visible and provide likes and track actions in a bottom sheet. Empty music, collections, search and queue have explanatory next actions. Mobile icon targets are at least 44px; track sheet actions at least 48px. Focus uses white outlines on mobile app/expanded surfaces.",
+      "type": "Desktop retains its documented functional sans scale and display. Mobile uses 26px/700 Home headings, 23px section headings, 28px collection titles, 16px song/album titles, 14px artists, 14px/12px mini identity. Expanded title is 24px (20px short landscape), artist 16px and time 12px. Icon-font sizes including 26px controls and 84px fallback are geometry, not typography.",
+      "shapes": "Desktop retains 4px tracks/small art, 5px album art, 6px album cards, 7px now-playing art, 8px panels, pill filters and circular play. Mobile: square main panel, 3px album art, 6px mini/search/expanded art, bottom sheet 16px top corners.",
       "persistence": "Liked songs, recent listening (30 entries), and playlists are per-account browser-local records under vault-listen:<account>; files remain Music shelf files, with metadata enrichment and no Spotify catalog.",
-      "assets": "Runtime music metadata supplies album artwork. Neutral icon fallbacks and CSS liked-song gradient work without art. No new shipping raster assets. Review screenshots are evidence, not runtime assets.",
-      "detectorGuidance": "The earlier .qa/listen-detector.json has 35 color/type/radius advisories against stale DESIGN.md. Compare each to the documented Listen palette, functional sans scale, responsive variants, and small radii. These scoped values do not authorize arbitrary new values, blanket suppressions, or changes to Library/Watch. Selected-filter hover contrast was corrected in the final listen.css rule before this documentation pass."
+      "assets": "Runtime music metadata supplies album artwork. Neutral icon and expanded blue-grey fallbacks, plus the existing liked-song gradient, preserve usable layouts without art. No new shipping raster assets. Review captures are evidence only.",
+      "detectorGuidance": "The earlier .qa/listen-detector.json has 35 color/type/radius advisories against stale DESIGN.md. Compare each to the documented Listen palette, functional sans scale, responsive variants, and small radii. These scoped values do not authorize arbitrary new values, blanket suppressions, or changes to Library/Watch. Selected-filter hover contrast was corrected in the final listen.css rule before this documentation pass. The mobile additions in public/listen-mobile.css are intentional scoped values: #575757 search placeholder; #243c50/#19232d expanded gradient; #2c3c4a/#c4d4df fallback art; #c3c9ce expanded secondary text; #18212a collection navigation; #283b4b mini ground and #d0d8df mini artist. The 26px Home heading and 28px collection title are text; 26px controls are icon geometry. Mobile overrides supersede earlier 760px layout/80px-dock guidance only in Listen. No blanket suppression or change to other surfaces is implied.",
+      "mobileInteraction": "Search has its own in-surface input and results. Your Library combines liked songs, playlists and albums. Vault tools retains permission-dependent upload, activity and management beside directly accessible Appearance. Expanded player uses the existing layer/history stack; Close, Escape, browser Back and >70px vertical header swipe dismiss without replacing audio. Focus is trapped and restored; app inert state clears on close. Nested options dismiss independently. Resizing above 900px dismisses a topmost expanded music layer.",
+      "review": {
+        "disposition": "SHIP",
+        "scope": "Spotify-like mobile Listen finish, retaining grey/blue and desktop panels. Fresh visual reviewer found no material fixes and reached review ceiling.",
+        "materialFixes": "None required.",
+        "screenshots": [
+          ".impeccable/review/listen-app-home-mobile.png",
+          ".impeccable/review/listen-app-album-mobile.png",
+          ".impeccable/review/listen-app-now-mobile.png",
+          ".impeccable/review/listen-app-library-mobile.png",
+          ".impeccable/review/listen-app-search-mobile.png",
+          ".impeccable/review/listen-app-queue-mobile.png",
+          ".impeccable/review/listen-app-options-mobile.png",
+          ".impeccable/review/listen-app-now-landscape.png",
+          ".impeccable/review/listen-app-now-small.png",
+          ".impeccable/review/listen-app-home-small.png",
+          ".impeccable/review/listen-app-home-tablet.png",
+          ".impeccable/review/listen-app-home-desktop.png",
+          ".impeccable/review/listen-app-album-desktop.png",
+          ".impeccable/review/listen-app-empty-mobile.png"
+        ],
+        "verification": "Browser checks passed at 390x844, 320x740, 844x390, 768x1024 and 1440x1000. Same audio persists; Back/Escape and inert/focus cleanup, transport/search/likes/options/queue/empty states passed. Realistically timed touch play, album swipe, mini expansion/reopen, header swipe dismissal, nested options and missing-art fallback passed, with zero page errors and no horizontal overflow.",
+        "limitations": "Physical iOS and Android testing remains unverified."
+      }
     },
     "player": {
       "sources": [
@@ -1175,7 +1276,7 @@
     {
       "name": "Shared Space Navigation",
       "kind": "nav",
-      "description": "Library, Watch, Listen, and Apps remain available at every width; optional icon-only mode retains accessible labels.",
+      "description": "Library, Watch, Listen, and Apps remain available at every width; optional icon-only mode retains accessible labels. Mobile Listen keeps these four tabs in a 52px header above its local music navigation.",
       "html": "<nav class=\"ds-nav\" aria-label=\"Vault spaces\"><button>Library</button><button>Watch</button><button aria-current=\"page\">Listen</button><button>Apps</button></nav>",
       "css": ".ds-nav{display:flex;gap:4px}.ds-nav button{height:38px;padding:0 12px;border:0;border-radius:7px;background:none;color:var(--muted,#b3b3b3);font:12px var(--sans,Arial,sans-serif)}.ds-nav [aria-current]{background:var(--star-soft,rgba(105,187,255,.12));color:var(--accent,#69bbff)}.ds-nav button:hover{background:var(--hover,#2a2a2a);color:var(--light,#f6f6f6)}.ds-nav button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}"
     },
@@ -1199,14 +1300,14 @@
       "name": "Listen Album",
       "kind": "card",
       "refersTo": "listen-album",
-      "description": "Square runtime artwork or neutral fallback, persistent title/artist, separate play target.",
+      "description": "Desktop square artwork or fallback with separate hover/focus play. Mobile cards open the album; collection play replaces the overlay.",
       "html": "<article class=\"ds-album\"><button class=\"ds-album-open\"><span class=\"ds-album-art\"><svg viewBox=\"0 0 24 24\" width=\"35\" height=\"35\" aria-hidden=\"true\"><path d=\"M9 18V5l11-2v13M9 8l11-2\" stroke=\"currentColor\" stroke-width=\"2\" fill=\"none\"/><ellipse cx=\"6\" cy=\"18\" rx=\"3\" ry=\"2\" fill=\"currentColor\"/><ellipse cx=\"17\" cy=\"16\" rx=\"3\" ry=\"2\" fill=\"currentColor\"/></svg></span><b>Album title</b><small>Artist</small></button><button class=\"ds-album-play\" aria-label=\"Play album\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 4v16l13-8z\"/></svg></button></article>",
-      "css": ".ds-album{position:relative;width:180px;border-radius:6px;transition:background .18s;font-family:var(--sans,Arial,sans-serif)}.ds-album:hover,.ds-album:focus-within{background:#242424}.ds-album-open{display:block;width:100%;padding:10px;border:0;border-radius:6px;text-align:left;background:none;color:#f6f6f6}.ds-album-art{display:grid;place-items:center;aspect-ratio:1;border-radius:5px;background:#282828;color:#b3b3b3;box-shadow:0 8px 22px #0004;margin-bottom:12px}.ds-album b{display:block;font-size:15px;font-weight:600;line-height:1.5}.ds-album small{display:block;font-size:13px;color:#b3b3b3;line-height:1.5;margin-top:3px}.ds-album-play{position:absolute;right:19px;bottom:84px;width:46px;height:46px;border:0;border-radius:50%;background:var(--accent,#69bbff);color:#101010;opacity:0;transform:translateY(7px);transition:transform .18s,opacity .18s}.ds-album:hover .ds-album-play,.ds-album:focus-within .ds-album-play{opacity:1;transform:none}.ds-album button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}@media(max-width:760px){.ds-album-play{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.ds-album,.ds-album-play{transition:none}}"
+      "css": ".ds-album{position:relative;width:180px;border-radius:6px;transition:background .18s;font-family:var(--sans,Arial,sans-serif)}.ds-album:hover,.ds-album:focus-within{background:#242424}.ds-album-open{display:block;width:100%;padding:10px;border:0;border-radius:6px;text-align:left;background:none;color:#f6f6f6}.ds-album-art{display:grid;place-items:center;aspect-ratio:1;border-radius:5px;background:#282828;color:#b3b3b3;box-shadow:0 8px 22px #0004;margin-bottom:12px}.ds-album b{display:block;font-size:15px;font-weight:600;line-height:1.5}.ds-album small{display:block;font-size:13px;color:#b3b3b3;line-height:1.5;margin-top:3px}.ds-album-play{position:absolute;right:19px;bottom:84px;width:46px;height:46px;border:0;border-radius:50%;background:var(--accent,#69bbff);color:#101010;opacity:0;transform:translateY(7px);transition:transform .18s,opacity .18s}.ds-album:hover .ds-album-play,.ds-album:focus-within .ds-album-play{opacity:1;transform:none}.ds-album button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}@media(max-width:900px){.ds-album-play{display:none}.ds-album:hover,.ds-album:focus-within{background:none}.ds-album-open{padding:0}.ds-album-art{border-radius:3px;box-shadow:none}.ds-album b{font-size:16px}.ds-album small{font-size:14px}}@media(prefers-reduced-motion:reduce){.ds-album,.ds-album-play{transition:none}}"
     },
     {
       "name": "Music Transport",
       "kind": "custom",
-      "description": "Flat full-width black transport with neutral main play, seek track, and persistent track identity.",
+      "description": "Desktop full-width black transport with neutral main play, seek track, and persistent identity. Mobile Listen has the separately documented mini/expanded treatment.",
       "html": "<div class=\"ds-dock\"><div><b>Track title</b><small>Artist</small></div><div class=\"ds-dock-center\"><button aria-label=\"Play current track\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 4v16l13-8z\"/></svg></button><input aria-label=\"Seek\" type=\"range\" min=\"0\" max=\"100\" value=\"35\"></div></div>",
       "css": ".ds-dock{display:grid;grid-template-columns:minmax(120px,1fr) minmax(180px,2fr);gap:24px;padding:12px 20px;min-height:68px;background:#080808;color:#fff;font-family:var(--sans,Arial,sans-serif)}.ds-dock b{display:block;font-size:13px;font-weight:550}.ds-dock small{display:block;margin-top:5px;color:#b3b3b3;font-size:11px}.ds-dock-center{display:flex;flex-direction:column;align-items:center;gap:6px}.ds-dock button{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:#fff;color:#101010}.ds-dock button:hover{transform:scale(1.06)}.ds-dock button:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}.ds-dock input{width:100%;height:4px;accent-color:var(--accent,#69bbff)}.ds-dock input:focus-visible{outline:2px solid var(--accent,#69bbff);outline-offset:3px}"
     },
@@ -1231,11 +1332,19 @@
       "description": "Charcoal playback menu with accent/check selection, hover, and visible white focus.",
       "html": "<div class=\"ds-player-menu\"><button class=\"selected\"><span>Original / direct</span><svg viewBox=\"0 0 24 24\" width=\"19\" height=\"19\" aria-hidden=\"true\"><path d=\"m5 12 4 4 10-10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg></button><button><span>1080p</span></button></div>",
       "css": ".ds-player-menu{width:300px;max-width:100%;overflow:hidden;background:#222;border:1px solid #454545;border-radius:10px;color:#fff}.ds-player-menu button{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:11px 16px;border:0;background:none;color:#eee;text-align:left;font:13px/1.4 var(--sans,Arial,sans-serif);cursor:pointer}.ds-player-menu button span{flex:1}.ds-player-menu button:hover{background:#333}.ds-player-menu button.selected{background:#ffffff0d;color:rgb(var(--player-accent-rgb,255,107,60))}.ds-player-menu button:focus-visible{outline:2px solid #fff;outline-offset:-3px}"
+    },
+    {
+      "name": "Listen Mobile Navigation",
+      "kind": "nav",
+      "refersTo": "listen-bottom-nav",
+      "description": "Home, Search and Your Library navigation; fixed above the device safe area in mobile Listen. Active icon uses the chosen accent.",
+      "html": "<nav class=\"ds-music-nav\" aria-label=\"Music navigation\"><button aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"25\" height=\"25\" aria-hidden=\"true\"><path d=\"M3 11 12 3l9 8v10h-7v-7h-4v7H3z\" fill=\"currentColor\"/></svg>Home</button><button><svg viewBox=\"0 0 24 24\" width=\"25\" height=\"25\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"m15 15 6 6\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>Search</button><button><svg viewBox=\"0 0 24 24\" width=\"25\" height=\"25\" aria-hidden=\"true\"><path d=\"M4 3v18M10 3v18M15 4l5 16\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>Your Library</button></nav>",
+      "css": ".ds-music-nav{display:flex;justify-content:space-around;padding:0 16px env(safe-area-inset-bottom);background:#121212}.ds-music-nav button{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:64px;min-width:64px;border:0;background:none;color:#b3b3b3;font:12px var(--sans,Arial,sans-serif);cursor:pointer}.ds-music-nav [aria-current]{color:#fff}.ds-music-nav [aria-current] svg{color:var(--accent,#69bbff)}.ds-music-nav button:hover{color:#fff}.ds-music-nav button:focus-visible{outline:2px solid #fff;outline-offset:-2px}.ds-music-nav button:active{transform:translateY(1px)}"
     }
   ],
   "narrative": {
     "northStar": "A private archive with familiar streaming rooms",
-    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated content-first theater, movable mini-player, and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
+    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated content-first theater, movable mini-player, and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search. Mobile Listen uses a 52px header, in-surface Search, Home / Search / Your Library navigation, an active blue-grey mini player and fullscreen Now playing.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
     "keyCharacteristics": [
       "Near-black tonal layering with distinct file, video, and music compositions.",
       "One configurable accent; default orange in Library/Watch and light blue in Listen.",
