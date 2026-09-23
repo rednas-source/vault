@@ -485,3 +485,18 @@ The bottom bar keeps play/pause, ten-second rewind/forward, mute and a volume sl
 **Settings** contains quality, playback speed, viewing modes, MP4 conversion for MKV files, and stream details. Every new video begins with **Original / direct**, independent of the conversion dialog’s saved quality. Native-compatible files play directly; compatible MKV streams are copied into HLS. Unsupported native playback can fall back to the server encoder. The 4K, 1080p and 720p choices retain the current position and speed and require FFmpeg. Resume progress keeps the full source duration across quality changes.
 
 The episode button opens seasons and episodes inside the player. Keyboard controls include Space/K for play, J/L and arrow keys for seeking, M for mute, F for fullscreen, T for theater/mini, and C for subtitles; focused sliders and menu controls keep their native keyboard behavior. Escape closes an open player menu before closing playback.
+
+
+### Movable mini-player and theater navigation
+
+Drag the mini-player by its title or picture and resize from any corner. Its size and position are remembered in this browser, with 16:9 sizing and viewport bounds. Focus the title and use arrow keys to move it; focus a corner and use arrows to resize (Shift makes larger steps). Menus reposition to stay on screen. The top-left button in the player's viewing controls toggles the site navigation in theater mode; the preference is remembered, and mini-player/closing playback restores navigation. Episode thumbnails gently zoom and reveal a play target on hover/focus, respecting reduced motion. The volume rail is 6px high inside a 36px pointing target.
+
+### AI subtitle speed and GPU recovery
+
+The subtitle menu offers **Fast** (`base`, quicker but less accurate), **Balanced** (`small`), and **Detailed** (`medium`, slower). Existing server model settings remain the default until a viewer chooses a profile. Generation reports preparation, actual CPU/GPU transcription, approximate time remaining once progress is available, and expandable failure details. First use of a model may require a download; completed subtitle files are reused.
+
+GPU transcription uses supported 8-bit/FP16 computation and batches four chunks by default (`whisperBatchSize`: 1–8; use 1 to disable batching). CPU uses INT8 and serial decoding to limit memory. Both retain greedy decoding and remove silent stretches. Failed CUDA initialization or inference falls back to CPU, and automatic mode avoids another known CUDA failure for 30 minutes within the current server process. A crashed worker gets one lighter CPU/base retry. Duplicate requests for the same subtitle output cannot run concurrently.
+
+A working NVIDIA GPU runtime is required for CUDA acceleration; Intel Quick Sync video acceleration does not provide CUDA speech recognition. Consult the [faster-whisper GPU requirements](https://github.com/SYSTRAN/faster-whisper#gpu) for compatible CUDA/cuDNN libraries and drivers. Read **Technical details** in the subtitle menu for the actual server error; a CPU fallback message is recoverable. These changes do not install drivers on the host. Speed depends on its hardware, chosen model and audio; no fixed speedup is promised.
+
+Run `python3 tests/test_transcribe.py` to verify model selection, batched inference routing, GPU failure recovery and atomic subtitle publication with simulated inference dependencies. These tests need Python but do not download models or require a GPU.

@@ -38,5 +38,8 @@ jobs:
       - name: Test file operations and document previews
         run: npm test
 
+      - name: Test subtitle worker recovery
+        run: python3 tests/test_transcribe.py
+
       - name: Promote verified commit
         run: git push origin "${GITHUB_SHA}:refs/heads/production"

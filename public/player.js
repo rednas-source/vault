@@ -1,3 +1,9 @@
+function playerMiniBounds(box, viewport){
+  const margin=12, top=Math.max(margin,viewport.top||0), room=Math.max(1,viewport.height-top-margin);
+  const maxWidth=Math.max(1,Math.min(960,viewport.width-margin*2,room*16/9));
+  const minWidth=Math.min(320,maxWidth),width=Math.max(minWidth,Math.min(maxWidth,Number(box.width)||460)),height=width*9/16;
+  return {width,height,left:Math.max(margin,Math.min(viewport.width-margin-width,Number(box.left)||0)),top:Math.max(top,Math.min(viewport.height-margin-height,Number(box.top)||0))};
+}
 function playerBufferedEnd(video){
   const at=video.currentTime||0;
   for(let i=0;i<video.buffered.length;i++){
@@ -21,7 +27,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const episodeChoices=ep?state.files.filter(item=>item.shelf==='series'&&VIDEO.includes(item.ext)&&watchEpisode(item).key===ep.key).sort((a,b)=>watchEpisode(a).season-watchEpisode(b).season||(watchEpisode(a).episode??Infinity)-(watchEpisode(b).episode??Infinity)||a.name.localeCompare(b.name,undefined,{numeric:true})):[];
   const control=(id,glyph,label)=>`<button class="pl-btn" id="${id}" title="${label}" aria-label="${label}">${icon(glyph)}</button>`;
   $('#vBody').innerHTML=`<div class="player theater" id="pl" data-mode="theater">
-    <div class="pl-head"><div class="pl-titles"><b>${esc(ep?heading:cleanMediaTitle(f.name))}</b><small>${esc(subheading)}</small></div><div class="pl-head-tools">${control('plPip','picture-in-picture','Picture in picture')}${control('plMini','rectangle','Mini player')}${control('plRestore','arrows-out-simple','Return to theater')}${control('plClose','x','Close player')}</div></div>
+    <div class="pl-head"><div class="pl-titles" id="plMove" title="Drag to move the mini player"><b>${esc(ep?heading:cleanMediaTitle(f.name))}</b><small>${esc(subheading)}</small></div><div class="pl-head-tools">${control('plNavToggle','browser','Hide navigation bar in theater')}${control('plPip','picture-in-picture','Picture in picture')}${control('plMini','rectangle','Mini player')}${control('plRestore','arrows-out-simple','Return to theater')}${control('plClose','x','Close player')}</div></div>
     <div class="pl-stage" id="plStage"><video id="rmx" playsinline preload="auto"></video><div class="pl-veil"><button class="pl-big" id="plBig" title="Play" aria-label="Play">${icon('play','ph-fill')}</button></div><div class="pl-buffer-overlay on" id="plBufferOverlay" role="status"><div class="buffer-signal"><svg class="vault-buffer-logo" viewBox="0 0 64 64" aria-hidden="true"><path class="vault-buffer-ghost" d="M12 14L32 51L52 14"/><path class="vault-buffer-trace" d="M12 14L32 51L52 14"/><path class="vault-buffer-inner" d="M25 14L32 27L39 14"/></svg><b id="plBufferTitle">Preparing playback</b><span id="plBufferDetail">Opening the original stream</span></div></div><div class="pl-error" id="plError" role="alert" hidden></div></div>
     <div class="pl-bar">
       <div class="pl-scrub"><div class="pl-time" id="plAt">0:00</div><div class="pl-track" id="plTrack" role="slider" tabindex="0" aria-label="Playback position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="pl-buf" id="plBuf"></div><div class="pl-fill" id="plFill"></div><div class="pl-knob" id="plKnob"></div></div><div class="pl-time pl-rem" id="plRem">-0:00</div></div>
@@ -33,6 +39,7 @@ function mountPlayer(f, { src, native, info = {} }){
       </div>
     </div>
     <div class="pl-menu cc-menu" id="plMenu" role="dialog" aria-label="Subtitles" hidden></div><div class="pl-menu" id="plSettings" role="dialog" aria-label="Player settings" hidden></div><div class="pl-menu" id="plSpeed" role="dialog" aria-label="Playback speed" hidden></div><div class="pl-menu" id="plQualityMenu" role="dialog" aria-label="Quality" hidden></div><div class="pl-menu pl-episodes" id="plEpisodes" role="dialog" aria-label="Episodes" hidden></div>
+    <div class="pl-resize-handles">${['nw','ne','sw','se'].map(corner=>`<button class="pl-resize pl-resize-${corner}" data-corner="${corner}" aria-label="Resize mini player ${corner}" title="Drag to resize; arrow keys adjust size"></button>`).join('')}</div>
     <div class="pl-note" id="plNote">${native?'Original · direct playback':'Preparing Original'}</div><span id="plCCName" class="sr-only">Off</span>
   </div>`;
 
@@ -91,7 +98,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const subtitleResize=new ResizeObserver(layoutSubtitles);subtitleResize.observe(player);
   const showChrome=()=>{if(!alive())return;clearTimeout(chromeTimer);player.classList.remove('chrome-hidden');layoutSubtitles();};
   const scheduleChrome=()=>{showChrome();chromeTimer=setTimeout(()=>{if(alive()&&!video.paused&&!menuIds.some(id=>!$('#'+id).hidden)&&!player.querySelector(':focus-visible')){player.classList.add('chrome-hidden');layoutSubtitles();}},2600);};
-  const openMenu=(id,button)=>{const menu=$('#'+id),open=menu.hidden;closeMenus();menu.hidden=!open;button?.setAttribute('aria-expanded',String(open));showChrome();};
+  const openMenu=(id,button)=>{const menu=$('#'+id),open=menu.hidden;closeMenus();menu.hidden=!open;button?.setAttribute('aria-expanded',String(open));showChrome();if(open)requestAnimationFrame(positionMiniMenu);};
   video.__closeMenus=closeMenus;video.__showChrome=showChrome;
   const setPlaying=(on)=>{if(!alive())return;$('#plPlay').innerHTML=icon(on?'pause':'play','ph-fill');$('#plPlay').setAttribute('aria-label',on?'Pause':'Play');player.classList.toggle('playing',on);on?scheduleChrome():showChrome();};
 
@@ -217,6 +224,63 @@ function mountPlayer(f, { src, native, info = {} }){
 
   const feedback=message=>{let notice=player.querySelector('.pl-feedback');if(!notice){notice=document.createElement('div');notice.className='pl-feedback';notice.setAttribute('role','status');player.append(notice);}notice.textContent=message;clearTimeout(notice._timer);notice._timer=setTimeout(()=>notice.remove(),4500);};
   const full=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else{if(player.dataset.mode==='mini')setMode('theater');await $('#viewer').requestFullscreen();}}catch{feedback('Fullscreen is unavailable in this browser.');}};
+  let hideNavigation=false;try{hideNavigation=localStorage.getItem('vault-player-hide-nav')==='true';}catch{}
+  const applyNavigation=()=>{const hide=hideNavigation&&player.dataset.mode==='theater';document.body.classList.toggle('video-hide-nav',hide);$('#plNavToggle').setAttribute('aria-pressed',String(hideNavigation));$('#plNavToggle').setAttribute('aria-label',hideNavigation?'Show navigation bar in theater':'Hide navigation bar in theater');$('#plNavToggle').title=hideNavigation?'Show navigation bar in theater':'Hide navigation bar in theater';};
+  $('#plNavToggle').onclick=()=>{hideNavigation=!hideNavigation;try{localStorage.setItem('vault-player-hide-nav',String(hideNavigation));}catch{}applyNavigation();};
+  const viewer=$('#viewer');let miniBox=null,miniGesture=null,suppressMiniClick=false;
+  try{const saved=JSON.parse(localStorage.getItem('vault-mini-placement')||'null');if(saved&&['width','left','top'].every(key=>Number.isFinite(saved[key])))miniBox=saved;}catch{}
+  const miniViewport=()=>({width:innerWidth,height:innerHeight,top:parseFloat(getComputedStyle(viewer).getPropertyValue('--player-top'))+12});
+  const saveMini=()=>{try{localStorage.setItem('vault-mini-placement',JSON.stringify(miniBox));}catch{}};
+  const applyMini=()=>{
+    if(player.dataset.mode!=='mini')return;
+    const viewport=miniViewport();
+    if(!miniBox)miniBox={width:innerWidth<=600?innerWidth-24:460,left:innerWidth-482,top:innerHeight-460*9/16-(document.body.classList.contains('music-playing')?100:22)};
+    miniBox=playerMiniBounds(miniBox,viewport);
+    viewer.style.setProperty('--mini-left',miniBox.left+'px');viewer.style.setProperty('--mini-top',miniBox.top+'px');viewer.style.setProperty('--mini-width',miniBox.width+'px');
+  };
+  function positionMiniMenu(){
+    if(!alive()||player.dataset.mode!=='mini')return;
+    const box=viewer.getBoundingClientRect(),viewport=miniViewport();
+    for(const id of menuIds){const menu=$('#'+id);if(menu.hidden)continue;
+      const height=menu.getBoundingClientRect().height,width=menu.getBoundingClientRect().width;
+      const above=box.top-height-10,below=box.bottom+10;
+      const top=above>=viewport.top?above:below+height<=innerHeight-12?below:Math.max(viewport.top,Math.min(box.top,innerHeight-12-height));
+      menu.style.setProperty('--mini-menu-top',top+'px');menu.style.setProperty('--mini-menu-left',Math.max(12,Math.min(innerWidth-width-12,box.right-width))+'px');
+    }
+  }
+  video.__positionMiniMenu=positionMiniMenu;
+  const moveHandle=$('#plMove');
+  const endMiniGesture=()=>{if(!miniGesture)return;miniGesture=null;viewer.classList.remove('mini-moving');saveMini();scheduleChrome();};
+  player.addEventListener('pointerdown',event=>{
+    if(player.dataset.mode!=='mini'||event.button!==0)return;
+    const corner=event.target.closest('.pl-resize')?.dataset.corner;
+    if(!corner&&event.target.closest('button,input,select,a,.pl-bar,.pl-menu'))return;
+    const rect=viewer.getBoundingClientRect();miniGesture={id:event.pointerId,x:event.clientX,y:event.clientY,left:rect.left,top:rect.top,width:rect.width,height:rect.height,corner,moved:false};
+    event.target.setPointerCapture(event.pointerId);closeMenus();showChrome();
+    if(corner)event.preventDefault();
+  });
+  player.addEventListener('pointermove',event=>{
+    const gesture=miniGesture;if(!gesture||gesture.id!==event.pointerId)return;
+    const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;
+    if(!gesture.moved&&Math.hypot(dx,dy)<4)return;
+    gesture.moved=true;suppressMiniClick=true;viewer.classList.add('mini-moving');
+    if(gesture.corner){
+      const west=gesture.corner.includes('w'),north=gesture.corner.includes('n');
+      const delta=Math.abs(dx)>=Math.abs(dy*16/9)?dx*(west?-1:1):dy*16/9*(north?-1:1);
+      const viewport=miniViewport();
+      const maxWidth=Math.min(west?gesture.left+gesture.width-12:innerWidth-12-gesture.left,(north?gesture.top+gesture.height-viewport.top:innerHeight-12-gesture.top)*16/9);
+      const width=Math.min(maxWidth,playerMiniBounds({width:gesture.width+delta},viewport).width);
+      miniBox={width,left:west?gesture.left+gesture.width-width:gesture.left,top:north?gesture.top+gesture.height-width*9/16:gesture.top};
+    }else miniBox={width:gesture.width,left:gesture.left+dx,top:gesture.top+dy};
+    applyMini();event.preventDefault();
+  });
+  player.addEventListener('pointerup',event=>{if(miniGesture?.id!==event.pointerId)return;endMiniGesture();setTimeout(()=>{suppressMiniClick=false;},0);});
+  player.addEventListener('pointercancel',()=>{endMiniGesture();suppressMiniClick=false;});
+  player.addEventListener('lostpointercapture',endMiniGesture);
+  player.addEventListener('click',event=>{if(suppressMiniClick){event.preventDefault();event.stopImmediatePropagation();suppressMiniClick=false;}},true);
+  moveHandle.onkeydown=event=>{if(player.dataset.mode!=='mini'||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();event.stopPropagation();const step=event.shiftKey?40:10;miniBox.left+=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0;miniBox.top+=event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0;applyMini();saveMini();};
+  player.querySelectorAll('.pl-resize').forEach(handle=>handle.onkeydown=event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();event.stopPropagation();miniBox.width+=(['ArrowRight','ArrowUp'].includes(event.key)?1:-1)*(event.shiftKey?80:20);applyMini();saveMini();});
+  const resizeMini=()=>{applyMini();positionMiniMenu();};window.addEventListener('resize',resizeMini);
   const setMode=mode=>{
     if(!alive())return;const mini=mode==='mini';theater=!mini;
     if(mini&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});
@@ -224,7 +288,8 @@ function mountPlayer(f, { src, native, info = {} }){
     // A docked player is no longer a navigation-blocking overlay.
     if(mini){const i=layers.findIndex(layer=>layer.name==='viewer');if(i>=0){layers.splice(i,1);const current={...history.state};delete current.vaultLayer;delete current.depth;history.replaceState(current,'');}}
     else if(!layers.some(layer=>layer.name==='viewer'))openLayer('viewer',teardownViewer);
-    closeMenus();scheduleChrome();
+    moveHandle.tabIndex=mini?0:-1;moveHandle.setAttribute('aria-label',mini?'Move mini player with arrow keys':'Playing title');
+    applyNavigation();applyMini();closeMenus();scheduleChrome();
   };
   video.__setViewMode=setMode;
   $('#plFull').onclick=full;$('#plMini').onclick=()=>setMode('mini');$('#plRestore').onclick=()=>setMode('theater');
@@ -245,7 +310,7 @@ function mountPlayer(f, { src, native, info = {} }){
   let season=ep?.season;
   const episodesMenu=()=>{
     const menu=$('#plEpisodes'),seasons=[...new Set(episodeChoices.map(item=>watchEpisode(item).season))];
-    menu.innerHTML=`<div class="pl-episodes-head"><strong>${esc(ep.show)}</strong><select id="plEpisodeSeason" aria-label="Episode season">${seasons.map(value=>`<option value="${value}" ${value===season?'selected':''}>${watchSeasonName(value)}</option>`).join('')}</select></div><div class="pl-episode-list">${episodeChoices.filter(item=>watchEpisode(item).season===season).map(item=>{const detail=watchEpisode(item);return `<button class="pl-episode-option ${item.rel===f.rel?'on':''}" data-player-index="${state.files.indexOf(item)}"><span class="pl-episode-thumb">${state.thumbs?`<img src="${url('thumb',item.rel)}" alt="" loading="lazy">`:icon('play')}<b>${detail.episode??'—'}</b></span><span><strong>${esc(detail.title)}</strong><small>${item.rel===f.rel?'Now playing':item.watch?.done?'Watched':item.watch?.pos?'Continue watching':'Episode '+(detail.episode??'—')}</small></span></button>`;}).join('')}</div>`;
+    menu.innerHTML=`<div class="pl-episodes-head"><strong>${esc(ep.show)}</strong><select id="plEpisodeSeason" aria-label="Episode season">${seasons.map(value=>`<option value="${value}" ${value===season?'selected':''}>${watchSeasonName(value)}</option>`).join('')}</select></div><div class="pl-episode-list">${episodeChoices.filter(item=>watchEpisode(item).season===season).map(item=>{const detail=watchEpisode(item);return `<button class="pl-episode-option ${item.rel===f.rel?'on':''}" data-player-index="${state.files.indexOf(item)}"><span class="pl-episode-thumb">${state.thumbs?`<img src="${url('thumb',item.rel)}" alt="" loading="lazy">`:icon('play')}<b>${detail.episode??'—'}</b><span class="pl-episode-play">${icon('play','ph-fill')}</span></span><span><strong>${esc(detail.title)}</strong><small>${item.rel===f.rel?'Now playing':item.watch?.done?'Watched':item.watch?.pos?'Continue watching':'Episode '+(detail.episode??'—')}</small></span></button>`;}).join('')}</div>`;
     $('#plEpisodeSeason').onchange=event=>{season=Number(event.target.value);episodesMenu();};menu.querySelectorAll('[data-player-index]').forEach(button=>button.onclick=()=>{const next=state.files[Number(button.dataset.playerIndex)];if(next?.rel!==f.rel)openViewer(next);else closeMenus();});
   };
   $('#plEpisodesButton')?.addEventListener('click',()=>{episodesMenu();openMenu('plEpisodes',$('#plEpisodesButton'));});
@@ -258,6 +323,7 @@ function mountPlayer(f, { src, native, info = {} }){
     if(!alive())return;if(event.key==='Escape'&&menuIds.some(id=>!$('#'+id).hidden)){event.preventDefault();event.stopImmediatePropagation();closeMenus();$('#plGear').focus();return;}
     if(layers.at(-1)?.name&&layers.at(-1).name!=='viewer')return;
     if(['INPUT','TEXTAREA','SELECT','BUTTON','A'].includes(document.activeElement?.tagName)||document.activeElement?.getAttribute('role')==='slider')return;
+    if(event.target.closest?.('#plMove,.pl-resize'))return;
     if(!theater&&!player.contains(document.activeElement)&&!player.matches(':hover'))return;
     const actions={' ':toggle,k:toggle,ArrowRight:()=>jump(10),ArrowLeft:()=>jump(-10),l:()=>jump(30),j:()=>jump(-30),m:()=>{video.muted=!video.muted;drawVol();},f:full,t:()=>setMode(theater?'mini':'theater'),c:()=>$('#plCC').click()};
     if(actions[event.key]){event.preventDefault();event.stopImmediatePropagation();actions[event.key]();}
@@ -276,7 +342,7 @@ function mountPlayer(f, { src, native, info = {} }){
   const from=f.watch&&f.watch.pos>5&&(!total()||f.watch.pos<total()-20)?f.watch.pos:0;pausedAt=from;base=native?0:from;
   buildCCMenu(video,f,[]);setMode('theater');fullscreenChange();
   if(native){suppress=false;video.src=directSource;go(from);}else startHls(from);
-  video.__destroyStream=()=>{subtitleResize.disconnect();version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearTimeout(bufferingTimer);document.removeEventListener('fullscreenchange',fullscreenChange);clearInterval(keepAliveTimer);clearInterval(pauseFillTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater','mini');document.body.classList.remove('video-theater');release();};
+  video.__destroyStream=()=>{window.removeEventListener('resize',resizeMini);subtitleResize.disconnect();version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearTimeout(bufferingTimer);document.removeEventListener('fullscreenchange',fullscreenChange);clearInterval(keepAliveTimer);clearInterval(pauseFillTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater','mini','mini-moving');document.body.classList.remove('video-theater','video-hide-nav');release();};
 
 }
 
@@ -319,12 +385,16 @@ function buildCCMenu(v,f,entries=[]){
   const preferred=v.__preferAI?entries.findIndex(entry=>entry.source==='ai'):entries.findIndex(entry=>entry.id===saved);
   // Preserve a pending AI preference while the worker creates its first track.
   const waitingAI=v.__preferAI;select(preferred,preferred>=0);if(waitingAI&&preferred<0)v.__preferAI=true;
+  let aiModel=state.aiSubtitles?.model||'small';try{aiModel=localStorage.getItem('vault-ai-model')||aiModel;}catch{}
   const draw=()=>{
     if(!document.contains(v))return;
     const active=tracks.findIndex(track=>track.mode==='showing'),chosen=entries[active],offset=chosen?.offset||0,job=playerSubtitleJobs.get(f.rel),running=job&&['starting','queued','running','cancelling'].includes(job.status);
     $('#plCCName').textContent=chosen?.label||'Off';
-    menu.innerHTML=`<div class="pl-menu-heading">Subtitles</div><button class="cc-track ${active<0?'on':''}" data-cc-track="-1"><span>Off</span>${active<0?icon('check'):''}</button>`+entries.map((entry,i)=>`<button class="cc-track ${active===i?'on':''}" data-cc-track="${i}" ${entry.failed?'disabled':''}><span>${esc(entry.label||'Subtitle track')}${entry.failed?' · unavailable':''}</span>${active===i?icon('check'):''}</button>`).join('')+(!entries.length?`<p class="pl-stream-info" role="status">${v.__subtitleLoading?'Looking for subtitle tracks…':v.__subtitleError?'Could not load subtitle tracks. Try again.':'No subtitles available for this video.'}</p>${v.__subtitleError?'<button id="plRetrySubs">Retry subtitle lookup</button>':''}`:'')+`<div class="pl-ai-controls"><button id="plAIEnabled" role="switch" aria-checked="${!!(running||chosen?.source==='ai')}" ${['starting','cancelling'].includes(job?.status)||(!state.aiSubtitles?.available&&!entries.some(entry=>entry.source==='ai'))?'disabled':''}>${icon('sparkle')}<span>AI subtitles</span><span class="pl-switch" aria-hidden="true"></span></button><p class="pl-stream-info">${running?esc(job.message||'Generating subtitles')+(job.progress?' · '+Math.round(job.progress)+'%':''):job?.error?esc(job.error):entries.some(entry=>entry.source==='ai')?'Generated locally. You can turn this track on or off.':state.aiSubtitles?.available?'Generate a subtitle track for this video.':'AI generation is unavailable on this server.'}</p></div>${chosen?`<div class="cc-offset"><div class="cc-offset-top"><span>Subtitle timing</span><b id="ccOffsetValue">${offset>=0?'+':''}${offset.toFixed(1)}s</b></div><input id="ccOffset" aria-label="Subtitle timing in seconds" type="range" min="-10" max="10" step="0.1" value="${offset}"><div class="cc-offset-steps"><button data-cc-step="-.5">−0.5s</button><button data-cc-reset>Reset</button><button data-cc-step=".5">+0.5s</button></div><small>Negative appears earlier; positive appears later.</small></div>`:''}`;
+    const aiModels=[['base','Fast · quicker, less accurate'],['small','Balanced'],['medium','Detailed · slower']];if(!aiModels.some(([name])=>name===aiModel))aiModels.push([aiModel,'Server model · '+aiModel]);
+    const eta=running&&job.remainingSeconds>0?` · About ${Math.max(1,Math.ceil(job.remainingSeconds/60))} min left`:'';
+    menu.innerHTML=`<div class="pl-menu-heading">Subtitles</div><button class="cc-track ${active<0?'on':''}" data-cc-track="-1"><span>Off</span>${active<0?icon('check'):''}</button>`+entries.map((entry,i)=>`<button class="cc-track ${active===i?'on':''}" data-cc-track="${i}" ${entry.failed?'disabled':''}><span>${esc(entry.label||'Subtitle track')}${entry.failed?' · unavailable':''}</span>${active===i?icon('check'):''}</button>`).join('')+(!entries.length?`<p class="pl-stream-info" role="status">${v.__subtitleLoading?'Looking for subtitle tracks…':v.__subtitleError?'Could not load subtitle tracks. Try again.':'No subtitles available for this video.'}</p>${v.__subtitleError?'<button id="plRetrySubs">Retry subtitle lookup</button>':''}`:'')+`<div class="pl-ai-controls"><button id="plAIEnabled" role="switch" aria-checked="${!!(running||chosen?.source==='ai')}" ${['starting','cancelling'].includes(job?.status)||(!state.aiSubtitles?.available&&!entries.some(entry=>entry.source==='ai'))?'disabled':''}>${icon('sparkle')}<span>AI subtitles</span><span class="pl-switch" aria-hidden="true"></span></button><p class="pl-stream-info">${running?esc(job.message||'Generating subtitles')+(job.progress?' · '+Math.round(job.progress)+'%':'')+eta:job?.error?esc(job.error):entries.some(entry=>entry.source==='ai')?'Generated locally. You can turn this track on or off.':state.aiSubtitles?.available?'Generate a subtitle track for this video.':'AI generation is unavailable on this server.'}</p>${!entries.some(entry=>entry.source==='ai')?`<label class="pl-ai-model"><span>Transcription</span><select id="plAIModel" aria-label="AI transcription speed" ${running||!state.aiSubtitles?.available?'disabled':''}>${aiModels.map(([name,label])=>`<option value="${esc(name)}" ${name===aiModel?'selected':''}>${esc(label)}</option>`).join('')}</select></label>`:''}${job?.warning?`<p class="pl-stream-info">${esc(job.warning)}</p>`:''}${job?.diagnostic?`<details class="pl-ai-diagnostic"><summary>Technical details</summary><p>${esc(job.diagnostic)}</p><p>GPU transcription requires compatible NVIDIA drivers, CUDA and cuDNN on the server. CPU fallback remains available.</p></details>`:''}</div>${chosen?`<div class="cc-offset"><div class="cc-offset-top"><span>Subtitle timing</span><b id="ccOffsetValue">${offset>=0?'+':''}${offset.toFixed(1)}s</b></div><input id="ccOffset" aria-label="Subtitle timing in seconds" type="range" min="-10" max="10" step="0.1" value="${offset}"><div class="cc-offset-steps"><button data-cc-step="-.5">−0.5s</button><button data-cc-reset>Reset</button><button data-cc-step=".5">+0.5s</button></div><small>Negative appears earlier; positive appears later.</small></div>`:''}`;
     menu.querySelectorAll('[data-cc-track]').forEach(button=>button.onclick=()=>{select(Number(button.dataset.ccTrack));draw();});
+    $('#plAIModel')?.addEventListener('change',event=>{aiModel=event.target.value;try{localStorage.setItem('vault-ai-model',aiModel);}catch{}});
     $('#plRetrySubs')?.addEventListener('click',()=>v.__reloadSubtitles());
     $('#plAIEnabled').onclick=async()=>{
       const ai=entries.findIndex(entry=>entry.source==='ai');
@@ -332,7 +402,7 @@ function buildCCMenu(v,f,entries=[]){
       if(ai>=0){select(chosen?.source==='ai'?-1:ai);draw();return;}
       const task={status:'starting',message:'Starting subtitle generation'};playerSubtitleJobs.set(f.rel,task);v.__preferAI=true;draw();
       try{
-        Object.assign(task,await appsRequest(url('ai-subtitles',f.rel),{method:'POST',body:JSON.stringify({model:state.aiSubtitles?.model||'small',language:'auto'})}));
+        Object.assign(task,await appsRequest(url('ai-subtitles',f.rel),{method:'POST',body:JSON.stringify({model:aiModel,language:'auto'})}));
         const poll=async()=>{
           try{
             const updated=await appsRequest('/api/ai-subtitles/'+encodeURIComponent(task.id));if(task.cancelled)return;Object.assign(task,updated);
@@ -349,7 +419,7 @@ function buildCCMenu(v,f,entries=[]){
       $('#ccOffset').oninput=event=>setOffset(Number(event.target.value));menu.querySelectorAll('[data-cc-step]').forEach(button=>button.onclick=()=>setOffset(chosen.offset+Number(button.dataset.ccStep)));$('[data-cc-reset]').onclick=()=>setOffset(0);
     }
   };
-  btn.onclick=()=>{const open=menu.hidden;v.__closeMenus?.();draw();menu.hidden=!open;btn.setAttribute('aria-expanded',String(open));v.__showChrome?.();};
+  btn.onclick=()=>{const open=menu.hidden;v.__closeMenus?.();draw();menu.hidden=!open;btn.setAttribute('aria-expanded',String(open));v.__showChrome?.();if(open)requestAnimationFrame(()=>v.__positionMiniMenu?.());};
   v.__ccDraw=()=>{if(!menu.hidden)draw();};
   v.__ccUpdatedHandler=()=>{v.__layoutSubtitles?.();const active=tracks.findIndex(track=>track.mode==='showing');if(active>=0)applySubtitleOffset(entries[active],(entries[active].offset||0)-(v.__subtitleBase||0));if(!menu.hidden)draw();};
   v.addEventListener('vault-subtitles-updated',v.__ccUpdatedHandler);draw();

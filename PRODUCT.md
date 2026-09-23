@@ -91,3 +91,11 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - Subtitles always open a selector, including loading, empty and failed lookup states. AI subtitle generation, enable/disable, cancellation and failure status belong inside this selector; generated tracks and timing offsets remain reusable.
 - Bottom-right Settings holds Original/direct, 4K/1080p/720p, speed, viewing modes, MP4 conversion and stream details. New playback always tries Original first. Conversion qualities require the server encoder; the UI explains when unavailable.
 - Shows use a bottom-right episode panel with a season selector, thumbnails, titles and watched/current state. Playback surfaces remain dark and use the readable dark variant of the selected accent, including when Library is in light mode.
+
+
+## Player refinements — September 2026
+
+- Preserve the approved theater aesthetic. Mini-player gains direct dragging, four-corner 16:9 resizing, remembered placement, viewport bounds and keyboard equivalents. Menus stay on screen after moving the player.
+- A viewing-control toggle immediately left of picture-in-picture hides or restores navigation in theater; remember the preference and restore navigation in mini mode or on close.
+- Episodes gain a restrained thumbnail zoom and play reveal on hover/focus, with reduced-motion support. The volume rail and pointer target become taller without changing transport grouping.
+- AI subtitle generation offers explicit Fast/Balanced/Detailed choices, keeps configured defaults, reports actual CPU/GPU progress and approximate remaining time, and retains detailed CUDA diagnostics. GPU batching, CPU fallback and a temporary automatic-mode CUDA cooldown improve speed/recovery without promising a measured server speedup. The user's original CUDA error is not yet available.

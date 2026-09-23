@@ -6,11 +6,13 @@ completed file is moved atomically so Vault never exposes half-written cues.
 """
 
 import argparse
+import gc
 import json
 import os
 import sys
 
-from faster_whisper import WhisperModel
+import ctranslate2
+from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 
 def emit(**payload):
@@ -26,28 +28,43 @@ def timestamp(seconds):
 
 
 def load_model(name, requested_device):
-    if requested_device != "auto":
-        compute = "float16" if requested_device == "cuda" else "int8"
-        return WhisperModel(name, device=requested_device, compute_type=compute), requested_device
-
+    if requested_device == "cpu":
+        return WhisperModel(name, device="cpu", compute_type="int8"), "cpu"
+    if requested_device == "auto":
+        try:
+            has_gpu = ctranslate2.get_cuda_device_count() > 0
+        except Exception as error:
+            emit(kind="notice", fallback="cpu", diagnostic=str(error),
+                 message="GPU acceleration is unavailable. Continuing on CPU.")
+            has_gpu = False
+        if not has_gpu:
+            emit(kind="notice", message="No usable NVIDIA GPU detected. Using CPU transcription.")
+            return WhisperModel(name, device="cpu", compute_type="int8"), "cpu"
     try:
-        model = WhisperModel(name, device="cuda", compute_type="float16")
+        supported = ctranslate2.get_supported_compute_types("cuda")
+        compute = "int8_float16" if "int8_float16" in supported else "float16" if "float16" in supported else "float32"
+        model = WhisperModel(name, device="cuda", compute_type=compute)
         return model, "cuda"
     except Exception as error:
-        emit(kind="notice", message=f"CUDA unavailable, using CPU: {error}")
+        emit(kind="notice", fallback="cpu", diagnostic=str(error),
+             message="GPU acceleration is unavailable. Continuing on CPU.")
         return WhisperModel(name, device="cpu", compute_type="int8"), "cpu"
 
 
-def transcribe_to_vtt(model, source, output, options):
-    segments, info = model.transcribe(source, **options)
+def transcribe_to_vtt(model, source, output, options, device="cpu", batch_size=4):
+    emit(kind="phase", phase="preparing-audio", message="Preparing audio and detecting speech", progress=2)
+    if device == "cuda" and batch_size > 1:
+        segments, info = BatchedInferencePipeline(model=model).transcribe(source, batch_size=batch_size, **options)
+    else:
+        segments, info = model.transcribe(source, **options)
     duration = float(
         getattr(info, "duration", 0)
         or getattr(info, "duration_after_vad", 0)
         or 0
     )
     temp = output + ".part"
-    emit(kind="phase", phase="transcribing", message="Decoding speech", progress=3,
-         language=getattr(info, "language", None))
+    emit(kind="phase", phase="transcribing", message=f"Transcribing on {'GPU' if device == 'cuda' else 'CPU'}", progress=3,
+         language=getattr(info, "language", None), device=device, duration=duration)
     try:
         with open(temp, "w", encoding="utf-8", newline="\n") as handle:
             handle.write("WEBVTT\n\n")
@@ -77,9 +94,10 @@ def main():
     parser.add_argument("--model", default="small")
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     parser.add_argument("--language", default="auto")
+    parser.add_argument("--batch-size", type=int, default=4)
     args = parser.parse_args()
 
-    emit(kind="phase", phase="loading-model", message=f"Loading {args.model} model", progress=1,
+    emit(kind="phase", phase="loading-model", message=f"Loading {args.model} model (first use may download it)", progress=1,
          model=args.model, device=args.device)
     model, device = load_model(args.model, args.device)
     emit(kind="start", phase="starting", progress=2, device=device, model=args.model)
@@ -89,20 +107,24 @@ def main():
         "beam_size": 1,
         "best_of": 1,
         "vad_filter": True,
+        "vad_parameters": {"min_silence_duration_ms": 500},
         "condition_on_previous_text": True,
     }
     if args.language != "auto":
         options["language"] = args.language
 
     try:
-        info = transcribe_to_vtt(model, args.input, args.output, options)
+        info = transcribe_to_vtt(model, args.input, args.output, options, device, max(1, min(8, args.batch_size)))
     except Exception as error:
-        if args.device != "auto" or device != "cuda":
+        if device != "cuda":
             raise
-        emit(kind="notice", message=f"CUDA transcription failed, retrying on CPU: {error}")
+        emit(kind="notice", fallback="cpu", diagnostic=str(error),
+             message="GPU transcription failed. Retrying on CPU.")
+        del model
+        gc.collect()
         model = WhisperModel(args.model, device="cpu", compute_type="int8")
         device = "cpu"
-        info = transcribe_to_vtt(model, args.input, args.output, options)
+        info = transcribe_to_vtt(model, args.input, args.output, options, device)
     emit(kind="complete", progress=100, language=getattr(info, "language", None), device=device)
 
 

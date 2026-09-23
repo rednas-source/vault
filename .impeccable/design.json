@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T08:53:18.551960+00:00",
+  "generatedAt": "2026-09-23T09:56:10.8204635Z",
   "title": "Design System: Vault — Library, Watch, Listen, and Apps",
   "extensions": {
     "colorMeta": {
@@ -923,6 +923,11 @@
         "purpose": "Volume slider opacity on hover/focus."
       },
       {
+        "name": "player-episode-reveal",
+        "value": "280ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Thumbnail scale 1.08 and overlay scale .85 to 1 on hover/focus; image brightness 1.1 over 280ms ease-out, overlay opacity over 200ms ease-out. Reduced motion removes transforms and player transitions."
+      },
+      {
         "name": "player-buffer-trace",
         "value": "1400ms linear infinite",
         "purpose": "V trace dash offset to -112; buffering/seeking overlay delayed 240ms. Reduced motion disables transitions and leaves a static continuous trace."
@@ -1073,18 +1078,30 @@
         "public/appearance.js"
       ],
       "authority": "User-approved extension of the incumbent Watch world with top-tier Netflix / YouTube-style execution; no new visual identity.",
-      "layout": "Integrated edge-to-edge theater below shared header: 68px desktop, 112px at <=1100px, 150px at <=600px. Contained black video stage; 32px desktop gutters, 14px phone. Fullscreen fills viewport.",
-      "mini": "16:9, min(460px, calc(100vw - 32px)); right/bottom 22px. At <=600px: viewport minus 24px, 12px offsets. Active music raises bottom to 100px. Section navigation docks playback; mode changes preserve the video and buffer.",
+      "layout": "Integrated edge-to-edge theater below shared header: 68px desktop, 112px at <=1100px, 150px at <=600px. Contained black video stage; 32px desktop gutters, 14px phone. Fullscreen fills viewport. A remembered navigation toggle immediately before PiP hides the header in theater and removes its top offset; mini mode and close restore navigation, and mini hides the toggle.",
+      "mini": "Drag the title or picture; resize from four corners at 16:9. Persist left/top/width locally. Width is 320px minimum when available, capped at 960px and viewport width/available height; smaller viewports lower the minimum to fit. Keep 12px side/bottom clearance and header plus 12px top clearance. Initial desktop width is 460px near bottom-right; phones start at viewport minus 24px, and active music raises initial placement. Remembered geometry takes precedence and is clamped on resize. Title arrow keys move 10px (Shift 40px); corner arrow keys resize width 20px (Shift 80px), Right/Up enlarge and Left/Down reduce. Section navigation enters mini; mode changes preserve video and buffer.",
       "palette": "Dark playback surfaces regardless of Library theme. --player-accent-rgb maps the explicit Appearance palette to its dark variant; default video remains orange across spaces. Accent progress/selection/buffering; white primary play and focus. Primitive colors live in DESIGN.md.",
-      "menus": "300px menus, 450px episodes; right 32px, bottom 100px, bounded scrolling. Phone right 12px and bounded width/height; mini menus open 10px above dock. Settings groups Quality, Playback speed, Viewing mode, MKV conversion, stream detail. Quality/speed have Back; current options carry accent/check. Episodes has sticky season selector and persistent current/watched/resume labels.",
+      "menus": "300px menus, 450px episodes; right 32px, bottom 100px, bounded scrolling. Phone right 12px and bounded width/height. Mini menus prefer 10px above the frame, switch below when space permits, otherwise clamp below the header within 12px viewport clearance. Settings groups Quality, Playback speed, Viewing mode, MKV conversion, stream detail. Quality/speed have Back; current options carry accent/check. Episodes has sticky season selector and persistent current/watched/resume labels.",
       "states": "Original / direct first; 4K/1080p/720p disabled with explanation when encoder unavailable. Subtitles always opens: loading, empty, lookup error/retry, unavailable tracks, Off, AI switch/status/generation/cancellation/failure. Playback error offers Try again and Download file; PiP failure suggests mini-player.",
       "captions": "White native cues: 24px desktop, 18px <=600px, 14px mini; 1.4 line height. Visible chrome lifts ordinary bottom cues above measured bar height plus 18px. Authored percentage-positioned cues above that boundary retain placement. Hidden chrome restores original line/snapToLines/lineAlign. Resize, selection/load, stream, and chrome updates recalculate placement.",
-      "interaction": "40px controls, 34x38px phone, 32px mini. 2px white focus outline/3px offset. Volume reveals on hover/focus; seek knob on hover/focus. Menus pin chrome; Escape dismisses menus. Timing offset -10..10 seconds, 0.1 steps and +/-0.5 buttons, reset; track/timing selection persists locally.",
-      "motion": "Chrome opacity only; idle 2600ms while playing. V stroke buffering; 240ms short-seek debounce. Reduced motion disables player transitions and trace animation. Timings live in extensions.motion.",
+      "interaction": "40px controls, 34x38px phone, 32px mini. 2px white focus outline/3px offset. Volume reveals on hover/focus with a 36px-high pointer target, 6px rail, and 14px knob; seek knob on hover/focus. Mini corner marks reveal on hover/visible focus. Menus pin chrome; Escape dismisses menus. Timing offset -10..10 seconds, 0.1 steps and +/-0.5 buttons, reset; track/timing selection persists locally.",
+      "motion": "Chrome opacity only; idle 2600ms while playing. V stroke buffering; 240ms short-seek debounce. Episode thumbnail hover/focus scales to 1.08 and brightens to 1.1 over 280ms; play overlay opacity reveals over 200ms and scales .85 to 1 over 280ms. Reduced motion removes episode transforms, disables player transitions and trace animation. Timings live in extensions.motion.",
+      "aiSubtitles": "Transcription choices: Fast (base; quicker, less accurate), Balanced (small), Detailed (medium; slower). Preserve the configured server model initially, adding a Server model option if outside these choices; remembered explicit choice takes precedence. Show reported job progress and approximate remaining minutes when available, visible CPU fallback warnings, and a Technical details disclosure for available CUDA diagnostics. No measured GPU speedup or exact cause of the user's original CUDA error is asserted.",
       "review": {
         "disposition": "SHIP",
-        "scope": "Fresh reviewer follow-up on the single caption-placement finding, resolved on desktop and mobile. No broader re-review claimed."
-      }
+        "scope": "Fresh player-refinement review of seven supplied desktop/mobile captures; no material fixes required within the requested scope. Earlier caption review preserved in reviewHistory."
+      },
+      "reviewHistory": [
+        {
+          "disposition": "SHIP",
+          "scope": "Fresh reviewer follow-up on the single caption-placement finding, resolved on desktop and mobile. No broader re-review claimed."
+        },
+        {
+          "disposition": "SHIP",
+          "scope": "Subsequent player-refinement pass reviewed seven supplied desktop/mobile captures: movable mini-player, navigation toggle, volume target, episode feedback, and subtitle generation controls.",
+          "materialFixes": "None required within the requested scope. Established Library, Watch browsing, Listen, and Apps guidance preserved."
+        }
+      ]
     }
   },
   "components": [
@@ -1191,7 +1208,7 @@
   ],
   "narrative": {
     "northStar": "A private archive with familiar streaming rooms",
-    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated content-first theater, docked mini-player, and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
+    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated content-first theater, movable mini-player, and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
     "keyCharacteristics": [
       "Near-black tonal layering with distinct file, video, and music compositions.",
       "One configurable accent; default orange in Library/Watch and light blue in Listen.",

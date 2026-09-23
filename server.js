@@ -15,6 +15,7 @@ const { operate, createFile } = require('./lib/file-operations');
 const { previewDocument } = require('./lib/document-preview');
 const { createZip } = require('./lib/create-zip');
 const { listSharedLinks } = require('./lib/shared-links');
+const { subtitleModel, cudaFailure, subtitleEstimate } = require('./lib/subtitle-options');
 
 // ---------------------------------------------------------------- config
 
@@ -30,7 +31,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-player-20260923';
+const BUILD_ID = 'vault-player-controls-20260923';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -2515,7 +2516,8 @@ const LOCAL_WHISPER_PYTHON = process.platform === 'win32'
   : path.join(__dirname, '.venv', 'bin', 'python');
 const WHISPER_PYTHON = config.whisperPython || (fs.existsSync(LOCAL_WHISPER_PYTHON) ? LOCAL_WHISPER_PYTHON : 'python3');
 const WHISPER_SCRIPT = path.join(__dirname, 'scripts', 'transcribe.py');
-const WHISPER_MODELS = new Set(['tiny', 'base', 'small', 'medium', 'large-v3']);
+let subtitleCudaCooldownUntil = 0;
+const SUBTITLE_CUDA_COOLDOWN_MS = 30 * 60 * 1000;
 const AI_SUBTITLE_STATUS = (() => {
   if (!fs.existsSync(WHISPER_SCRIPT)) return { available: false, diagnostic: 'transcription script missing' };
   try {
@@ -2541,6 +2543,7 @@ function publicSubtitleJob(job) {
     model: job.activeModel || job.model, requestedModel: job.model,
     device: job.actualDevice || job.activeDevice || job.device, language: job.detectedLanguage || job.language,
     phase: job.phase || job.status, message: job.message || '', retrying: !!job.retrying,
+    warning: job.warning || '', diagnostic: job.diagnostic || '', ...subtitleEstimate(job),
     outputRel: job.outputRel || null, error: job.error || '', created: job.created, finished: job.finished || null,
   };
 }
@@ -2580,10 +2583,12 @@ function spawnSubtitleAttempt(job, { model, device, safe = false }) {
   job.spawnError = '';
   job.error = '';
   job.updated = Date.now();
+  job.transcribingAt = null; job.processedSeconds = 0; job.durationSeconds = 0;
   if (safe) job.progress = 1;
 
   const args = [WHISPER_SCRIPT, '--input', job.full, '--output', job.output,
-    '--model', model, '--device', device, '--language', job.language];
+    '--model', model, '--device', device, '--language', job.language,
+    '--batch-size', String(Math.max(1, Math.min(8, Number(config.whisperBatchSize) || 4)))];
   const child = spawn(WHISPER_PYTHON, args, { stdio: ['ignore', 'pipe', 'pipe'] });
   job.child = child;
   let lines = '';
@@ -2599,6 +2604,14 @@ function spawnSubtitleAttempt(job, { model, device, safe = false }) {
         if (event.model) job.activeModel = event.model;
         if (event.device) job.actualDevice = event.device;
         if (event.language) job.detectedLanguage = event.language;
+        if (event.phase === 'preparing-audio') { job.transcribingAt = null; job.processedSeconds = 0; job.durationSeconds = 0; }
+        if (event.phase === 'transcribing' && !job.transcribingAt) job.transcribingAt = Date.now();
+        if (Number.isFinite(event.at)) job.processedSeconds = event.at;
+        if (Number.isFinite(event.duration)) job.durationSeconds = event.duration;
+        if (event.kind === 'notice') {
+          job.warning = event.message || ''; if (event.diagnostic) job.diagnostic = event.diagnostic;
+          if (event.fallback === 'cpu') subtitleCudaCooldownUntil = Date.now() + SUBTITLE_CUDA_COOLDOWN_MS;
+        }
         if (event.kind === 'error' && event.message) job.error = event.message;
         job.updated = Date.now();
       } catch { /* diagnostic line from a dependency */ }
@@ -2622,6 +2635,9 @@ function spawnSubtitleAttempt(job, { model, device, safe = false }) {
         // CPU/base retry favours a finished caption file over a dead job.
         if (!safe && (model !== 'base' || device !== 'cpu')) {
           console.warn(`[media] AI subtitles failed for ${job.rel}; retrying safely: ${firstFailure}`);
+          if (cudaFailure(firstFailure)) subtitleCudaCooldownUntil = Date.now() + SUBTITLE_CUDA_COOLDOWN_MS;
+          job.warning = cudaFailure(firstFailure) ? 'GPU acceleration failed. Continuing on CPU with the Fast model.' : 'The first attempt failed. Retrying on CPU with the lighter Fast model.';
+          job.diagnostic = firstFailure;
           spawnSubtitleAttempt(job, { model: 'base', device: 'cpu', safe: true });
           return;
         }
@@ -2646,7 +2662,9 @@ function spawnSubtitleAttempt(job, { model, device, safe = false }) {
 function runSubtitleJob(job) {
   subtitling++;
   job.status = 'running';
-  spawnSubtitleAttempt(job, { model: job.model, device: job.device });
+  const cooldown = job.device === 'auto' && Date.now() < subtitleCudaCooldownUntil;
+  if (cooldown) job.warning = 'Using CPU because GPU acceleration failed recently. GPU will be checked again later.';
+  spawnSubtitleAttempt(job, { model: job.model, device: cooldown ? 'cpu' : job.device });
 }
 
 app.post('/api/ai-subtitles/*', auth, shelfGate, async (req, res) => {
@@ -2655,8 +2673,7 @@ app.post('/api/ai-subtitles/*', auth, shelfGate, async (req, res) => {
   const full = safePath(req.params[0]);
   if (!full || !THUMBABLE.includes(ext(full))) return res.status(400).json({ error: 'Bad video path' });
   try { await fsp.stat(full); } catch { return res.status(404).json({ error: 'Video not found' }); }
-  const model = WHISPER_MODELS.has(String(req.body.model || config.whisperModel || 'small'))
-    ? String(req.body.model || config.whisperModel || 'small') : 'small';
+  const model = subtitleModel(req.body, config.whisperModel);
   const requestedLanguage = String(req.body.language || 'auto').toLowerCase();
   const language = requestedLanguage === 'auto' || /^[a-z]{2,8}(?:-[a-z]{2,8})?$/.test(requestedLanguage)
     ? requestedLanguage : 'auto';
@@ -2664,6 +2681,11 @@ app.post('/api/ai-subtitles/*', auth, shelfGate, async (req, res) => {
     ? String(config.whisperDevice || 'auto') : 'auto';
   const tag = language === 'auto' ? 'ai' : `ai.${language}`;
   const output = path.join(path.dirname(full), `${path.parse(full).name}.${tag}.vtt`);
+  const active = [...subtitleJobs.values()].find(job => job.output === output && ['queued','running'].includes(job.status));
+  if (active) {
+    if (active.user === req.user.name && !active.cancelled) return res.status(202).json(publicSubtitleJob(active));
+    return res.status(409).json({ error: 'Subtitles for this video are already being generated. Try again after the current job finishes.' });
+  }
   const id = crypto.randomBytes(16).toString('hex');
   const job = { id, user: req.user.name, rel: req.params[0], full, output, model, language, device,
     status: 'queued', progress: 0, error: '', stderr: '', created: Date.now(), finished: null,

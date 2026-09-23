@@ -34,3 +34,40 @@ body.video-theater #musicDock{display:none!important}body.music-playing #viewer.
 #viewer.playing video::cue{color:#fff;background:#000b;font:24px/1.4 var(--sans);text-shadow:0 1px 3px #000}
 #viewer.playing.mini video::cue{font-size:14px}
 @media(max-width:600px){#viewer.playing video::cue{font-size:18px}#viewer.playing.mini video::cue{font-size:14px}}
+
+/* Direct manipulation keeps the same video and buffer in its movable frame. */
+#viewer.playing.mini{left:var(--mini-left);top:var(--mini-top);right:auto;bottom:auto!important;width:var(--mini-width);height:auto}
+#viewer.playing.mini .pl-stage,#viewer.playing.mini .pl-head{touch-action:none;cursor:grab}
+#viewer.playing.mini .pl-titles{pointer-events:auto;cursor:grab}
+#viewer.playing.mini-moving,#viewer.playing.mini-moving *{cursor:grabbing!important;user-select:none}
+#viewer.playing.mini .pl-head-tools{cursor:default;touch-action:manipulation}
+#viewer.playing .pl-resize-handles{display:none}
+#viewer.playing.mini .pl-resize-handles{display:contents}
+#viewer.playing .pl-resize{position:absolute;z-index:18;width:20px;height:20px;padding:0;background:none;border:0;border-radius:0;touch-action:none;opacity:0;transition:opacity .15s}
+#viewer.playing.mini:hover .pl-resize,#viewer.playing .pl-resize:focus-visible{opacity:1}
+#viewer.playing .pl-resize::after{content:'';position:absolute;inset:5px;border:solid #fff;border-width:0 2px 2px 0;border-radius:0}
+#viewer.playing .pl-resize-nw{left:-5px;top:-5px;cursor:nwse-resize;transform:rotate(180deg)}
+#viewer.playing .pl-resize-ne{right:-5px;top:-5px;cursor:nesw-resize;transform:rotate(270deg)}
+#viewer.playing .pl-resize-sw{left:-5px;bottom:-5px;cursor:nesw-resize;transform:rotate(90deg)}
+#viewer.playing .pl-resize-se{right:-5px;bottom:-5px;cursor:nwse-resize}
+#viewer.playing.mini .pl-menu{position:fixed;left:var(--mini-menu-left,12px);top:var(--mini-menu-top,180px);right:auto;bottom:auto;max-width:calc(100vw - 24px);max-height:calc(100dvh - var(--player-top) - 24px)}
+#viewer.playing .pl-vol{height:36px;touch-action:none}
+#viewer.playing .pl-vol-track,#viewer.playing .pl-vol-fill{top:15px;height:6px;border-radius:3px}
+#viewer.playing .pl-vol-knob{width:14px;height:14px;top:18px}
+#viewer.playing .pl-episode-option{transition:background .2s ease-out}
+#viewer.playing .pl-episode-thumb img{transition:transform .28s cubic-bezier(.16,1,.3,1),filter .28s ease-out}
+#viewer.playing .pl-episode-play{position:absolute;inset:0;display:grid;place-items:center;background:#0003;opacity:0;transform:scale(.85);transition:opacity .2s ease-out,transform .28s cubic-bezier(.16,1,.3,1)}
+#viewer.playing .pl-episode-play i{display:grid;place-items:center;width:30px;height:30px;border:1px solid #fff9;border-radius:50%;background:#0009;color:#fff;font-size:16px}
+#viewer.playing .pl-episode-option:hover img,#viewer.playing .pl-episode-option:focus-visible img{transform:scale(1.08);filter:brightness(1.1)}
+#viewer.playing .pl-episode-option:hover .pl-episode-play,#viewer.playing .pl-episode-option:focus-visible .pl-episode-play{opacity:1;transform:scale(1)}
+@media(prefers-reduced-motion:reduce){#viewer.playing .pl-episode-option img,#viewer.playing .pl-episode-play{transform:none!important}}
+
+body.video-hide-nav #app>header.app-header{visibility:hidden;pointer-events:none}
+body.video-hide-nav #viewer.playing.theater{--player-top:0px}
+#viewer.playing #plNavToggle[aria-pressed=true]{color:var(--accent);background:#ffffff1c}
+#viewer.playing.mini #plNavToggle{display:none}
+#viewer.playing .pl-ai-model{display:grid;gap:8px;padding:0 16px 14px;color:#ccc;font:12px var(--sans)}
+#viewer.playing .pl-ai-model select{width:100%;background:#333;color:#fff;border:1px solid #666;border-radius:5px;padding:9px;font:12px var(--sans)}
+#viewer.playing .pl-ai-diagnostic{margin:0 16px 12px;color:#ccc;font:12px/1.5 var(--sans)}
+#viewer.playing .pl-ai-diagnostic summary{cursor:pointer}
+#viewer.playing .pl-ai-diagnostic p{overflow-wrap:anywhere;margin:8px 0}

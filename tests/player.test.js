@@ -18,3 +18,13 @@ test('watch progress preserves full duration and absolute position after source 
  trackProgress(video,{rel:'movies/example.mkv'},()=>base,()=>duration);video.__report();assert.deepEqual(sent[0],{rel:'movies/example.mkv',pos:12,dur:60});
  duration=60;base=30;video.currentTime=4;video.duration=12;events.pause();assert.deepEqual(sent[1],{rel:'movies/example.mkv',pos:34,dur:60});
 });
+
+test('mini-player geometry stays usable and reachable after resize or old saved positions',()=>{
+ const {playerMiniBounds}=load();
+ const wide=playerMiniBounds({width:700,left:1400,top:900},{width:1440,height:900,top:80});
+ assert.equal(wide.width,700);assert(wide.left+wide.width<=1428);assert(wide.top+wide.height<=888);
+ const phone=playerMiniBounds(wide,{width:390,height:844,top:162});
+ assert.equal(phone.width,366);assert(phone.left>=12);assert(phone.top>=162);assert.equal(phone.height,phone.width*9/16);
+ const short=playerMiniBounds({width:900,left:-100,top:-10},{width:640,height:300,top:124});
+ assert(short.top+short.height<=288);assert(short.left>=12);
+});
