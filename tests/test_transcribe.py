@@ -71,4 +71,19 @@ class TranscriptionTests(unittest.TestCase):
             self.assertEqual(output.read_text(),'existing captions')
             self.assertFalse(Path(str(output)+'.part').exists())
 
+    def test_word_timing_leaves_silence_empty_instead_of_holding_last_sentence(self):
+        word=lambda start,end,text:SimpleNamespace(start=start,end=end,word=text)
+        segment=SimpleNamespace(start=0,end=185,text='Hello. Welcome back.',words=[word(1,1.5,' Hello.'),word(181,181.5,' Welcome'),word(181.6,182,' back.')])
+        cues=list(worker.caption_segments(segment))
+        self.assertEqual(len(cues),2)
+        self.assertAlmostEqual(cues[0][1],1.65)
+        self.assertEqual(cues[1][0],181)
+        self.assertEqual(cues[1][2],'Welcome back.')
+
+    def test_unusually_long_word_and_legacy_segment_cannot_span_minutes(self):
+        segment=SimpleNamespace(start=2,end=182,text='Hello.',words=[SimpleNamespace(start=2,end=182,word=' Hello.')])
+        self.assertLess(list(worker.caption_segments(segment))[0][1],5)
+        segment.words=None
+        self.assertEqual(list(worker.caption_segments(segment))[0][1],5)
+
 if __name__=='__main__': unittest.main()

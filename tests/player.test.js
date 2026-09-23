@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
-function load(extra={}){const scope={document:{addEventListener(){}},...extra};vm.runInNewContext(fs.readFileSync(require.resolve('../public/player.js'),'utf8'),scope);return scope;}
+function load(extra={}){const scope={document:{addEventListener(){}},...extra};vm.runInNewContext(fs.readFileSync(require.resolve('../public/captions.js'),'utf8'),scope);vm.runInNewContext(fs.readFileSync(require.resolve('../public/player.js'),'utf8'),scope);return scope;}
 test('buffer readout counts only the contiguous playable range, not a later disconnected segment',()=>{
  const {playerBufferedEnd}=load();const ranges=[[0,10],[20,40]],video={currentTime:5,buffered:{length:2,start:i=>ranges[i][0],end:i=>ranges[i][1]}};
  assert.equal(playerBufferedEnd(video)-video.currentTime,5);video.currentTime=12;assert.equal(playerBufferedEnd(video)-video.currentTime,0);video.currentTime=22;assert.equal(playerBufferedEnd(video)-video.currentTime,18);video.buffered.length=0;assert.equal(playerBufferedEnd(video),22);
@@ -45,4 +45,21 @@ test('an obsolete subtitle lookup cannot remove the current player tracks',async
  const video={isConnected:true,querySelectorAll:()=>[{remove(){removed++;}}]};let current=true;
  const pending=scope.attachSubtitles(video,{rel:'movie'},()=>current);current=false;resolve({ok:true,json:async()=>({tracks:[]})});
  assert.equal(await pending,null);assert.equal(removed,0);
+});
+test('caption display expires on silence and ignores stale active cues after seeking or switching Off',()=>{
+ const {captionTextAt}=load(),cue={startTime:2,endTime:182,text:'A short sentence.'},entry={selected:true,source:'ai',track:{activeCues:[cue]}};
+ assert.equal(captionTextAt(entry,3),'A short sentence.');assert.equal(captionTextAt(entry,30),'');assert.equal(captionTextAt(entry,1),'');
+ entry.source='file';assert.equal(captionTextAt(entry,30),'A short sentence.');entry.selected=false;assert.equal(captionTextAt(entry,3),'');
+});
+test('AI silence guard survives timing offsets without accumulating changes or altering external tracks',()=>{
+ const {applySubtitleOffset}=load(),cue={startTime:125,endTime:300,text:'Hello.'},entry={source:'ai',track:{cues:[cue]}};
+ applySubtitleOffset(entry,-120);assert.equal(cue.startTime,5);assert.equal(cue.endTime,8);
+ applySubtitleOffset(entry,-119);assert.equal(cue.endTime,9);applySubtitleOffset(entry,0);assert.equal(cue.endTime,128);
+ const authored={startTime:0,endTime:90,text:'Title card'};applySubtitleOffset({source:'file',track:{cues:[authored]}},0);assert.equal(authored.endTime,90);
+});
+test('caption preferences and drag bounds stay safe after moving from theater to a small player',()=>{
+ const {captionPreferences,captionPosition}=load();
+ const prefs=captionPreferences({font:'bad',size:500,outline:'yes',position:{x:-2,y:4}});assert.equal(prefs.font,'sans');assert.equal(prefs.size,1);assert.equal(prefs.outline,false);assert.equal(prefs.position.y,1);
+ const point=captionPosition(prefs.position,{width:320,height:180},{width:280,height:32},70);
+ assert(point.x>=148&&point.x<=172);assert(point.y>=24&&point.y<=86);
 });

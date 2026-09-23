@@ -63,7 +63,7 @@ colors:
   player-menu-line: "#454545"
   player-control: "#eee"
   player-muted: "#c9c9c9"
-  player-cue-ground: "#000b"
+  player-cue-ground: "transparent"
 typography:
   player-title:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
@@ -76,9 +76,9 @@ typography:
     fontSize: "13px"
     lineHeight: 1.4
   player-cue:
-    fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Arial, sans-serif"
     fontSize: "24px"
-    lineHeight: 1.4
+    lineHeight: 1.35
   watch-display:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(38px, 4.5vw, 68px)"
@@ -419,7 +419,7 @@ Icon-font `font-size` values describe glyph geometry, not text roles: shelf icon
 
 Listen uses a heavy collection display, compact section headings, 15px album titles, 14px track/sidebar titles, 13px body and controls, and 12px metadata. Sidebar/panel headings are 16px/650; now-playing titles are 22px/700. Queue and dock metadata use 11px; transport time uses 10px and tabular figures. At 1250px and below collection titles become 48px; at 760px they become 34px, section headings 23px, album titles 14px, track titles 13px, and supporting metadata 11–12px. Empty-state headings are 28px (25px on phones). Icon sizes remain geometry, not new text roles.
 
-Player title and subtitle context use the dedicated sans title role and 13px supporting text. Titles reduce to 15px on phones and 13px in mini mode; context becomes 11px and 10px respectively. Menus use the player menu role, with 12px headings and 11px values. Transport time is 12px with tabular figures (11px phone, 10px mini). Caption cues use the player cue role, reduced to 18px on phones and 14px in mini mode.
+Player title and subtitle context use the dedicated sans title role and 13px supporting text. Titles reduce to 15px on phones and 13px in mini mode; context becomes 11px and 10px respectively. Menus use the player menu role, with 12px headings and 11px values. Transport time is 12px with tabular figures (11px phone, 10px mini). Caption cues default to Arial with 1.35 line height. Their base size follows stage width / 50, capped at 24px and floored at 18px in theater/fullscreen or 14px in mini; the selected size multiplier applies afterward.
 
 ## Layout
 
@@ -460,7 +460,7 @@ The archive combines tonal layers with soft ambient depth. Working rows and navi
 ### Shadow Vocabulary
 
 - **Player Mini** (`0 10px 36px #0008`): Docked video only; theater and menus have no shadow.
-- **Caption Legibility** (`0 1px 3px #000` text shadow): White native cues on their translucent dark ground.
+- **Optional Caption Outline** (`1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000` text shadow): User-enabled black outline on white captions. The default is no shadow and a transparent background.
 - **Listen Album Art** (`0 8px 22px #0004`): Square cover art on album cards.
 - **Listen Collection Art** (`0 8px 28px #0005`): Larger collection cover.
 - **Listen Play** (`0 6px 16px #0003`): Circular collection and album play controls.
@@ -566,7 +566,7 @@ AI enablement is saved when generation starts and survives player closure and pa
 
 Player episode thumbnails zoom to 1.08 and brighten to 1.1 on hover or visible focus over 280ms. The play overlay fades in over 200ms and scales from 0.85 to 1 over 280ms. Reduced motion removes the transforms and player transitions while retaining the visible play affordance.
 
-White native caption cues sit on a translucent black ground with a small black text shadow. While chrome is visible, ordinary bottom cues move above the measured transport bar plus 18px clearance; authored percentage-positioned cues already above this boundary keep their placement. Hiding chrome restores each cue's original line, line alignment, and line-snapping behavior. Placement updates on player resize, caption selection/loading, stream changes, and chrome visibility, so desktop, phone, mini, and fullscreen use the actual available height.
+Captions use a draggable, plain white text layer with no background or outline by default. Subtitles → Appearance & position offers Sans serif (Arial), Serif (Georgia), Rounded (Trebuchet MS), and Monospace (Courier New); Small (0.8×), Normal (1×), Large (1.25×), and Extra large (1.5×); an optional black outline; and Reset position. Pointer and touch dragging move only the captions; focused captions accept arrow keys (5px, or 25px with Shift) and Home to reset. Font, size, outline, and normalized position persist in local storage. Text stays inside the player and above visible transport controls across theater, mini, and fullscreen. Native video-only fullscreen and picture-in-picture receive the selected text track instead; rendering and appearance support on those surfaces depend on the browser. The custom renderer uses active cues and clears expired cues and silence. Legacy AI cues longer than 15 seconds receive a 3–12 second reading duration without rewriting saved sidecars; external subtitle timing remains authored. New AI generation splits word-timed captions at speech gaps.
 
 The custom stroked V communicates preparation and buffering: an accent trace loops over a faint outline and a static white inner V. Buffering/seeking waits 240ms before showing the overlay, avoiding flashes on short seeks. Chrome fades by opacity over 200ms after 2.6 seconds of inactivity during playback, remaining visible while paused, a menu is open, or keyboard focus is visible. Controls and seek knob use 150ms feedback; volume uses 180ms opacity. The V trace loops linearly every 1.4 seconds. Reduced motion removes player transitions and makes the trace static and continuous.
 
@@ -577,6 +577,8 @@ The earlier fresh reviewer disposition was **SHIP** after the single caption-pla
 The subsequent player-refinement pass received a fresh **SHIP** disposition across seven supplied desktop/mobile captures, with no material fixes required within the requested scope. This pass covers the movable mini-player, navigation toggle, volume target, episode feedback, and subtitle generation controls; established Library, Watch browsing, Listen, and Apps guidance remains in place.
 
 The subtitle-activation follow-up received a fresh **SHIP** disposition for the supplied desktop AI-on and active-cue views and mobile retry and active-cue views, with no material findings. This review is limited to those activation states.
+
+The caption appearance and position follow-up received a fresh **SHIP** disposition for four supplied captures: desktop caption position, desktop caption settings, mobile caption settings, and mobile caption text. No material findings were reported within this scope. The capture paths and earlier review history remain in `.impeccable/design.json`; this does not claim a new review of other surfaces or native browser playback UI.
 
 ### File Selection, Actions, and Navigation
 

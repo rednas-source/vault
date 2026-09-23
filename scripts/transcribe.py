@@ -8,6 +8,7 @@ completed file is moved atomically so Vault never exposes half-written cues.
 import argparse
 import gc
 import json
+import math
 import os
 import sys
 
@@ -51,6 +52,39 @@ def load_model(name, requested_device):
         return WhisperModel(name, device="cpu", compute_type="int8"), "cpu"
 
 
+def caption_segments(segment):
+    """Split at speech gaps and use the last spoken word, not a chunk's end."""
+    words = getattr(segment, "words", None) or []
+    group = []
+    start = end = 0
+    for word in words:
+        text = str(word.word)
+        begin, finish = float(word.start), float(word.end)
+        if not text.strip() or not math.isfinite(begin) or not math.isfinite(finish):
+            continue
+        # Alignment can give a single word the duration of a silent interval.
+        if finish - begin > 4:
+            finish = begin + max(.5, min(2, len(text.strip()) / 8))
+        finish = max(begin + .05, finish)
+        if group and (begin - end > .8 or finish - start > 6 or len("".join(group) + text) > 84):
+            yield start, min(end + .15, begin), "".join(group).strip()
+            group = []
+        if not group:
+            start = max(0, begin)
+        group.append(text)
+        end = finish
+    if group:
+        yield start, end + .15, "".join(group).strip()
+    elif not words:
+        # Older runtimes may not supply words. Never span minutes of silence.
+        text = " ".join(str(segment.text).strip().split())
+        if text:
+            start, end = float(segment.start), float(segment.end)
+            if end - start > 15:
+                end = start + max(3, min(12, len(text) / 15 + 1))
+            yield max(0, start), max(start + .05, end), text
+
+
 def transcribe_to_vtt(model, source, output, options, device="cpu", batch_size=4):
     emit(kind="phase", phase="preparing-audio", message="Preparing audio and detecting speech", progress=2)
     if device == "cuda" and batch_size > 1:
@@ -70,11 +104,10 @@ def transcribe_to_vtt(model, source, output, options, device="cpu", batch_size=4
         with open(temp, "w", encoding="utf-8", newline="\n") as handle:
             handle.write("WEBVTT\n\n")
             for segment in segments:
-                text = " ".join(str(segment.text).strip().split())
-                if text:
+                for start, end, text in caption_segments(segment):
                     caption_count += 1
                     handle.write(
-                        f"{timestamp(segment.start)} --> {timestamp(segment.end)}\n{text}\n\n"
+                        f"{timestamp(start)} --> {timestamp(end)}\n{text}\n\n"
                     )
                     # Persist cues incrementally. This prevents a whole episode's
                     # segment objects from sitting in memory until the very end.
@@ -111,6 +144,7 @@ def main():
         "beam_size": 1,
         "best_of": 1,
         "vad_filter": True,
+        "word_timestamps": True,
         "vad_parameters": {"min_silence_duration_ms": 500},
         "condition_on_previous_text": True,
     }

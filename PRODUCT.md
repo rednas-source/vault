@@ -106,3 +106,9 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - Remember AI enablement before transcription completes; preserve it across player closure and page refresh. Resume pending job checks and activate real saved captions. Respect an explicit Off or alternate-track choice made while decoding.
 - Keep activation visibly loading until track delivery succeeds; failures expose Retry loading subtitles without rerunning inference. Empty generated tracks expose regeneration, and the worker rejects no-speech output.
 - CPU fallback is a recoverable generation state, independent of whether captions are selected. The reported server CUDA cause remains unconfirmed without its GPU/runtime details.
+
+### Subtitle placement and readability — September 2026
+
+- Plain white captions by default, with font, size, optional outline, and remembered drag positioning in the subtitle menu. Keyboard movement and reset provide the same control.
+- Captions expire during silence and clear on seeking/ending/Off. New AI transcripts use word timing; old AI tracks with implausibly long cues have a playback-only duration guard. External caption timestamps are preserved.
+- Theater, fullscreen, and the site mini player use the caption layer. Native video-only surfaces receive the selected native track, with browser-dependent presentation.

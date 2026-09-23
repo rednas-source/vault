@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T09:56:10.8204635Z",
+  "generatedAt": "2026-09-23T11:01:01Z",
   "title": "Design System: Vault — Library, Watch, Listen, and Apps",
   "extensions": {
     "colorMeta": {
@@ -743,7 +743,7 @@
       },
       "player-cue-ground": {
         "role": "neutral",
-        "displayName": "Player Cue Ground"
+        "displayName": "Transparent Player Cue Ground"
       }
     },
     "typographyMeta": {
@@ -841,7 +841,7 @@
       },
       "player-cue": {
         "displayName": "Player Cue",
-        "purpose": "Native subtitle cues; 18px phone and 14px mini variants."
+        "purpose": "Custom captions default to Arial, 1.35 line height; base size is stage width / 50, capped at 24px and floored at 18px theater/fullscreen or 14px mini before the chosen multiplier."
       }
     },
     "shadows": [
@@ -877,8 +877,8 @@
       },
       {
         "name": "player-cue-text",
-        "value": "0 1px 3px #000",
-        "purpose": "Native cue text-shadow over translucent black cue ground."
+        "value": "1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000",
+        "purpose": "Optional user-enabled black caption outline. Default captions have no shadow and a transparent background."
       }
     ],
     "motion": [
@@ -1072,10 +1072,12 @@
     },
     "player": {
       "sources": [
+        "public/captions.js",
         "public/player.css",
         "public/player.js",
         "public/index.html",
-        "public/appearance.js"
+        "public/appearance.js",
+        "scripts/transcribe.py"
       ],
       "authority": "User-approved extension of the incumbent Watch world with top-tier Netflix / YouTube-style execution; no new visual identity.",
       "layout": "Integrated edge-to-edge theater below shared header: 68px desktop, 112px at <=1100px, 150px at <=600px. Contained black video stage; 32px desktop gutters, 14px phone. Fullscreen fills viewport. A remembered navigation toggle immediately before PiP hides the header in theater and removes its top offset; mini mode and close restore navigation, and mini hides the toggle.",
@@ -1083,14 +1085,22 @@
       "palette": "Dark playback surfaces regardless of Library theme. --player-accent-rgb maps the explicit Appearance palette to its dark variant; default video remains orange across spaces. Accent progress/selection/buffering; white primary play and focus. Primitive colors live in DESIGN.md.",
       "menus": "300px menus, 450px episodes; right 32px, bottom 100px, bounded scrolling. Phone right 12px and bounded width/height. Mini menus prefer 10px above the frame, switch below when space permits, otherwise clamp below the header within 12px viewport clearance. Settings groups Quality, Playback speed, Viewing mode, MKV conversion, stream detail. Quality/speed have Back; current options carry accent/check. Episodes has sticky season selector and persistent current/watched/resume labels.",
       "states": "Original / direct first; 4K/1080p/720p disabled with explanation when encoder unavailable. Subtitles always opens: loading, empty, lookup error/retry, unavailable tracks, Off, AI switch/status/generation/cancellation/failure. Playback error offers Try again and Download file; PiP failure suggests mini-player.",
-      "captions": "White native cues: 24px desktop, 18px <=600px, 14px mini; 1.4 line height. Visible chrome lifts ordinary bottom cues above measured bar height plus 18px. Authored percentage-positioned cues above that boundary retain placement. Hidden chrome restores original line/snapToLines/lineAlign. Resize, selection/load, stream, and chrome updates recalculate placement.",
+      "captions": "Plain white custom caption layer with transparent background and no outline by default. Appearance & position discloses Sans serif (Arial), Serif (Georgia), Rounded (Trebuchet MS), Monospace (Courier New); Small 0.8x, Normal 1x, Large 1.25x, Extra large 1.5x; optional Black outline; and Reset position. Base font size is max(mode minimum, min(24px, stage width / 50)), with 18px theater/fullscreen and 14px mini minimums, then multiplied by size. Line height is 1.35. Mouse/touch dragging moves captions; focused arrow keys move 5px, Shift+arrows 25px, and Home resets. Font, size, outline, and normalized position persist under vault-caption-appearance in localStorage. Caption bounds retain 8px stage clearance and reserve visible transport height plus 10px; default position is centered near the bottom. Native video-only fullscreen and PiP receive the selected text track; native display and appearance support remain browser-dependent.",
+      "captionTiming": "The custom renderer displays active cues only and clears expired text and silence. Legacy AI cues longer than 15 seconds are capped to a reading duration of max(3, min(12, text length / 15 + 1)) seconds without rewriting saved sidecars; external subtitle timing is preserved. New AI generation uses word timestamps, splitting on speech gaps over 0.8 seconds, spans over 6 seconds, or text over 84 characters, and ends at the last spoken word plus 0.15 seconds. Implausibly long word alignment and no-word legacy runtime results are bounded by the transcription implementation.",
       "interaction": "40px controls, 34x38px phone, 32px mini. 2px white focus outline/3px offset. Volume reveals on hover/focus with a 36px-high pointer target, 6px rail, and 14px knob; seek knob on hover/focus. Mini corner marks reveal on hover/visible focus. Menus pin chrome; Escape dismisses menus. Timing offset -10..10 seconds, 0.1 steps and +/-0.5 buttons, reset; track/timing selection persists locally.",
       "motion": "Chrome opacity only; idle 2600ms while playing. V stroke buffering; 240ms short-seek debounce. Episode thumbnail hover/focus scales to 1.08 and brightens to 1.1 over 280ms; play overlay opacity reveals over 200ms and scales .85 to 1 over 280ms. Reduced motion removes episode transforms, disables player transitions and trace animation. Timings live in extensions.motion.",
       "aiSubtitles": "Transcription choices: Fast (base; quicker, less accurate), Balanced (small), Detailed (medium; slower). Preserve the configured server model initially, adding a Server model option if outside these choices; remembered explicit choice takes precedence. Show reported job progress and approximate remaining minutes when available, visible CPU fallback warnings, and a Technical details disclosure for available CUDA diagnostics. No measured GPU speedup or exact cause of the user's original CUDA error is asserted.",
       "subtitleActivation": "Save AI intent at generation start; preserve it across player closure and page refresh, resume pending job checks, and select the real saved track after completion while honoring explicit Off or alternate-track choices. Keep the AI switch on during activation loading. Failed track delivery offers Retry loading subtitles without rerunning transcription; empty tracks offer Generate again. CPU fallback describes generation separately from caption enablement. The exact server CUDA cause remains unconfirmed. Existing styles, layout, and tokens are unchanged.",
       "review": {
         "disposition": "SHIP",
-        "scope": "Fresh subtitle-activation review of supplied desktop AI-on and active-cue views and mobile retry and active-cue views; no material findings. Earlier reviews preserved in reviewHistory."
+        "scope": "Fresh caption appearance and position review of four supplied desktop/mobile captures. No broader review of other surfaces or native browser playback UI claimed. Earlier reviews preserved in reviewHistory.",
+        "materialFixes": "No material findings within this scope.",
+        "captures": [
+          ".impeccable/review/caption-position-desktop.png",
+          ".impeccable/review/caption-settings-desktop.png",
+          ".impeccable/review/caption-settings-mobile.png",
+          ".impeccable/review/caption-text-mobile.png"
+        ]
       },
       "reviewHistory": [
         {
@@ -1106,6 +1116,17 @@
           "disposition": "SHIP",
           "scope": "Subtitle-activation follow-up: desktop AI-on and active-cue views; mobile retry and active-cue views.",
           "materialFixes": "No material findings within this scope. Existing styles, layout, tokens, and prior review records preserved."
+        },
+        {
+          "disposition": "SHIP",
+          "scope": "Caption appearance and position follow-up: desktop caption position and settings; mobile caption settings and text.",
+          "materialFixes": "No material findings within this scope. Other surfaces and earlier review history preserved.",
+          "captures": [
+            ".impeccable/review/caption-position-desktop.png",
+            ".impeccable/review/caption-settings-desktop.png",
+            ".impeccable/review/caption-settings-mobile.png",
+            ".impeccable/review/caption-text-mobile.png"
+          ]
         }
       ]
     }
