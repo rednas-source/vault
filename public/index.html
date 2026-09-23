@@ -2056,7 +2056,7 @@ function musicTrackRow(f,i,n){
 
 function mediaFolderChip(f,list){
   const i=list.indexOf(f);
-  return `<div class="media-folder-chip"><button data-act="folder" data-i="${i}"><span>▰</span>${esc(f.name)}</button><button class="media-folder-share" data-act="share" data-i="${i}" title="Share this folder">Share</button></div>`;
+  return `<div class="media-folder-chip" data-rel="${esc(f.rel)}"><button data-act="folder" data-i="${i}"><span>▰</span>${esc(f.name)}</button><button class="media-folder-share" data-act="share" data-i="${i}" title="Share this folder">Share</button></div>`;
 }
 
 function musicView(files,list,folders){
@@ -2431,7 +2431,7 @@ function libraryGrid(list){
 function gridView(list){
   if(state.mode==='files') return libraryGrid(list);
   return `<div class="tiles">${list.map((f,i)=>{
-    if(f.kind === 'folder') return `<button class="tile folder-tile" data-act="folder" data-i="${i}">
+    if(f.kind === 'folder') return `<button class="tile folder-tile" data-act="folder" data-i="${i}" data-rel="${esc(f.rel)}">
       <div class="tile-art blank"><span class="ph">${icon('folder')}</span></div>
       <div class="tile-body"><b title="${esc(f.name)}">${esc(f.name)}</b><small>Folder · ${ago(f.modified)}</small></div>
     </button>`;

@@ -199,7 +199,15 @@ function wireDropTarget(element,destination){
 function wireFileInteractions(list){
   $('#scroll').oncontextmenu=state.mode==='files'?showBackgroundMenu:null;
   if(state.mode!=='files'){
-    $('#scroll').ondragover=null;$('#scroll').ondrop=null;$('#scroll').ondragleave=null;return;
+    $('#scroll').ondragover=null;$('#scroll').ondrop=null;$('#scroll').ondragleave=null;
+    $('#scroll').querySelectorAll('.media-folder-chip[data-rel],.folder-tile[data-rel]').forEach(row=>{
+      const folder=list.find(file=>file.kind==='folder'&&file.rel===row.dataset.rel);if(!folder)return;
+      row.oncontextmenu=event=>showFileMenu(folder,event);
+      row.onkeydown=event=>{
+        if(event.key==='ContextMenu'||(event.shiftKey&&event.key==='F10'))showFileMenu(folder,event);
+      };
+    });
+    return;
   }
   const scope=JSON.stringify([state.shelf,state.folder,state.q,state.sort]);
   if(scope!==selectionScope){selectionScope=scope;selectionAnchor=null;}

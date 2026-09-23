@@ -23,6 +23,18 @@ const freePort = () => new Promise((resolve, reject) => {
 
 async function main() {
   const port = await freePort();
+  const indexHtml = await fsp.readFile(path.join(repo, 'public', 'index.html'), 'utf8');
+  const libraryActions = await fsp.readFile(path.join(repo, 'public', 'library-actions.js'), 'utf8');
+  assert(
+    indexHtml.includes('class="media-folder-chip" data-rel="${esc(f.rel)}"')
+      && indexHtml.includes('class="tile folder-tile" data-act="folder" data-i="${i}" data-rel="${esc(f.rel)}"'),
+    'Entertainment folder cards are missing stable paths for their context menus',
+  );
+  assert(
+    libraryActions.includes("querySelectorAll('.media-folder-chip[data-rel],.folder-tile[data-rel]')")
+      && libraryActions.includes('showFileMenu(folder,event)'),
+    'Entertainment folder cards are not wired to the folder action menu',
+  );
   await fsp.cp(path.join(repo, 'public'), path.join(temp, 'public'), { recursive: true });
   await fsp.cp(path.join(repo, 'lib'), path.join(temp, 'lib'), { recursive: true });
   await fsp.copyFile(path.join(repo, 'server.js'), path.join(temp, 'server.js'));
