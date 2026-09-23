@@ -1,5 +1,5 @@
 /* Shared header: a centered search field and compact, labeled icon controls. */
-#app>header.app-header{height:68px;padding:0 24px;display:grid;grid-template-columns:120px 1fr minmax(260px,400px) 1fr;gap:16px;background:var(--night);backdrop-filter:none;position:relative}
+#app>header.app-header{height:68px;padding:0 24px;display:grid;grid-template-columns:96px 1fr minmax(260px,400px) 1fr;gap:16px;background:var(--night);backdrop-filter:none;position:relative}
 #app>header .brand{grid-column:1;grid-row:1;font-size:12px;letter-spacing:.27em;width:auto;white-space:nowrap}
 #app>header .brand i{box-shadow:none;background:var(--accent)}
 #app>header .space-nav{grid-column:2;grid-row:1;justify-self:start;display:flex;border:0;background:none;padding:0;gap:4px}

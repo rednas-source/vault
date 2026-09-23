@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js && node scripts/check-client.js",
-    "test": "node tests/archive.test.js && node tests/file-operations.test.js && node tests/document-preview.test.js && node tests/library-tools.test.js && node tests/watch-model.test.js && node tests/show-metadata.test.js && node tests/library-sort.test.js"
+    "test": "node tests/archive.test.js && node tests/file-operations.test.js && node tests/document-preview.test.js && node tests/library-tools.test.js && node tests/watch-model.test.js && node tests/show-metadata.test.js && node tests/library-sort.test.js && node tests/apps.test.js"
   },
   "dependencies": {
     "@phosphor-icons/web": "^2.1.2",

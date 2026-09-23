@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-metadata-sort-20260923">
+<meta name="vault-build" content="vault-apps-scan-20260923">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1311,11 +1311,12 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-metadata-sort-20260923">
-<link rel="stylesheet" href="/library.css?v=vault-metadata-sort-20260923">
-<link rel="stylesheet" href="/watch.css?v=vault-metadata-sort-20260923">
-<link rel="stylesheet" href="/listen.css?v=vault-metadata-sort-20260923">
-<link rel="stylesheet" href="/appearance.css?v=vault-metadata-sort-20260923">
+<link rel="stylesheet" href="/chromatic.css?v=vault-apps-scan-20260923">
+<link rel="stylesheet" href="/library.css?v=vault-apps-scan-20260923">
+<link rel="stylesheet" href="/watch.css?v=vault-apps-scan-20260923">
+<link rel="stylesheet" href="/listen.css?v=vault-apps-scan-20260923">
+<link rel="stylesheet" href="/appearance.css?v=vault-apps-scan-20260923">
+<link rel="stylesheet" href="/apps.css?v=vault-apps-scan-20260923">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1351,6 +1352,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <button class="on" data-space="library" aria-current="page" aria-label="Library" title="Library"><i class="ph ph-folder-simple" aria-hidden="true"></i><span>Library</span></button>
       <button data-space="watch" aria-label="Watch" title="Watch"><i class="ph ph-film-slate" aria-hidden="true"></i><span>Watch</span></button>
       <button data-space="listen" aria-label="Listen" title="Listen"><i class="ph ph-headphones" aria-hidden="true"></i><span>Listen</span></button>
+      <button data-space="apps" aria-label="Apps" title="Apps"><i class="ph ph-squares-four" aria-hidden="true"></i><span>Apps</span></button>
     </nav>
     <label class="search global-search">
       <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
@@ -1546,14 +1548,15 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-metadata-sort-20260923"></script>
-<script src="/listen.js?v=vault-metadata-sort-20260923"></script>
-<script src="/watch-model.js?v=vault-metadata-sort-20260923"></script>
-<script src="/watch.js?v=vault-metadata-sort-20260923"></script>
-<script src="/document-reader.js?v=vault-metadata-sort-20260923"></script>
-<script src="/library-tools.js?v=vault-metadata-sort-20260923"></script>
-<script src="/library-sort.js?v=vault-metadata-sort-20260923"></script>
-<script src="/library-actions.js?v=vault-metadata-sort-20260923"></script>
+<script src="/appearance.js?v=vault-apps-scan-20260923"></script>
+<script src="/listen.js?v=vault-apps-scan-20260923"></script>
+<script src="/watch-model.js?v=vault-apps-scan-20260923"></script>
+<script src="/watch.js?v=vault-apps-scan-20260923"></script>
+<script src="/apps.js?v=vault-apps-scan-20260923"></script>
+<script src="/document-reader.js?v=vault-apps-scan-20260923"></script>
+<script src="/library-tools.js?v=vault-apps-scan-20260923"></script>
+<script src="/library-sort.js?v=vault-apps-scan-20260923"></script>
+<script src="/library-actions.js?v=vault-apps-scan-20260923"></script>
 <script>
 'use strict';
 
@@ -1602,6 +1605,8 @@ document.querySelectorAll('[data-space]').forEach((button) => {
     if(space === 'library'){
       state.mode = 'files';
       if(['movies','series','music'].includes(state.shelf)) state.shelf = 'all';
+    }else if(space === 'apps'){
+      state.mode='apps';
     }else if(space === 'listen'){
       state.mode = 'entertainment'; state.shelf = 'music';state.listenPage='home';state.listenDetail=null;
     }else{
@@ -2142,6 +2147,7 @@ function renderBreadcrumbs(){
 /* ── render */
 function render(){
   closeFileMenu();
+  syncAppsSurface();
   $('#sort').value=state.sort;
   document.body.classList.toggle('watch-mode',watchActive());
   document.body.classList.toggle('listen-mode',listenActive());
@@ -2162,10 +2168,10 @@ function render(){
   }
 
   document.querySelectorAll('[data-space]').forEach((button)=>{
-    const active=button.dataset.space==='library'?state.mode!=='entertainment':button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
+    const active=button.dataset.space==='apps'?state.mode==='apps':button.dataset.space==='library'?!['apps','entertainment'].includes(state.mode):button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
     button.classList.toggle('on',active);button.toggleAttribute('aria-current',active);
   });
-  $('#q').placeholder=state.mode==='shares'?'Search shared links':state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
+  $('#q').placeholder=state.mode==='apps'?'Search apps':state.mode==='shares'?'Search shared links':state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
   const libraryFiles=state.files.filter(f=>!MEDIA_SHELVES.has(f.shelf));
   const summaryFiles=state.shelf!=='all'?state.files.filter(f=>f.shelf===state.shelf):libraryFiles;
   $('.library-heading h2').textContent=MEDIA_SHELVES.has(state.shelf)&&state.mode==='files'?`${SHELF_LABEL[state.shelf]} files`:'Library';
@@ -2222,6 +2228,10 @@ function render(){
     ? present.map((s)=>`<span>${SHELF_LABEL[s]} <b>${bytes(sizes[s])}</b></span>`).join('')
     : '<span>Vault empty</span>';
 
+  if(state.mode==='apps'){
+    clearTimeout(featureTimer);document.body.classList.remove('media-mode');
+    wireFileInteractions([]);updateBulkBar();renderApps();return;
+  }
   if(state.mode==='shares'){
     clearTimeout(featureTimer);document.body.classList.remove('media-mode');
     $('#resume').classList.remove('on');$('#resume').innerHTML='';

@@ -36,7 +36,7 @@ function watchArt(group,{wide=false,priority=false}={}){
 }
 function watchNav(){
   const tab=state.watchTab||'home';
-  return `<nav class="watch-navigation" aria-label="Watch"><div>${[['home','Home'],['movies','Movies'],['shows','TV Shows']].map(([key,label])=>`<button data-watch-tab="${key}" class="${tab===key?'on':''}" ${tab===key?'aria-current="page"':''}>${label}</button>`).join('')}</div><button class="watch-search-button" data-watch-search>${icon('magnifying-glass')}<span>Search</span></button></nav>`;
+  return `<nav class="watch-navigation" aria-label="Watch"><div>${[['home','Home'],['movies','Movies'],['shows','TV Shows']].map(([key,label])=>`<button data-watch-tab="${key}" class="${tab===key?'on':''}" ${tab===key?'aria-current="page"':''}>${label}</button>`).join('')}</div><div class="watch-nav-actions"><button class="watch-search-button" data-watch-scan aria-label="Scan metadata" title="Scan metadata" aria-expanded="${metadataPanelOpen}">${icon('arrows-clockwise')}<span>${metadataJob?.status==='running'?'Scanning…':'Scan metadata'}</span></button><button class="watch-search-button" data-watch-search aria-label="Search Watch">${icon('magnifying-glass')}<span>Search</span></button></div></nav><div id="watchScanPanel" ${metadataPanelOpen?'':'hidden'}></div>`;
 }
 function watchPoster(group){
   return `<button class="watch-poster" ${watchDetailAttrs(group)} aria-label="${esc(group.type==='show'?'View seasons of '+watchTitle(group):'View '+watchTitle(group))}">${watchArt(group)}<span class="watch-poster-title" data-title-rel="${esc(group.representative.rel)}">${esc(watchTitle(group))}</span><span class="watch-poster-meta">${group.type==='show'?`${group.seasons.length} ${group.seasons.length===1?'season':'seasons'}`:watchMeta(group).year||group.year||'Movie'}</span></button>`;
@@ -111,6 +111,8 @@ function wireWatch(list){
   if(!watchActive())return;
   clearTimeout(featureTimer);
   const catalog=watchCatalog(list);
+  $('[data-watch-scan]').onclick=()=>{metadataPanelOpen=!metadataPanelOpen;renderMetadataPanel();if(metadataPanelOpen)void startMetadataScan();};
+  renderMetadataPanel();
   $('#scroll').querySelectorAll('[data-watch-tab]').forEach(button=>button.onclick=()=>navigateWatch({watchTab:button.dataset.watchTab}));
   $('#scroll').querySelectorAll('[data-watch-detail]').forEach(button=>button.onclick=()=>navigateWatch({watchTab:button.dataset.kind==='show'?'shows':'movies',[button.dataset.kind==='show'?'showDetail':'movieDetail']:button.dataset.watchDetail}));
   $('#scroll').querySelectorAll('[data-watch-season]').forEach(button=>button.onclick=()=>navigateWatch({watchTab:'shows',showDetail:state.showDetail,watchSeason:Number(button.dataset.watchSeason)}));
@@ -153,4 +155,51 @@ async function hydrateWatch(catalog){
     }
   }
   await Promise.all([worker(),worker(),worker(),worker()]);
+}
+
+
+let metadataPanelOpen=false,metadataJob=null,metadataSettings=null,metadataTimer=null,metadataRequest=false,metadataError='';
+function renderMetadataPanel(){
+  const panel=$('#watchScanPanel');if(!panel)return;
+  panel.hidden=!metadataPanelOpen;
+  const button=$('[data-watch-scan]');button?.setAttribute('aria-expanded',String(metadataPanelOpen));
+  if(button)button.querySelector('span').textContent=metadataJob?.status==='running'?'Scanning…':'Scan metadata';
+  if(!metadataPanelOpen)return;
+  const job=metadataJob,working=job?.status==='running',missingKey=metadataSettings&&!metadataSettings.tmdbConfigured;
+  const summary=metadataRequest&&!job?'Starting scan…':working?`Scanning ${job.done} of ${job.total} titles…`:job?.status==='complete'?`${job.matched} of ${job.total} titles matched`:job?.status==='error'?'Scan could not finish':'Scan your movie and TV metadata';
+  panel.innerHTML=`<section class="watch-scan-panel"><div class="watch-scan-heading"><div><h2 role="status">${esc(summary)}</h2><p>${working?'You can keep browsing while artwork and details update.':job?.status==='complete'?(job.matched?'Scan finished. Matched titles are ready in Watch.':'No titles matched. Check the details below, then scan again.'):'Retry matching titles and refresh artwork.'}</p></div><button class="watch-icon-button" id="closeMetadataPanel" aria-label="Close scan results">${icon('x')}</button></div>${metadataError?`<p role="alert">${esc(metadataError)}</p>`:''}${job?.error?`<p role="alert">${esc(job.error)}</p>`:''}${missingKey?`<p class="watch-scan-notice">Movie metadata needs a TMDB API key. ${metadataSettings.canConfigure?'Open Metadata settings to add your key, then scan again.':'Ask a Vault administrator to configure it.'} TV shows can use TVmaze without a key.</p>`:''}${job?.issues?.length?`<details class="watch-scan-issues"><summary>${job.issues.length} ${job.issues.length===1?'title needs':'titles need'} attention</summary><ul>${job.issues.map(issue=>`<li><strong>${esc(issue.name)}</strong><span>${esc(issue.reason)}</span></li>`).join('')}</ul></details>`:''}<div class="watch-scan-controls"><button class="watch-secondary" id="metadataRescan" ${working||metadataRequest?'disabled':''}>${icon('arrows-clockwise')} Scan again</button>${metadataSettings?.canConfigure?`<button class="watch-text-button" id="metadataConfigure" ${working?'disabled':''}>Metadata settings</button>`:''}</div><div id="metadataConfig"></div></section>`;
+  $('#closeMetadataPanel').onclick=()=>{metadataPanelOpen=false;renderMetadataPanel();};
+  $('#metadataRescan').onclick=()=>startMetadataScan();
+  $('#metadataConfigure')?.addEventListener('click',showMetadataSettings);
+}
+function showMetadataSettings(){
+  const host=$('#metadataConfig');if(!host)return;
+  host.innerHTML=`<form class="watch-metadata-form"><label for="tmdbKey">TMDB API key</label><div><input id="tmdbKey" type="password" autocomplete="off" required pattern="[a-fA-F0-9]{32}" placeholder="32-character API key"><button class="watch-secondary" type="submit">Save key</button></div><p>Get an API key from <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">your TMDB account</a>. Your key stays on the Vault server.</p><p role="alert" id="tmdbError"></p></form>`;
+  $('#tmdbKey').focus();
+  host.querySelector('form').onsubmit=async event=>{event.preventDefault();const submit=host.querySelector('button');submit.disabled=true;
+    try{await appsRequest('/api/metadata/settings',{method:'PUT',body:JSON.stringify({tmdbKey:$('#tmdbKey').value})});metadataSettings.tmdbConfigured=true;await startMetadataScan();}
+    catch(error){$('#tmdbError').textContent=error.message;submit.disabled=false;}
+  };
+}
+async function startMetadataScan(){
+  if(metadataRequest||metadataJob?.status==='running')return;
+  metadataRequest=true;metadataError='';renderMetadataPanel();
+  try{
+    metadataSettings=await appsRequest('/api/metadata/settings');
+    const scope=state.watchTab==='shows'?'series':state.watchTab==='movies'?'movies':'all';
+    metadataJob=await appsRequest('/api/metadata/scan',{method:'POST',body:JSON.stringify({scope})});
+    void pollMetadataScan();
+  }catch(error){metadataError=error.message;}
+  finally{metadataRequest=false;renderMetadataPanel();}
+}
+async function pollMetadataScan(){
+  clearTimeout(metadataTimer);
+  try{
+    metadataJob=await appsRequest('/api/metadata/scan');
+    if(metadataJob.status==='running'){renderMetadataPanel();metadataTimer=setTimeout(pollMetadataScan,1500);}
+    else{
+      mediaMetaCache.clear();watchMetaCache.clear();watchRenderVersion++;
+      if(watchActive())render();
+    }
+  }catch(error){metadataError=error.message;renderMetadataPanel();metadataTimer=setTimeout(pollMetadataScan,5000);}
 }

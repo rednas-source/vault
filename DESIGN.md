@@ -1,6 +1,6 @@
 ---
-name: Vault — Library, Watch, and Listen
-description: A compact private archive, cinematic Watch library, and charcoal music player with configurable accents.
+name: Vault — Library, Watch, Listen, and Apps
+description: A compact private archive, cinematic Watch library, charcoal music player, and personal app workspace with configurable accents.
 colors:
   signal-orange: "#ff6b3c"
   archive-black: "#070909"
@@ -176,6 +176,7 @@ typography:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
     fontSize: "13px"
 rounded:
+  apps-surface: "10px"
   listen-panel: "8px"
   appearance-panel: "12px"
   watch-nav: "3px"
@@ -203,6 +204,15 @@ spacing:
   lg: "18px"
   xl: "26px"
 components:
+  apps-button:
+    textColor: "{colors.warm-white}"
+    rounded: "{rounded.library-toolbar}"
+    padding: "8px 14px"
+  apps-button-primary:
+    backgroundColor: "{colors.warm-white}"
+    textColor: "{colors.archive-black}"
+    rounded: "{rounded.library-toolbar}"
+    padding: "8px 14px"
   listen-play:
     backgroundColor: "{colors.palette-blue-dark}"
     textColor: "#101010"
@@ -278,7 +288,7 @@ components:
     height: "32px"
 ---
 
-# Design System: Vault — Library, Watch, and Listen
+# Design System: Vault — Library, Watch, Listen, and Apps
 
 ## Overview
 
@@ -286,7 +296,7 @@ components:
 
 Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.
 
-Library retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Administration and video playback retain their established structures. The shared header now has compact utility icons, optional icon-only section tabs, and centered sans search across all three spaces.
+Library retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration and video playback retain their established structures. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search across all four spaces.
 
 Appearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.
 
@@ -296,6 +306,7 @@ Appearance chooses one accent palette for the site, with a default reset that re
 - One configurable accent; default orange in Library/Watch and light blue in Listen.
 - Sans-led media titles, tracks, and metadata with operational mono retained where already used.
 - Compact shared navigation, centered search, and directly reachable utility icons.
+- A flat app directory and viewport-filling workspace using the archive's existing theme.
 - Restrained state feedback, persistent music transport, and reduced-motion support.
 
 ## Colors
@@ -303,6 +314,8 @@ Appearance chooses one accent palette for the site, with a default reset that re
 The archive palette is almost monochrome until state or media calls for an accent. Watch is a neutral dark surface and Listen a charcoal panel system, including when the Library theme is light. Appearance owns the shared accent variables; the frontmatter records its exact dark and light palette variants in their runtime RGB notation.
 
 Library inherits the shared dark/light variables from `public/chromatic.css`: `--night`, `--night-raised`, `--panel`, `--light`, `--muted`, `--accent`, and the existing divider and selection variables. Its toolbar, rows, and tiles use these same theme roles; there is no Library-only palette or new media color system.
+
+Apps inherits those same theme variables, including Appearance's accent. App symbols use the existing soft accent ground, directory rows use quiet dividers, and the inline editor uses Raised Surface. The frontmatter's Apps button colors record the dark defaults; runtime theme roles also support the light theme. Watch's metadata report uses its existing Panel, Line, and Muted roles.
 
 ### Primary
 
@@ -375,6 +388,10 @@ Archive spacing follows a compact 4/8/12 rhythm inside controls and an 18/26 rhy
 
 The shared header is 68px high on desktop, with brand and section tabs left, centered search (260–400px wide, 38px high), and 38px circular utilities right. At 1100px it becomes 112px tall with search on its second row. At 600px it becomes 150px tall with utilities, section navigation, and search on separate rows; search is 36px high and utilities 33px wide. Appearance is a 330px-wide bounded scrolling popover, with a three-column palette selector.
 
+Apps explicitly reserves those same 68px / 112px / 150px header rows within a 100dvh grid. Its directory is centered at a maximum width of 1100px with a flexible side gutter. Rows align application, opening mode, and edit action; at 600px the mode column disappears and the edit action remains. The inline editor has two columns on desktop and one on phones. Opening an embedded app reduces the directory to a compact title/action strip, capped at 185px, while the frame flexes to the bottom of the remaining viewport. Phone actions wrap to a full-width row without reducing the frame to a fixed-height preview. All four section tabs remain visible.
+
+Watch places Scan metadata beside its local Search action. The disclosed report sits beneath local navigation within the existing Watch gutter, with 22px padding (18px at 600px). Counts and setup guidance precede collapsible per-title issues; the issue list scrolls within a 200px maximum height. Scan controls and the administrator's key form wrap on phones.
+
 Listen fills the remaining viewport with 8px gaps and 8px outer panel spacing. Its default desktop columns are 264px / flexible content, or 244px / flexible content / 280px when the side panel is open. Sidebar and main content scroll independently. The sticky music navigation is at least 70px high. Home has four quick-shortcut columns and album grids starting at 155px; collection art is 220px square beside the title. Track rows are at least 58px high, with aligned number, title, album, like, duration, and options; album tracks omit the redundant album column.
 
 At 1250px Listen narrows its sidebar to 225px (210px with the panel open), uses two quick-shortcut columns, reduces collection art to 180px, and overlays the 300px side panel. At 1100px track album columns disappear and album grids start at 140px. At 760px the sidebar disappears into the mobile Library entry; album/playlist grids become two columns, collection artwork stacks above copy, and tracks become at least 62px with title, like, and options. Number/duration columns disappear; play and like actions remain visible. At 600px panel outer padding is 6px. The dock is 92px tall on desktop and 80px at 760px and below, with content space reserved so it does not cover the library.
@@ -400,6 +417,8 @@ The archive combines tonal layers with soft ambient depth. Working rows and navi
 Compact work controls use 5–7px corners. Owner surfaces retain 12–16px corners. Listen uses 4px tracks and small art, 5px cover art, 6px album targets, 7px now-playing art, and 8px main panels (7px on small phones). Its filters are pills and play/icon controls are circles. Shared search has 9px corners and Appearance 12px. Watch uses its dedicated small radii for shared-space tab selection, rectangular playback controls, and upright artwork; circular outlines are reserved for rail arrows and options. No tilted posters or decorative orbit framing belong to Watch.
 
 Library refines that compact vocabulary: 4px view-toggle buttons, 5px menu and bulk Download actions, 6px toolbar controls, ZIP fields, and mobile shelf bands, 7px grid tiles and context menus, and a 9px bulk-action surface. These are corner sizes, independent of the text and icon scales.
+
+Apps uses flat divided rows, 6px action corners, 5px input corners, and the Apps Surface radius for its symbol tiles and inline form. The metadata report uses the existing 8px panel radius and 5px key-field corners. Neither surface adds ornamental elevation.
 
 ## Components
 
@@ -428,7 +447,21 @@ Library refines that compact vocabulary: 4px view-toggle buttons, 5px menu and b
 
 ### Navigation
 
-The three primary spaces share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps the text labels for icons while preserving accessible labels and titles. Search stays centered, and Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
+The four primary spaces appear in order: Library, Watch, Listen, Apps. They share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps the text labels for icons while preserving accessible labels and titles. Search stays centered, and Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
+
+### Apps Directory and Workspace
+
+The directory pairs a modest heading and Add app action with flat rows: a soft accent symbol, 15px/600 app name, 12px muted description, opening mode, and persistent Edit action. The heading is 30px on desktop and 25px on phones; an open workspace uses an 18px heading. Shared search becomes Search apps. Loading, retry, empty-directory, and no-match messages occupy the same quiet surface.
+
+Add and Edit disclose an inline form above the list, with Name, Open in, Address, and optional Description. Labels are 12px and inputs 13px; guidance changes with the opening mode, errors remain inline, and submission visibly disables the action. Removal asks for a second click using Confirm removal. Web apps can open inside Vault or in a new tab; Office document links identify their desktop destination.
+
+The embedded workspace retains Open in new tab and Close app beside the app identity. A compact hint explains the new-tab fallback for connection or separate sign-in needs. The mounted frame survives directory rerenders so an editor is not reloaded by surrounding UI updates. App content owns its own visual system; the Vault shell remains the established archive.
+
+### Watch Metadata Scan
+
+Scan metadata progressively discloses an inline report and starts matching. A live status names progress or the matched/total count; completion with zero matches explicitly says that no titles matched and directs the user to the details below. A collapsible attention count reveals individual title names and reasons. Scan again remains available after completion, while in-progress actions show disabled state.
+
+Missing setup names the exact requirement: movie metadata needs a TMDB API key; TV shows can use TVmaze without one. Administrators see Metadata settings and an inline password field for the 32-character API key, Save key, and a TMDB account link. Other users are directed to a Vault administrator. The report can close while browsing continues; status and errors remain textual, not color-only. This extends the existing Watch treatment without a new palette or branded surface.
 
 ### Listen Library, Collections, and Transport
 

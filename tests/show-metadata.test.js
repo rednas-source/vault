@@ -65,3 +65,17 @@ test('configured TMDB results are preferred and missing art falls back automatic
   const fallback = createShowMetadata({ cacheDir: path.join(cacheDir, 'fallback'), requestGap: 0, lookupTmdb: async () => ({ found: false }), fetchImpl: async url => ({ ok: true, json: async () => url.includes('/search/') ? [{ show }] : [] }) });
   assert.equal((await fallback.get(file())).provider, 'TVmaze');
 });
+
+test('manual scans bypass both cached misses and successful artwork before expiry', async t => {
+  const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vault-shows-'));
+  t.after(() => fs.rm(cacheDir, { recursive: true, force: true }));
+  let found=false,version=1,calls=0;
+  const service=createShowMetadata({cacheDir,requestGap:0,fetchImpl:async url=>{
+    calls++;return {ok:true,json:async()=>url.includes('/search/')?(found?[{show:{...show,summary:'Version '+version}}]:[]):[]};
+  }});
+  assert.equal((await service.get(file())).found,false);found=true;
+  assert.equal((await service.get(file())).found,false);assert.equal(calls,1);
+  assert.equal((await service.get(file(),{force:true})).overview,'Version 1');
+  version=2;assert.equal((await service.get(file(),{force:true})).overview,'Version 2');
+  assert.equal((await createShowMetadata({cacheDir,fetchImpl:()=>{throw new Error('cached')}}).get(file())).overview,'Version 2');
+});

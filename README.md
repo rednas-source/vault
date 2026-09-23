@@ -115,7 +115,7 @@ Create `config.json`:
 | `whisperDevice` | Optional. `auto`, `cuda`, or `cpu`; default `auto`. |
 | `subtitleJobs` | Optional. Simultaneous AI subtitle jobs, default 1 and capped at 2. |
 | `activityMax` | Optional. Activity entries retained, default 4000. |
-| `tmdbKey` | Optional. Enables poster art. Leave out to keep it off. |
+| `tmdbKey` | Optional TMDB API key for movie metadata. Shows can use TVmaze without a key. Also configurable by admins in Watch. |
 | `musicbrainzUserAgent` | Optional but recommended. A meaningful app/version/contact string sent to MusicBrainz, for example `Vault/1.0 (https://vault.example.com)`. |
 
 **Create the first account.** Add a temporary block to `config.json`:
@@ -324,7 +324,7 @@ The first generation with a model downloads that model once. Vault reports the l
 
 TV shows enrich automatically without setup through [TVmaze](https://www.tvmaze.com/api). A show folder such as `Breaking Bad (2008)/Season 1/01 - Pilot.mkv`, or a filename containing `S01E01`, provides the identity. All episodes share one cached show record. New uploads trigger lookup immediately, and startup plus a five-minute scan cover files added outside the website. Successful results refresh after seven days; unmatched titles retry after six hours and network failures after five minutes. Existing artwork remains usable during an outage. Metadata source attribution appears in show details.
 
-Add a TMDB key to enable movie artwork and prefer TMDB for shows:
+In **Watch → Scan metadata → Metadata settings**, an administrator can save a TMDB API key to enable movie artwork and prefer TMDB for shows. The key is validated and stored server-side in `.metadata-settings.json` under the storage path; it is never returned to the browser. Alternatively, set it in `config.json`:
 
 ```json
 "tmdbKey": "your-key-from-themoviedb.org"
@@ -334,7 +334,7 @@ With it, grid tiles show real posters instead of frame grabs, and titles are rep
 
 Matching uses the show folder or filename and an optional release year, so it can still be wrong. Unrecognizable titles keep their local fallback. `Blade Runner 2049 (2017)` correctly yields the 2017 film rather than reading 2049 as the year, and `Arcane - S01E03` searches for the show rather than a film. But a filename with no useful title in it won't match anything, and a wrong match is possible — anything TMDB doesn't recognise simply keeps its video frame.
 
-To refresh a stale match, call `POST /api/meta/clear` and check what `guessed` comes back in `/api/meta/<path>`.
+Use **Scan metadata** beside Watch’s search button to retry cached misses and refresh artwork. Movies and TV Shows scan their own catalog; Home scans both. One background scan runs per account, respects shelf access, and reports matched counts and titles needing attention. Movie misses expire after six hours; provider failures retry after five minutes. No file paths are changed. The legacy admin-only cache-clear endpoint remains available.
 
 ---
 
@@ -463,3 +463,12 @@ Deleting a shelf never deletes files — you nominate somewhere for the contents
 ## Library verification
 
 Run `npm run check` for server/client syntax and `npm test` for archive regression tests (nested selections, empty folders, path traversal, shelf restrictions, and symlinks). Folder and bulk downloads use streaming ZIP64 archives, retaining shelf paths to avoid duplicate-name collisions across shelves. The archive endpoint rechecks access for every selected shelf and does not follow symbolic links.
+
+
+## Apps (experimental)
+
+The **Apps** tab to the right of Listen keeps a personal list of projects and software. FlowForge is included using its existing hosted web app, with Visio import and the editor available inside Vault. Add, edit or remove entries; lists are stored per account in `.apps` under the storage path.
+
+Choose **Vault** for an embedded web app, **New browser tab** for sites that block embedding, or **Desktop** for an installed Office application’s document link (for example `ms-excel:ofe|u|https://example.com/workbook.xlsx`). Desktop links open the installed app; they do not run Excel inside the browser. Arbitrary executable commands and file-system URLs are not supported.
+
+Embedded apps keep their own hosting, sign-in and storage. Vault does not copy their source or grant them access to the file library. The sandbox permits app scripts, forms, downloads and new windows, while preventing top-level navigation. A visible **Open in new tab** link handles sites whose sign-in or frame policy prevents embedding. FlowForge’s own browser autosave remains its source of truth; closing its workspace ends that embedded session.

@@ -30,7 +30,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-metadata-sort-20260923';
+const BUILD_ID = 'vault-apps-scan-20260923';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -2792,7 +2792,9 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
  * be wrong. A wrong poster is worse than none, so anything below a confidence
  * threshold is discarded rather than shown.
  */
-const TMDB_KEY = config.tmdbKey || '';
+const METADATA_SETTINGS = path.join(ROOT, '.metadata-settings.json');
+let TMDB_KEY = config.tmdbKey || '';
+try { TMDB_KEY = JSON.parse(fs.readFileSync(METADATA_SETTINGS, 'utf8')).tmdbKey || TMDB_KEY; } catch { /* optional settings */ }
 const META_DIR = path.join(ROOT, '.meta');
 
 /**
@@ -2857,6 +2859,7 @@ async function lookupTmdb({ title, year, season, kind: guessKind }) {
     const r = await fetch(`https://api.themoviedb.org/3/${endpoint}?${q}`, {
       signal: AbortSignal.timeout(8000),
     });
+    if (!r.ok) data.reason = r.status===401 ? 'TMDB rejected the API key. Update Metadata settings.' : 'TMDB is temporarily unavailable. Try again later.';
     if (r.ok) {
       const j = await r.json();
       const hit = guessKind === 'tv' || guessKind === 'movie'
@@ -2909,14 +2912,14 @@ async function lookupTmdb({ title, year, season, kind: guessKind }) {
         } catch { /* base match remains useful when detail lookup fails */ }
       }
     }
-  } catch { /* network trouble — cache the miss briefly rather than retrying hard */ }
+  } catch { data.reason = 'TMDB could not be reached. Try scanning again later.'; }
 
   return data;
 }
 
 const showMetadata = require('./lib/show-metadata').createShowMetadata({
   cacheDir: path.join(META_DIR, 'shows'),
-  lookupTmdb: TMDB_KEY ? identity => lookupTmdb({ ...identity, kind: 'tv' }) : null,
+  lookupTmdb: identity => TMDB_KEY ? lookupTmdb({ ...identity, kind: 'tv' }) : null,
 });
 function warmAddedShows(rels) {
   const files = rels.filter(rel => rel.startsWith('series/') && THUMBABLE.includes(ext(rel))).map(rel => {
@@ -2935,46 +2938,94 @@ async function warmShowLibrary() {
   } finally { warmingShows = false; }
 }
 
+function movieIdentity(rel) {
+  const parts=rel.replace(/\\/g,'/').split('/');
+  const filename=guessTitle(parts.at(-1));
+  // Prefer the release name; use the immediate movie folder for generic files.
+  return /^(?:movie|main|video|film)$/i.test(filename.title) && parts.length>2
+    ? guessTitle(parts.at(-2)+'.mkv') : filename;
+}
+async function movieMetadata(rel,{force=false}={}) {
+  if(!TMDB_KEY)return {enabled:false,found:false,reason:'Movies need a TMDB API key. Add it in Metadata settings.'};
+  const guessed=movieIdentity(rel);
+  const key=crypto.createHash('sha256').update(`movie-v6:${guessed.title}:${guessed.year||''}`).digest('hex');
+  const cacheFile=path.join(META_DIR,'movies',key+'.json');
+  let cached;
+  try {cached=JSON.parse(await fsp.readFile(cacheFile,'utf8'));}catch{}
+  if(!force&&cached?.expiresAt>Date.now())return cached.data;
+  const data=await lookupTmdb({...guessed,kind:'movie'});
+  const result=data.reason&&cached?.data?.found?{...cached.data,reason:data.reason}:data;
+  await fsp.mkdir(path.dirname(cacheFile),{recursive:true});
+  await fsp.writeFile(cacheFile,JSON.stringify({expiresAt:Date.now()+(data.reason?300e3:data.found?7*86400e3:6*3600e3),data:result})).catch(()=>{});
+  return result;
+}
 app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
-  const full = safePath(req.params[0]);
-  if (!full) return res.status(400).end();
-  let st;
-  try { st = await fsp.stat(full); } catch { return res.status(404).end(); }
-  if (!st.isFile()) return res.status(400).end();
-  if (shelfOf(req.params[0]) === 'series') {
-    const parts = String(req.params[0]).replace(/\\/g, '/').split('/');
-    return res.json(await showMetadata.get({ name: parts.at(-1), dir: parts.slice(1, -1).join('/') }));
+  const rel=req.params[0],full=safePath(rel);
+  if(!full)return res.status(400).end();
+  let st;try{st=await fsp.stat(full);}catch{return res.status(404).end();}
+  if(!st.isFile())return res.status(400).end();
+  if(shelfOf(rel)==='series') {
+    const parts=rel.replace(/\\/g,'/').split('/');
+    return res.json(await showMetadata.get({name:parts.at(-1),dir:parts.slice(1,-1).join('/')}));
   }
-  if (!TMDB_KEY) return res.json({ enabled: false });
-
-  const key = crypto.createHash('sha256').update(`meta-v5\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
-  const cacheFile = path.join(META_DIR, `${key}.json`);
-  try {
-    return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
-  } catch { /* look it up */ }
-
-  const mediaShelf = shelfOf(req.params[0]);
-  const relParts = String(req.params[0]).replace(/\\/g, '/').split('/').filter(Boolean);
-  // A movie folder is usually a cleaner identity than the release filename
-  // inside it (and handles generic names such as movie.mkv or main.mkv).
-  const name = mediaShelf === 'movies' && relParts.length > 2 ? relParts[1] : path.basename(full);
-  const identity = mediaShelf === 'series' ? require('./public/watch-model').episode({name:path.basename(full),dir:relParts.slice(1,-1).join('/')}) : null;
-  const guessed = identity && identity.show !== 'Unsorted shows'
-    ? { ...guessTitle(identity.show + '.mkv'), kind:'tv', season:identity.season, episode:identity.episode }
-    : guessTitle(name);
-  const title = guessed.title;
-  const year = guessed.year;
-  const season = guessed.season;
-  // The shelf is stronger evidence than a fuzzy search result. Movies should
-  // never turn into a TV match merely because search/multi ranked one first.
-  const guessKind = mediaShelf === 'series' ? 'tv' : mediaShelf === 'movies' ? 'movie' : guessed.kind;
-  if (!title || title.length < 2) return res.json({ enabled: true, found: false });
-
-  const data = await lookupTmdb({title,year,season,kind:guessKind});
-  await fsp.mkdir(META_DIR, { recursive: true }).catch(() => {});
-  await fsp.writeFile(cacheFile, JSON.stringify(data)).catch(() => {});
-  res.json(data);
+  if(shelfOf(rel)!=='movies')return res.json({enabled:false});
+  try {res.json(await movieMetadata(rel));}catch{res.status(503).json({error:'Metadata is temporarily unavailable.'});}
 });
+
+const metadataScans=new Map();
+app.get('/api/metadata/settings',auth,(req,res)=>res.json({tmdbConfigured:!!TMDB_KEY,canConfigure:req.user.role==='admin'}));
+app.put('/api/metadata/settings',auth,adminOnly,async(req,res)=>{
+  const key=String(req.body.tmdbKey||'').trim();
+  if(!/^[a-f0-9]{32}$/i.test(key))return res.status(400).json({error:'Enter your TMDB API key (32 characters), not the read access token.'});
+  try {
+    const response=await fetch('https://api.themoviedb.org/3/configuration?'+new URLSearchParams({api_key:key}),{signal:AbortSignal.timeout(8000)});
+    if(!response.ok)return res.status(400).json({error:'TMDB did not accept this key. Check your API settings and try again.'});
+    const temp=METADATA_SETTINGS+'.'+crypto.randomUUID()+'.tmp';
+    try{await fsp.writeFile(temp,JSON.stringify({tmdbKey:key}),{mode:0o600});await fsp.rename(temp,METADATA_SETTINGS);}
+    finally{await fsp.rm(temp,{force:true}).catch(()=>{});}TMDB_KEY=key;
+    res.json({ok:true});
+  }catch{res.status(503).json({error:'Could not connect to TMDB or save the key. Try again.'});}
+});
+app.get('/api/metadata/scan',auth,(req,res)=>res.json(metadataScans.get(req.user.name)||{status:'idle'}));
+app.post('/api/metadata/scan',auth,async(req,res)=>{
+  const scope=req.body.scope;
+  if(!['all','movies','series'].includes(scope))return res.status(400).json({error:'Choose movies or TV shows.'});
+  const shelves=(scope==='all'?['movies','series']:[scope]).filter(shelf=>canUse(req.user,shelf));
+  if(!shelves.length)return res.status(403).json({error:'No access to these shelves.'});
+  const existing=metadataScans.get(req.user.name);
+  if(existing?.status==='running')return res.status(202).json(existing);
+  const job={status:'running',scope,total:0,done:0,matched:0,issues:[],startedAt:Date.now()};
+  metadataScans.set(req.user.name,job);
+  res.status(202).json(job);
+  try {
+    const seen=new Set(),files=[];
+    for(const shelf of shelves){
+      const scanned=await scanShelf(shelf);
+      for(const file of scanned.files.filter(file=>THUMBABLE.includes(file.ext))){
+        const identity=shelf==='series'?require('./lib/show-metadata').showIdentity(file):movieIdentity(file.rel);
+        const key=shelf+':'+(identity.key||JSON.stringify(identity));
+        if(!seen.has(key)){seen.add(key);files.push(file);}
+      }
+    }
+    job.total=files.length;
+    for(const file of files){
+      // Recheck access for long-running scans if an administrator changes it.
+      if(!canUse(req.user,file.shelf))continue;
+      let data;
+      try{data=file.shelf==='series'?await showMetadata.get(file,{force:true}):await movieMetadata(file.rel,{force:true});}catch{data={reason:'Lookup unavailable. Try again later.'};}
+      if(data.found)job.matched++;
+      if(!data.found||data.reason)job.issues.push({name:file.shelf==='series'?require('./lib/show-metadata').showIdentity(file).title:movieIdentity(file.rel).title,reason:data.reason||'No confident match. Check the title and release year in the file or folder name.'});
+      job.done++;
+    }
+    job.status='complete';
+  }catch{job.status='error';job.error='Could not scan this library. Try again.';}
+});
+
+const appStore=require('./lib/apps').createAppStore(path.join(ROOT,'.apps'));
+app.get('/api/apps',auth,(req,res)=>{try{res.json({apps:appStore.read(req.user.name)});}catch{res.status(500).json({error:'Could not load your apps.'});}});
+app.post('/api/apps',auth,(req,res)=>{try{res.status(201).json(appStore.save(req.user.name,req.body,undefined,`${req.protocol}://${req.get('host')}`));}catch(e){res.status(400).json({error:e.message});}});
+app.put('/api/apps/:id',auth,(req,res)=>{try{res.json(appStore.save(req.user.name,req.body,req.params.id,`${req.protocol}://${req.get('host')}`));}catch(e){res.status(400).json({error:e.message});}});
+app.delete('/api/apps/:id',auth,(req,res)=>{try{appStore.remove(req.user.name,req.params.id);res.json({ok:true});}catch{res.status(500).json({error:'Could not remove this app.'});}});
 
 // Music metadata is useful even without an API key. Embedded tags are the
 // source of truth; MusicBrainz and Cover Art Archive only fill gaps and add a

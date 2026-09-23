@@ -74,3 +74,10 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - Reduced-motion preferences disable automatic rotation and nonessential transforms.
 - Text and essential controls meet strong contrast on both themes.
 - Hover-only information is also available through focus and detail views.
+
+
+## Apps and metadata scanning — September 2026
+
+- Apps is the fourth top-level section, after Listen. It extends the quiet Library visual language with a compact personal tool directory and a full-width embedded workspace. FlowForge’s existing hosted browser app is the initial entry.
+- Each account can add, edit and remove web apps, choose embedded or new-tab opening, and save installed Office document launch links. Browser applications and native desktop applications remain distinct; native Excel cannot run inside an iframe.
+- Watch’s local navigation exposes Scan metadata beside Search. Scans run in the background for Movies, TV Shows or both on Home, retry cached misses, and report progress and unmatched titles. Movie metadata requires a TMDB API key; administrators can configure it from the scan panel. TVmaze remains available for shows without setup.
