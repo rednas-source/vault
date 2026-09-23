@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-player-controls-20260923">
+<meta name="vault-build" content="vault-subtitle-activation-20260923">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1311,13 +1311,13 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-player-controls-20260923">
-<link rel="stylesheet" href="/library.css?v=vault-player-controls-20260923">
-<link rel="stylesheet" href="/watch.css?v=vault-player-controls-20260923">
-<link rel="stylesheet" href="/listen.css?v=vault-player-controls-20260923">
-<link rel="stylesheet" href="/appearance.css?v=vault-player-controls-20260923">
-<link rel="stylesheet" href="/apps.css?v=vault-player-controls-20260923">
-<link rel="stylesheet" href="/player.css?v=vault-player-controls-20260923">
+<link rel="stylesheet" href="/chromatic.css?v=vault-subtitle-activation-20260923">
+<link rel="stylesheet" href="/library.css?v=vault-subtitle-activation-20260923">
+<link rel="stylesheet" href="/watch.css?v=vault-subtitle-activation-20260923">
+<link rel="stylesheet" href="/listen.css?v=vault-subtitle-activation-20260923">
+<link rel="stylesheet" href="/appearance.css?v=vault-subtitle-activation-20260923">
+<link rel="stylesheet" href="/apps.css?v=vault-subtitle-activation-20260923">
+<link rel="stylesheet" href="/player.css?v=vault-subtitle-activation-20260923">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1549,16 +1549,16 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-player-controls-20260923"></script>
-<script src="/listen.js?v=vault-player-controls-20260923"></script>
-<script src="/watch-model.js?v=vault-player-controls-20260923"></script>
-<script src="/watch.js?v=vault-player-controls-20260923"></script>
-<script src="/player.js?v=vault-player-controls-20260923"></script>
-<script src="/apps.js?v=vault-player-controls-20260923"></script>
-<script src="/document-reader.js?v=vault-player-controls-20260923"></script>
-<script src="/library-tools.js?v=vault-player-controls-20260923"></script>
-<script src="/library-sort.js?v=vault-player-controls-20260923"></script>
-<script src="/library-actions.js?v=vault-player-controls-20260923"></script>
+<script src="/appearance.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/listen.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/watch-model.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/watch.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/player.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/apps.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/document-reader.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/library-tools.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/library-sort.js?v=vault-subtitle-activation-20260923"></script>
+<script src="/library-actions.js?v=vault-subtitle-activation-20260923"></script>
 <script>
 'use strict';
 
@@ -2476,7 +2476,7 @@ async function askMassConvert(files,label){
     <div class="convert-picks">${[['720','720p'],['1080','1080p'],['2160','4K'],['original','Original resolution']].map(([id,name])=>`<button data-quality="${id}" class="${quality===id?'on':''}">${name}</button>`).join('')}</div>
     <div class="conversion-status" id="conversionStatus"></div><div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Convert and replace ${mkvs.length}</button></div>`);
   $('#no').onclick=closeSheet;$('#sheet').querySelectorAll('[data-quality]').forEach((b)=>b.onclick=()=>{quality=b.dataset.quality;$('#sheet').querySelectorAll('[data-quality]').forEach((x)=>x.classList.toggle('on',x===b));});
-  $('#yes').onclick=async()=>{const button=$('#yes');button.disabled=true;const jobs=[],errors=[];for(let n=0;n<mkvs.length;n++){if($('#conversionStatus'))$('#conversionStatus').textContent=`Queueing ${n+1} of ${mkvs.length}…`;try{const r=await fetch(`${url('convert',mkvs[n].rel)}?quality=${quality}&replace=1`,{method:'POST'});const job=await r.json().catch(()=>({}));if(!r.ok)throw new Error(job.error||'Could not queue conversion');jobs.push(job.id);}catch(error){errors.push(`${mkvs[n].name}: ${error.message}`);}}
+  $('#yes').onclick=async()=>{const button=$('#yes');button.disabled=true;const jobs=[],errors=[];for(let n=0;n<mkvs.length;n++){if($('#conversionStatus'))$('#conversionStatus').textContent=`Queueing ${n+1} of ${mkvs.length}…`;try{const r=await fetch(`${url('convert',mkvs[n].rel)}?quality=${quality}&replace=1`,{method:'POST'});const job=await r.json().catch(()=>({}));if(!r.ok)throw new Error(job.error||'Could not queue conversion');savePlayerSubtitlePreference(videos[n],PLAYER_AI_PREFERENCE);rememberPlayerSubtitleJob(videos[n],job);jobs.push(job.id);}catch(error){errors.push(`${mkvs[n].name}: ${error.message}`);}}
     try{localStorage.setItem('vault-quality',quality);}catch{}closeSheet();toast(`Queued ${jobs.length} replacement${jobs.length===1?'':'s'}${errors.length?` · ${errors.length} failed to queue`:''}`,errors.length?'bad':'');if(errors.length)notify(errors.slice(0,5).join('\n'));if(jobs.length)pollConversionBatch(jobs,label);};
 }
 
@@ -2505,18 +2505,17 @@ function askAiSubtitles(files,label){
     <div class="ai-options"><label>Model<select id="aiModel">${['tiny','base','small','medium','large-v3'].map((m)=>`<option value="${m}" ${m===model?'selected':''}>${modelNames[m]}</option>`).join('')}</select></label><label>Language<input id="aiLanguage" value="auto" placeholder="auto, en, no…"></label></div>
     <div class="setup-diagnostic">The first run downloads the selected model once. Progress then changes from loading model to decoding speech. If the process runs out of memory, Vault automatically retries with Base on CPU.</div>
     <div class="conversion-status" id="aiStatus"></div><div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="yes">Generate ${videos.length}</button></div>`);
-  $('#no').onclick=closeSheet;$('#yes').onclick=async()=>{const button=$('#yes');button.disabled=true;model=$('#aiModel').value;language=$('#aiLanguage').value.trim()||'auto';const jobs=[];let failed=0;for(let n=0;n<videos.length;n++){if($('#aiStatus'))$('#aiStatus').textContent=`Queueing ${n+1} of ${videos.length}…`;try{const r=await fetch(url('ai-subtitles',videos[n].rel),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,language})});const job=await r.json();if(!r.ok)throw new Error(job.error);jobs.push(job.id);}catch{failed++;}}closeSheet();toast(`Queued ${jobs.length} subtitle job${jobs.length===1?'':'s'}${failed?` · ${failed} failed`:''}`,failed?'bad':'');if(jobs.length)pollSubtitleBatch(jobs,label);};
+  $('#no').onclick=closeSheet;$('#yes').onclick=async()=>{const button=$('#yes');button.disabled=true;model=$('#aiModel').value;language=$('#aiLanguage').value.trim()||'auto';const jobs=[];let failed=0;for(let n=0;n<videos.length;n++){if($('#aiStatus'))$('#aiStatus').textContent=`Queueing ${n+1} of ${videos.length}…`;try{const r=await fetch(url('ai-subtitles',videos[n].rel),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,language})});const job=await r.json();if(!r.ok)throw new Error(job.error);savePlayerSubtitlePreference(videos[n],PLAYER_AI_PREFERENCE);rememberPlayerSubtitleJob(videos[n],job);jobs.push(job.id);}catch{failed++;}}closeSheet();toast(`Queued ${jobs.length} subtitle job${jobs.length===1?'':'s'}${failed?` · ${failed} failed`:''}`,failed?'bad':'');if(jobs.length)pollSubtitleBatch(jobs,label);};
 }
 
 async function pollSubtitleBatch(ids,label){
-  const states=await Promise.all(ids.map((id)=>fetch(`/api/ai-subtitles/${encodeURIComponent(id)}`,{cache:'no-store'}).then(async(r)=>{const job=await r.json().catch(()=>({}));return r.ok?job:{status:'failed',error:job.error||`Subtitle status returned HTTP ${r.status}`};}).catch((error)=>({status:'failed',error:error.message||'Lost subtitle status'}))));
+  const states=await Promise.all(ids.map((id)=>[...playerSubtitleJobs.values()].find(job=>job.id===id)||fetch(`/api/ai-subtitles/${encodeURIComponent(id)}`,{cache:'no-store'}).then(async(r)=>{const job=await r.json().catch(()=>({}));return r.ok?job:{status:'failed',error:job.error||`Subtitle status returned HTTP ${r.status}`};}).catch((error)=>({status:'failed',error:error.message||'Lost subtitle status'}))));
   const complete=states.filter((j)=>j.status==='complete').length,failed=states.filter((j)=>['failed','cancelled'].includes(j.status)).length,active=states.find((j)=>j.status==='running');
   const phase=active?(active.message||active.phase||'working'):'';
   $('#railState').textContent=`AI CC ${complete}/${ids.length}${active?` · ${Math.round(active.progress)}% · ${phase}`:''}`;
   if(complete+failed===ids.length){
     $('#railState').textContent='idle';toast(`${label}: ${complete} subtitle file${complete===1?'':'s'} ready${failed?`, ${failed} failed`:''}`,failed?'bad':'');
     const errors=[...new Set(states.filter((job)=>job.error).map((job)=>job.error))];if(errors.length)notify(errors.slice(0,4).join('\n'));
-    const openVideo=$('#rmx');if(complete&&openVideo&&openVideo.__reloadSubtitles)await openVideo.__reloadSubtitles();
     load();return;
   }
   setTimeout(()=>pollSubtitleBatch(ids,label),2400);

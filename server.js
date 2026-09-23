@@ -31,7 +31,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-player-controls-20260923';
+const BUILD_ID = 'vault-subtitle-activation-20260923';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -2633,7 +2633,7 @@ function spawnSubtitleAttempt(job, { model, device, safe = false }) {
         // Medium/large models and CUDA can be killed by a small container even
         // when faster-whisper itself is installed correctly. One automatic
         // CPU/base retry favours a finished caption file over a dead job.
-        if (!safe && (model !== 'base' || device !== 'cpu')) {
+        if (!safe && !firstFailure.startsWith('No speech was detected') && (model !== 'base' || device !== 'cpu')) {
           console.warn(`[media] AI subtitles failed for ${job.rel}; retrying safely: ${firstFailure}`);
           if (cudaFailure(firstFailure)) subtitleCudaCooldownUntil = Date.now() + SUBTITLE_CUDA_COOLDOWN_MS;
           job.warning = cudaFailure(firstFailure) ? 'GPU acceleration failed. Continuing on CPU with the Fast model.' : 'The first attempt failed. Retrying on CPU with the lighter Fast model.';
@@ -2732,7 +2732,7 @@ async function subtitleTracks(full) {
       id: `file:${name}`,
       label: ai ? `AI generated${language ? ` · ${language}` : ''}`
         : `External${language ? ` · ${language}` : ''}`,
-      lang: (bits[bits.length - 1] || '').toLowerCase().slice(0, 8) || undefined,
+      lang: ((ai ? bits.slice(1) : bits).at(-1) || '').toLowerCase().slice(0, 8) || undefined,
       source: ai ? 'ai' : 'file',
     });
   }
@@ -2767,6 +2767,7 @@ async function subtitleTracks(full) {
 }
 
 app.get('/api/subs/*', auth, shelfGate, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   const full = safePath(req.params[0]);
   if (!full) return res.status(400).end();
   try { await fsp.stat(full); } catch { return res.status(404).end(); }
@@ -2790,7 +2791,15 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
     if (!SIDECAR_EXT.includes(ext(side))) return res.status(400).end();
     try { await fsp.stat(side); } catch { return res.status(404).end(); }
 
-    if (ext(side) === 'vtt') return fs.createReadStream(side).pipe(res);
+    if (ext(side) === 'vtt') {
+      const stream = fs.createReadStream(side);
+      stream.on('error', error => {
+        if (!res.headersSent) res.status(error.code === 'ENOENT' ? 404 : 500).end();
+        else res.destroy(error);
+      });
+      res.on('close', () => stream.destroy());
+      return stream.pipe(res);
+    }
     if (!HAS_FFMPEG) return res.status(503).end();
     const out = await run('ffmpeg', ['-nostdin', '-loglevel', 'error', '-i', side, '-f', 'webvtt', 'pipe:1'], 60000, 16 * 1024 * 1024);
     return out === null ? res.status(500).end() : res.send(out);

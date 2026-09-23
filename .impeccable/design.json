@@ -1087,9 +1087,10 @@
       "interaction": "40px controls, 34x38px phone, 32px mini. 2px white focus outline/3px offset. Volume reveals on hover/focus with a 36px-high pointer target, 6px rail, and 14px knob; seek knob on hover/focus. Mini corner marks reveal on hover/visible focus. Menus pin chrome; Escape dismisses menus. Timing offset -10..10 seconds, 0.1 steps and +/-0.5 buttons, reset; track/timing selection persists locally.",
       "motion": "Chrome opacity only; idle 2600ms while playing. V stroke buffering; 240ms short-seek debounce. Episode thumbnail hover/focus scales to 1.08 and brightens to 1.1 over 280ms; play overlay opacity reveals over 200ms and scales .85 to 1 over 280ms. Reduced motion removes episode transforms, disables player transitions and trace animation. Timings live in extensions.motion.",
       "aiSubtitles": "Transcription choices: Fast (base; quicker, less accurate), Balanced (small), Detailed (medium; slower). Preserve the configured server model initially, adding a Server model option if outside these choices; remembered explicit choice takes precedence. Show reported job progress and approximate remaining minutes when available, visible CPU fallback warnings, and a Technical details disclosure for available CUDA diagnostics. No measured GPU speedup or exact cause of the user's original CUDA error is asserted.",
+      "subtitleActivation": "Save AI intent at generation start; preserve it across player closure and page refresh, resume pending job checks, and select the real saved track after completion while honoring explicit Off or alternate-track choices. Keep the AI switch on during activation loading. Failed track delivery offers Retry loading subtitles without rerunning transcription; empty tracks offer Generate again. CPU fallback describes generation separately from caption enablement. The exact server CUDA cause remains unconfirmed. Existing styles, layout, and tokens are unchanged.",
       "review": {
         "disposition": "SHIP",
-        "scope": "Fresh player-refinement review of seven supplied desktop/mobile captures; no material fixes required within the requested scope. Earlier caption review preserved in reviewHistory."
+        "scope": "Fresh subtitle-activation review of supplied desktop AI-on and active-cue views and mobile retry and active-cue views; no material findings. Earlier reviews preserved in reviewHistory."
       },
       "reviewHistory": [
         {
@@ -1100,6 +1101,11 @@
           "disposition": "SHIP",
           "scope": "Subsequent player-refinement pass reviewed seven supplied desktop/mobile captures: movable mini-player, navigation toggle, volume target, episode feedback, and subtitle generation controls.",
           "materialFixes": "None required within the requested scope. Established Library, Watch browsing, Listen, and Apps guidance preserved."
+        },
+        {
+          "disposition": "SHIP",
+          "scope": "Subtitle-activation follow-up: desktop AI-on and active-cue views; mobile retry and active-cue views.",
+          "materialFixes": "No material findings within this scope. Existing styles, layout, tokens, and prior review records preserved."
         }
       ]
     }

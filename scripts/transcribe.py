@@ -66,11 +66,13 @@ def transcribe_to_vtt(model, source, output, options, device="cpu", batch_size=4
     emit(kind="phase", phase="transcribing", message=f"Transcribing on {'GPU' if device == 'cuda' else 'CPU'}", progress=3,
          language=getattr(info, "language", None), device=device, duration=duration)
     try:
+        caption_count = 0
         with open(temp, "w", encoding="utf-8", newline="\n") as handle:
             handle.write("WEBVTT\n\n")
             for segment in segments:
                 text = " ".join(str(segment.text).strip().split())
                 if text:
+                    caption_count += 1
                     handle.write(
                         f"{timestamp(segment.start)} --> {timestamp(segment.end)}\n{text}\n\n"
                     )
@@ -80,6 +82,8 @@ def transcribe_to_vtt(model, source, output, options, device="cpu", batch_size=4
                 progress = min(99.5, (float(segment.end) / duration * 100)) if duration else 3
                 emit(kind="progress", phase="transcribing", progress=max(3, progress),
                      at=float(segment.end), duration=duration)
+        if not caption_count:
+            raise ValueError("No speech was detected; no subtitle captions were generated. Try another model or check the video's audio track.")
         os.replace(temp, output)
     finally:
         if os.path.exists(temp):
@@ -116,7 +120,7 @@ def main():
     try:
         info = transcribe_to_vtt(model, args.input, args.output, options, device, max(1, min(8, args.batch_size)))
     except Exception as error:
-        if device != "cuda":
+        if device != "cuda" or str(error).startswith("No speech was detected"):
             raise
         emit(kind="notice", fallback="cpu", diagnostic=str(error),
              message="GPU transcription failed. Retrying on CPU.")

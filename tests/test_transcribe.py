@@ -62,4 +62,13 @@ class TranscriptionTests(unittest.TestCase):
             self.assertEqual(self.events[-1]['kind'],'complete')
             self.assertEqual(self.events[-1]['device'],'cpu')
 
+    def test_silent_audio_does_not_publish_an_empty_success_or_replace_existing_captions(self):
+        model=Mock();model.transcribe.return_value=(iter([]),SimpleNamespace(duration=20))
+        with tempfile.TemporaryDirectory() as folder:
+            output=Path(folder)/'captions.vtt';output.write_text('existing captions')
+            with self.assertRaisesRegex(ValueError,'No speech was detected'):
+                worker.transcribe_to_vtt(model,'silent movie',str(output),{})
+            self.assertEqual(output.read_text(),'existing captions')
+            self.assertFalse(Path(str(output)+'.part').exists())
+
 if __name__=='__main__': unittest.main()

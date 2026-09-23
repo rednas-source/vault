@@ -329,18 +329,20 @@ function mountPlayer(f, { src, native, info = {} }){
     if(actions[event.key]){event.preventDefault();event.stopImmediatePropagation();actions[event.key]();}
   };
 
+  let subtitleRequest=0;
   const reloadSubtitles=async()=>{
     if(!alive())return [];
-    video.__subtitleLoading=true;
-    video.querySelectorAll('track[data-vault-track]').forEach((track)=>track.remove());
-    const tracks=await attachSubtitles(video,f);
-    video.__subtitleLoading=false;if(alive())buildCCMenu(video,f,tracks);
-    return tracks;
+    const request=++subtitleRequest;video.__subtitleLoading=true;video.__ccDraw?.();
+    const tracks=await attachSubtitles(video,f,()=>alive()&&request===subtitleRequest);
+    if(!alive()||request!==subtitleRequest)return [];
+    video.__subtitleLoading=false;
+    if(tracks)buildCCMenu(video,f,tracks);else video.__ccDraw?.();
+    return tracks||[];
   };
   video.__reloadSubtitles=reloadSubtitles;
   document.addEventListener('keydown',keyHandler,true);trackProgress(video,f,()=>native?0:base,()=>duration);reloadSubtitles();
   const from=f.watch&&f.watch.pos>5&&(!total()||f.watch.pos<total()-20)?f.watch.pos:0;pausedAt=from;base=native?0:from;
-  buildCCMenu(video,f,[]);setMode('theater');fullscreenChange();
+  buildCCMenu(video,f,[]);resumePlayerSubtitleJob(f);setMode('theater');fullscreenChange();
   if(native){suppress=false;video.src=directSource;go(from);}else startHls(from);
   video.__destroyStream=()=>{window.removeEventListener('resize',resizeMini);subtitleResize.disconnect();version++;wantsPlay=false;preparing=false;clearTimeout(chromeTimer);clearTimeout(bufferingTimer);document.removeEventListener('fullscreenchange',fullscreenChange);clearInterval(keepAliveTimer);clearInterval(pauseFillTimer);if(keyHandler)document.removeEventListener('keydown',keyHandler,true);$('#viewer').classList.remove('theater','mini','mini-moving');document.body.classList.remove('video-theater','video-hide-nav');release();};
 
@@ -369,50 +371,93 @@ function applySubtitleOffset(entry, seconds){
 
 /** Track selector plus per-track sync controls. */
 const playerSubtitleJobs=new Map();
+const PLAYER_AI_PREFERENCE='@ai';
+function playerSubtitlePreference(f){try{return localStorage.getItem(`vault-cc-track:${f.rel}`)||'';}catch{return '';}}
+function savePlayerSubtitlePreference(f,value){try{localStorage.setItem(`vault-cc-track:${f.rel}`,value);}catch{}}
+function rememberPlayerSubtitleJob(f,job){
+  const task={...job,cancelled:false};playerSubtitleJobs.set(f.rel,task);
+  try{localStorage.setItem(`vault-ai-job:${f.rel}`,task.id);}catch{}
+  watchPlayerSubtitleJob(f,task);return task;
+}
+function resumePlayerSubtitleJob(f){
+  const current=playerSubtitleJobs.get(f.rel);
+  if(current){if(current.authError){current.authError=false;current.status='running';}if(!['complete','failed','cancelled'].includes(current.status))watchPlayerSubtitleJob(f,current);return;}
+  let id='';try{id=localStorage.getItem(`vault-ai-job:${f.rel}`)||'';}catch{}
+  if(id)rememberPlayerSubtitleJob(f,{id,status:'running',message:'Checking subtitle generation'});
+}
+async function watchPlayerSubtitleJob(f,task){
+  if(task.polling||task.cancelled)return;task.polling=true;
+  const redraw=()=>{const current=$('#rmx');if(current?.dataset.rel===f.rel)current.__ccDraw?.();return current?.dataset.rel===f.rel?current:null;};
+  const forget=()=>{try{localStorage.removeItem(`vault-ai-job:${f.rel}`);}catch{}};
+  const poll=async()=>{
+    try{
+      const response=await fetch('/api/ai-subtitles/'+encodeURIComponent(task.id),{cache:'no-store'});
+      if(task.cancelled){task.polling=false;return;}
+      if(response.status===401||response.status===403){task.status='failed';task.error='Sign in again to check subtitle generation.';task.authError=true;task.polling=false;redraw();return;}
+      if(response.status===404){
+        forget();task.status='failed';task.error='The subtitle job is no longer available. Checking for saved subtitles.';
+        const current=redraw();if(current){const tracks=await current.__reloadSubtitles();if(tracks.some(entry=>entry.source==='ai')){task.status='complete';task.error='';}else task.error='The subtitle job is no longer available. No generated track was found; you can start generation again.';redraw();}
+        task.polling=false;return;
+      }
+      if(!response.ok)throw new Error('Subtitle status could not be checked');
+      const updated=await response.json();if(task.cancelled){task.polling=false;return;}
+      Object.assign(task,updated);task.reconnects=0;
+      if(task.status==='complete'){
+        forget();task.activation='loading';const current=redraw();
+        if(current){const tracks=await current.__reloadSubtitles();if(current===$('#rmx')&&!tracks.some(entry=>entry.source==='ai'))task.activationError='Subtitles were generated, but the track could not be loaded. Retry loading it.';}
+        task.activation='';task.polling=false;redraw();return;
+      }
+      if(['failed','cancelled'].includes(task.status)){forget();task.polling=false;redraw();return;}
+      redraw();
+    }catch(error){
+      if(task.cancelled){task.polling=false;return;}
+      task.reconnects=(task.reconnects||0)+1;task.message='Connection interrupted. Rechecking subtitle generation…';redraw();
+    }
+    task.timer=setTimeout(poll,Math.min(10000,2000*(task.reconnects||1)));
+  };
+  void poll();
+}
 function buildCCMenu(v,f,entries=[]){
   const btn=$('#plCC'),menu=$('#plMenu');if(!btn||!menu||!document.contains(v))return;
   if(v.__ccUpdatedHandler)v.removeEventListener('vault-subtitles-updated',v.__ccUpdatedHandler);
   const tracks=entries.map(entry=>entry.track);
   entries.forEach(entry=>{try{entry.offset=parseFloat(localStorage.getItem(subtitleStorageKey(f,entry.id)))||0;}catch{entry.offset=0;}});
   const select=(pick,persist=true)=>{
-    tracks.forEach((track,i)=>{track.mode=i===pick?'showing':entries[i].loading?'hidden':'disabled';});
+    tracks.forEach((track,i)=>{entries[i].selected=i===pick;track.mode=i===pick?'showing':entries[i].loading?'hidden':'disabled';});
     if(pick>=0)applySubtitleOffset(entries[pick],(entries[pick].offset||0)-(v.__subtitleBase||0));
     v.__layoutSubtitles?.();
     btn.classList.toggle('on',pick>=0);v.__preferAI=pick>=0&&entries[pick].source==='ai';
-    if(persist)try{localStorage.setItem(`vault-cc-track:${f.rel}`,pick>=0?entries[pick].id:'');}catch{}
+    if(persist)savePlayerSubtitlePreference(f,pick>=0?entries[pick].id:'');
   };
-  let saved='';try{saved=localStorage.getItem(`vault-cc-track:${f.rel}`)||'';}catch{}
-  const preferred=v.__preferAI?entries.findIndex(entry=>entry.source==='ai'):entries.findIndex(entry=>entry.id===saved);
+  const saved=playerSubtitlePreference(f);
+  const preferred=(saved===PLAYER_AI_PREFERENCE||v.__preferAI)?entries.findIndex(entry=>entry.source==='ai'):entries.findIndex(entry=>entry.id===saved);
   // Preserve a pending AI preference while the worker creates its first track.
-  const waitingAI=v.__preferAI;select(preferred,preferred>=0);if(waitingAI&&preferred<0)v.__preferAI=true;
+  const waitingAI=saved===PLAYER_AI_PREFERENCE||v.__preferAI;select(preferred,preferred>=0);if(waitingAI&&preferred<0)v.__preferAI=true;
   let aiModel=state.aiSubtitles?.model||'small';try{aiModel=localStorage.getItem('vault-ai-model')||aiModel;}catch{}
   const draw=()=>{
     if(!document.contains(v))return;
     const active=tracks.findIndex(track=>track.mode==='showing'),chosen=entries[active],offset=chosen?.offset||0,job=playerSubtitleJobs.get(f.rel),running=job&&['starting','queued','running','cancelling'].includes(job.status);
     $('#plCCName').textContent=chosen?.label||'Off';
     const aiModels=[['base','Fast · quicker, less accurate'],['small','Balanced'],['medium','Detailed · slower']];if(!aiModels.some(([name])=>name===aiModel))aiModels.push([aiModel,'Server model · '+aiModel]);
+    const aiTrack=entries.find(entry=>entry.source==='ai'),wantsAI=v.__preferAI||playerSubtitlePreference(f)===PLAYER_AI_PREFERENCE;
+    const loadingAI=wantsAI&&(v.__subtitleLoading||job?.activation==='loading'||aiTrack?.selected&&aiTrack.loading);
+    const trackError=aiTrack?.failed?(aiTrack.empty?'The generated subtitle file contains no captions. Generate it again.':'The generated subtitle track could not be loaded. Retry loading it.'):(job?.activationError||'');
     const eta=running&&job.remainingSeconds>0?` · About ${Math.max(1,Math.ceil(job.remainingSeconds/60))} min left`:'';
-    menu.innerHTML=`<div class="pl-menu-heading">Subtitles</div><button class="cc-track ${active<0?'on':''}" data-cc-track="-1"><span>Off</span>${active<0?icon('check'):''}</button>`+entries.map((entry,i)=>`<button class="cc-track ${active===i?'on':''}" data-cc-track="${i}" ${entry.failed?'disabled':''}><span>${esc(entry.label||'Subtitle track')}${entry.failed?' · unavailable':''}</span>${active===i?icon('check'):''}</button>`).join('')+(!entries.length?`<p class="pl-stream-info" role="status">${v.__subtitleLoading?'Looking for subtitle tracks…':v.__subtitleError?'Could not load subtitle tracks. Try again.':'No subtitles available for this video.'}</p>${v.__subtitleError?'<button id="plRetrySubs">Retry subtitle lookup</button>':''}`:'')+`<div class="pl-ai-controls"><button id="plAIEnabled" role="switch" aria-checked="${!!(running||chosen?.source==='ai')}" ${['starting','cancelling'].includes(job?.status)||(!state.aiSubtitles?.available&&!entries.some(entry=>entry.source==='ai'))?'disabled':''}>${icon('sparkle')}<span>AI subtitles</span><span class="pl-switch" aria-hidden="true"></span></button><p class="pl-stream-info">${running?esc(job.message||'Generating subtitles')+(job.progress?' · '+Math.round(job.progress)+'%':'')+eta:job?.error?esc(job.error):entries.some(entry=>entry.source==='ai')?'Generated locally. You can turn this track on or off.':state.aiSubtitles?.available?'Generate a subtitle track for this video.':'AI generation is unavailable on this server.'}</p>${!entries.some(entry=>entry.source==='ai')?`<label class="pl-ai-model"><span>Transcription</span><select id="plAIModel" aria-label="AI transcription speed" ${running||!state.aiSubtitles?.available?'disabled':''}>${aiModels.map(([name,label])=>`<option value="${esc(name)}" ${name===aiModel?'selected':''}>${esc(label)}</option>`).join('')}</select></label>`:''}${job?.warning?`<p class="pl-stream-info">${esc(job.warning)}</p>`:''}${job?.diagnostic?`<details class="pl-ai-diagnostic"><summary>Technical details</summary><p>${esc(job.diagnostic)}</p><p>GPU transcription requires compatible NVIDIA drivers, CUDA and cuDNN on the server. CPU fallback remains available.</p></details>`:''}</div>${chosen?`<div class="cc-offset"><div class="cc-offset-top"><span>Subtitle timing</span><b id="ccOffsetValue">${offset>=0?'+':''}${offset.toFixed(1)}s</b></div><input id="ccOffset" aria-label="Subtitle timing in seconds" type="range" min="-10" max="10" step="0.1" value="${offset}"><div class="cc-offset-steps"><button data-cc-step="-.5">−0.5s</button><button data-cc-reset>Reset</button><button data-cc-step=".5">+0.5s</button></div><small>Negative appears earlier; positive appears later.</small></div>`:''}`;
+    menu.innerHTML=`<div class="pl-menu-heading">Subtitles</div><button class="cc-track ${active<0?'on':''}" data-cc-track="-1"><span>Off</span>${active<0?icon('check'):''}</button>`+entries.map((entry,i)=>`<button class="cc-track ${active===i?'on':''}" data-cc-track="${i}" ${entry.failed?'disabled':''}><span>${esc(entry.label||'Subtitle track')}${entry.failed?' · unavailable':''}</span>${active===i?icon('check'):''}</button>`).join('')+(!entries.length?`<p class="pl-stream-info" role="status">${v.__subtitleLoading?'Looking for subtitle tracks…':v.__subtitleError?'Could not load subtitle tracks. Try again.':'No subtitles available for this video.'}</p>${v.__subtitleError?'<button id="plRetrySubs">Retry subtitle lookup</button>':''}`:'')+`<div class="pl-ai-controls"><button id="plAIEnabled" role="switch" aria-checked="${!!(running||loadingAI||chosen?.source==='ai'&&!chosen.failed)}" ${['starting','cancelling'].includes(job?.status)||(!state.aiSubtitles?.available&&!entries.some(entry=>entry.source==='ai'))?'disabled':''}>${icon('sparkle')}<span>AI subtitles</span><span class="pl-switch" aria-hidden="true"></span></button><p class="pl-stream-info">${loadingAI?'Loading generated subtitles…':trackError?esc(trackError):running?esc(job.message||'Generating subtitles')+(job.progress?' · '+Math.round(job.progress)+'%':'')+eta:job?.error?esc(job.error):entries.some(entry=>entry.source==='ai')?chosen?.source==='ai'&&!chosen.failed?'AI subtitles enabled.': 'Generated locally. You can turn this track on or off.':state.aiSubtitles?.available?'Generate a subtitle track for this video.':'AI generation is unavailable on this server.'}</p>${!loadingAI&&(trackError||job?.status==='complete'&&!aiTrack)?`<button id="plRetryAITrack">${aiTrack?.empty?'Generate again':'Retry loading subtitles'}</button>`:''}${!entries.some(entry=>entry.source==='ai')?`<label class="pl-ai-model"><span>Transcription</span><select id="plAIModel" aria-label="AI transcription speed" ${running||!state.aiSubtitles?.available?'disabled':''}>${aiModels.map(([name,label])=>`<option value="${esc(name)}" ${name===aiModel?'selected':''}>${esc(label)}</option>`).join('')}</select></label>`:''}${job?.warning?`<p class="pl-stream-info">${esc(job.warning)}</p>`:''}${job?.diagnostic?`<details class="pl-ai-diagnostic"><summary>Technical details</summary><p>${esc(job.diagnostic)}</p><p>GPU transcription requires compatible NVIDIA drivers, CUDA and cuDNN on the server. CPU fallback remains available.</p></details>`:''}</div>${chosen?`<div class="cc-offset"><div class="cc-offset-top"><span>Subtitle timing</span><b id="ccOffsetValue">${offset>=0?'+':''}${offset.toFixed(1)}s</b></div><input id="ccOffset" aria-label="Subtitle timing in seconds" type="range" min="-10" max="10" step="0.1" value="${offset}"><div class="cc-offset-steps"><button data-cc-step="-.5">−0.5s</button><button data-cc-reset>Reset</button><button data-cc-step=".5">+0.5s</button></div><small>Negative appears earlier; positive appears later.</small></div>`:''}`;
     menu.querySelectorAll('[data-cc-track]').forEach(button=>button.onclick=()=>{select(Number(button.dataset.ccTrack));draw();});
     $('#plAIModel')?.addEventListener('change',event=>{aiModel=event.target.value;try{localStorage.setItem('vault-ai-model',aiModel);}catch{}});
     $('#plRetrySubs')?.addEventListener('click',()=>v.__reloadSubtitles());
+    $('#plRetryAITrack')?.addEventListener('click',async()=>{if(aiTrack?.empty){$('#plAIEnabled').click();return;}if(job)job.activationError='';v.__preferAI=true;savePlayerSubtitlePreference(f,PLAYER_AI_PREFERENCE);const tracks=await v.__reloadSubtitles();if(job&&!tracks.some(entry=>entry.source==='ai'))job.activationError='Subtitles were generated, but the track could not be loaded. Retry loading it.';v.__ccDraw?.();});
     $('#plAIEnabled').onclick=async()=>{
       const ai=entries.findIndex(entry=>entry.source==='ai');
-      if(running){job.cancelled=true;const before=job.status;job.status='cancelling';job.message='Stopping generation';draw();try{if(job.id)await appsRequest('/api/ai-subtitles/'+encodeURIComponent(job.id),{method:'DELETE'});job.status='cancelled';job.message='';clearTimeout(job.timer);v.__preferAI=false;select(-1);}catch(error){job.cancelled=false;job.status=before;job.error=error.message;}draw();return;}
-      if(ai>=0){select(chosen?.source==='ai'?-1:ai);draw();return;}
-      const task={status:'starting',message:'Starting subtitle generation'};playerSubtitleJobs.set(f.rel,task);v.__preferAI=true;draw();
+      if(running){job.cancelled=true;const before=job.status;job.status='cancelling';job.message='Stopping generation';draw();try{if(job.id)await appsRequest('/api/ai-subtitles/'+encodeURIComponent(job.id),{method:'DELETE'});job.status='cancelled';job.message='';job.polling=false;try{localStorage.removeItem(`vault-ai-job:${f.rel}`);}catch{}clearTimeout(job.timer);v.__preferAI=false;select(-1);}catch(error){job.cancelled=false;job.status=before;job.error=error.message;job.polling=false;watchPlayerSubtitleJob(f,job);}draw();return;}
+      if(ai>=0&&!entries[ai].failed){select(chosen?.source==='ai'?-1:ai);draw();return;}
+      const task={status:'starting',message:'Starting subtitle generation'};playerSubtitleJobs.set(f.rel,task);
+      v.__preferAI=true;savePlayerSubtitlePreference(f,PLAYER_AI_PREFERENCE);draw();
       try{
-        Object.assign(task,await appsRequest(url('ai-subtitles',f.rel),{method:'POST',body:JSON.stringify({model:aiModel,language:'auto'})}));
-        const poll=async()=>{
-          try{
-            const updated=await appsRequest('/api/ai-subtitles/'+encodeURIComponent(task.id));if(task.cancelled)return;Object.assign(task,updated);
-            const current=$('#rmx');if(current?.dataset.rel===f.rel)current.__ccDraw?.();
-            if(task.status==='complete'){if(current?.dataset.rel===f.rel){current.__preferAI=true;await current.__reloadSubtitles();}return;}
-            if(['failed','cancelled'].includes(task.status))return;
-          }catch(error){task.status='failed';task.error=error.message;if($('#rmx')?.dataset.rel===f.rel)$('#rmx').__ccDraw?.();return;}
-          task.timer=setTimeout(poll,2000);
-        };void poll();
-      }catch(error){task.status='failed';task.error=error.message;v.__preferAI=false;}draw();
+        const job=await appsRequest(url('ai-subtitles',f.rel),{method:'POST',body:JSON.stringify({model:aiModel,language:'auto'})});
+        rememberPlayerSubtitleJob(f,job);
+      }catch(error){task.status='failed';task.error=error.message;v.__preferAI=false;savePlayerSubtitlePreference(f,'');}draw();
     };
     if(chosen){
       const setOffset=value=>{chosen.offset=Math.max(-10,Math.min(10,Math.round(value*10)/10));applySubtitleOffset(chosen,chosen.offset-(v.__subtitleBase||0));try{localStorage.setItem(subtitleStorageKey(f,chosen.id),String(chosen.offset));}catch{}$('#ccOffsetValue').textContent=`${chosen.offset>=0?'+':''}${chosen.offset.toFixed(1)}s`;$('#ccOffset').value=chosen.offset;};
@@ -459,12 +504,14 @@ function trackProgress(video, f, baseOf, knownDur){
 }
 
 /** Attach any subtitle tracks the server can produce for this file. */
-async function attachSubtitles(video, f){
+async function attachSubtitles(video, f, isCurrent=()=>video.isConnected){
   try{
     const r = await fetch(url('subs', f.rel),{cache:'no-store'});
     if(!r.ok)throw new Error('Subtitle lookup failed');
-    video.__subtitleError=false;
     const { tracks } = await r.json();
+    if(!isCurrent())return null;
+    video.__subtitleError=false;
+    video.querySelectorAll('track[data-vault-track]').forEach(track=>track.remove());
     if(!tracks || !tracks.length) return [];
     const entries=[];
     tracks.forEach((t) => {
@@ -474,9 +521,9 @@ async function attachSubtitles(video, f){
       el.label = t.label;
       if(t.lang) el.srclang = t.lang;
       el.src = `${url('sub', f.rel)}?track=${encodeURIComponent(t.id)}&v=${Date.now()}`;
-      const entry={id:t.id,label:t.label,source:t.source,element:el,track:el.track,loading:true,failed:false,offset:0};
-      el.addEventListener('load',()=>{entry.loading=false;entry.failed=false;if(entry.track.mode==='hidden')entry.track.mode='disabled';video.dispatchEvent(new Event('vault-subtitles-updated'));});
-      el.addEventListener('error',()=>{entry.loading=false;entry.failed=true;video.dispatchEvent(new Event('vault-subtitles-updated'));});
+      const entry={id:t.id,label:t.label,source:t.source,element:el,track:el.track,loading:true,failed:false,offset:0,selected:false};
+      el.addEventListener('load',()=>{if(!el.isConnected)return;entry.loading=false;entry.empty=!entry.track.cues?.length;entry.failed=entry.empty;entry.track.mode=entry.selected&&!entry.failed?'showing':'disabled';video.dispatchEvent(new Event('vault-subtitles-updated'));});
+      el.addEventListener('error',()=>{if(!el.isConnected)return;entry.loading=false;entry.failed=true;entry.track.mode='disabled';video.dispatchEvent(new Event('vault-subtitles-updated'));});
       video.appendChild(el);
       // Hidden mode makes browsers fetch and parse the cues without putting
       // them on screen before the viewer has made a choice.
@@ -485,8 +532,8 @@ async function attachSubtitles(video, f){
     });
 
     return entries;
-  }catch{ video.__subtitleError=true; }
-  return [];
+  }catch{ if(isCurrent())video.__subtitleError=true; }
+  return null;
 }
 
 document.addEventListener('play',event=>{if(event.target.id==='musicAudio')$('#rmx')?.pause();},true);

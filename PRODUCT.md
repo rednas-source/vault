@@ -99,3 +99,10 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - A viewing-control toggle immediately left of picture-in-picture hides or restores navigation in theater; remember the preference and restore navigation in mini mode or on close.
 - Episodes gain a restrained thumbnail zoom and play reveal on hover/focus, with reduced-motion support. The volume rail and pointer target become taller without changing transport grouping.
 - AI subtitle generation offers explicit Fast/Balanced/Detailed choices, keeps configured defaults, reports actual CPU/GPU progress and approximate remaining time, and retains detailed CUDA diagnostics. GPU batching, CPU fallback and a temporary automatic-mode CUDA cooldown improve speed/recovery without promising a measured server speedup. The user's original CUDA error is not yet available.
+
+
+## Subtitle activation reliability — September 2026
+
+- Remember AI enablement before transcription completes; preserve it across player closure and page refresh. Resume pending job checks and activate real saved captions. Respect an explicit Off or alternate-track choice made while decoding.
+- Keep activation visibly loading until track delivery succeeds; failures expose Retry loading subtitles without rerunning inference. Empty generated tracks expose regeneration, and the worker rejects no-speech output.
+- CPU fallback is a recoverable generation state, independent of whether captions are selected. The reported server CUDA cause remains unconfirmed without its GPU/runtime details.
