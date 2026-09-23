@@ -30,7 +30,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-listen-20260922';
+const BUILD_ID = 'vault-metadata-sort-20260923';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1538,12 +1538,13 @@ app.get('/api/files', auth, async (req, res) => {
     if (pr) f.watch = { pos: pr.pos, dur: pr.dur, done: !!pr.done, at: pr.at };
   }
 
+  warmAddedShows(out.filter(file => file.shelf === 'series').map(file => file.rel));
   res.json({
     files: out, folders, disk, thumbs: HAS_FFMPEG, mkvTranscode: HAS_H264_ENCODER,
     transcoder: TRANSCODER ? { label: TRANSCODER.label, hardware: TRANSCODER.hardware } : null,
     qualities: Object.values(QUALITY_PROFILES).map(({ id, label }) => ({ id, label })),
     aiSubtitles: { available: HAS_AI_SUBTITLES, model: config.whisperModel || 'small', device: config.whisperDevice || 'auto', diagnostic: AI_SUBTITLE_STATUS.diagnostic },
-    role: req.user.role, artwork: !!TMDB_KEY, musicMetadata: true,
+    role: req.user.role, artwork: true, musicMetadata: true,
     shelves: shelves.filter((sh) => mine.includes(sh.id)).map((sh) => ({ id: sh.id, label: sh.label })),
   });
 });
@@ -1595,6 +1596,7 @@ app.post('/api/upload', auth, (req, res) => {
     if (err) return res.status(400).json({ error: err.message || 'Could not upload that file' });
     const uploaded = (req.files || []).map((f) => path.relative(ROOT, f.path).split(path.sep).join('/'));
     if (uploaded.length) note(req.user.name, 'upload', uploaded.join(', ').slice(0, 200));
+    warmAddedShows(uploaded);
     res.json({ uploaded });
   });
 });
@@ -1727,6 +1729,7 @@ app.post('/api/upload/finish/:id', auth, async (req, res) => {
 
   const rel = path.relative(ROOT, dest).split(path.sep).join('/');
   note(req.user.name, 'upload', rel);
+  warmAddedShows([rel]);
   res.json({ name: finalName, rel });
 });
 
@@ -1943,7 +1946,7 @@ app.get('/api/health', async (req, res) => {
     encoderDiagnostics: ENCODER_DIAGNOSTICS,
     aiSubtitles: HAS_AI_SUBTITLES,
     aiSubtitleDiagnostics: AI_SUBTITLE_STATUS.diagnostic,
-    metadata: !!TMDB_KEY,
+    metadata: true, movieMetadata: !!TMDB_KEY,
     qualities: Object.keys(QUALITY_PROFILES),
     uptimeSec: Math.round(process.uptime()),
   });
@@ -2782,8 +2785,8 @@ app.get('/api/sub/*', auth, shelfGate, async (req, res) => {
 
 // ---------------------------------------------------------------- artwork
 /**
- * Optional. Without a TMDB key in config.json the endpoint simply reports that
- * it's off and the grid keeps using video frames — nothing else changes.
+ * Movies use the optional TMDB key. Series use a shared show cache with a
+ * key-free TVmaze fallback, also warmed after uploads and background scans.
  *
  * Matching is done on a title guessed from the filename, so it will sometimes
  * be wrong. A wrong poster is worse than none, so anything below a confidence
@@ -2843,37 +2846,7 @@ function guessTitle(filename) {
   return { title: n.replace(/\s+/g, ' ').trim(), year, kind: 'movie' };
 }
 
-app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
-  if (!TMDB_KEY) return res.json({ enabled: false });
-
-  const full = safePath(req.params[0]);
-  if (!full) return res.status(400).end();
-  let st;
-  try { st = await fsp.stat(full); } catch { return res.status(404).end(); }
-
-  const key = crypto.createHash('sha256').update(`meta-v5\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
-  const cacheFile = path.join(META_DIR, `${key}.json`);
-  try {
-    return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
-  } catch { /* look it up */ }
-
-  const mediaShelf = shelfOf(req.params[0]);
-  const relParts = String(req.params[0]).replace(/\\/g, '/').split('/').filter(Boolean);
-  // A movie folder is usually a cleaner identity than the release filename
-  // inside it (and handles generic names such as movie.mkv or main.mkv).
-  const name = mediaShelf === 'movies' && relParts.length > 2 ? relParts[1] : path.basename(full);
-  const identity = mediaShelf === 'series' ? require('./public/watch-model').episode({name:path.basename(full),dir:relParts.slice(1,-1).join('/')}) : null;
-  const guessed = identity && identity.show !== 'Unsorted shows'
-    ? { ...guessTitle(identity.show + '.mkv'), kind:'tv', season:identity.season, episode:identity.episode }
-    : guessTitle(name);
-  const title = guessed.title;
-  const year = guessed.year;
-  const season = guessed.season;
-  // The shelf is stronger evidence than a fuzzy search result. Movies should
-  // never turn into a TV match merely because search/multi ranked one first.
-  const guessKind = mediaShelf === 'series' ? 'tv' : mediaShelf === 'movies' ? 'movie' : guessed.kind;
-  if (!title || title.length < 2) return res.json({ enabled: true, found: false });
-
+async function lookupTmdb({ title, year, season, kind: guessKind }) {
   let data = { enabled: true, found: false, guessed: title };
   try {
     const q = new URLSearchParams({ api_key: TMDB_KEY, query: title, include_adult: 'false', language: 'en-US' });
@@ -2938,6 +2911,66 @@ app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
     }
   } catch { /* network trouble — cache the miss briefly rather than retrying hard */ }
 
+  return data;
+}
+
+const showMetadata = require('./lib/show-metadata').createShowMetadata({
+  cacheDir: path.join(META_DIR, 'shows'),
+  lookupTmdb: TMDB_KEY ? identity => lookupTmdb({ ...identity, kind: 'tv' }) : null,
+});
+function warmAddedShows(rels) {
+  const files = rels.filter(rel => rel.startsWith('series/') && THUMBABLE.includes(ext(rel))).map(rel => {
+    const parts = rel.split('/');
+    return { name: parts.at(-1), dir: parts.slice(1, -1).join('/') };
+  });
+  void showMetadata.warm(files).catch(() => {});
+}
+let warmingShows = false;
+async function warmShowLibrary() {
+  if (warmingShows || !shelfIds().includes('series')) return;
+  warmingShows = true;
+  try {
+    const scanned = await scanShelf('series');
+    await showMetadata.warm(scanned.files.filter(file => THUMBABLE.includes(file.ext)));
+  } finally { warmingShows = false; }
+}
+
+app.get('/api/meta/*', auth, shelfGate, async (req, res) => {
+  const full = safePath(req.params[0]);
+  if (!full) return res.status(400).end();
+  let st;
+  try { st = await fsp.stat(full); } catch { return res.status(404).end(); }
+  if (!st.isFile()) return res.status(400).end();
+  if (shelfOf(req.params[0]) === 'series') {
+    const parts = String(req.params[0]).replace(/\\/g, '/').split('/');
+    return res.json(await showMetadata.get({ name: parts.at(-1), dir: parts.slice(1, -1).join('/') }));
+  }
+  if (!TMDB_KEY) return res.json({ enabled: false });
+
+  const key = crypto.createHash('sha256').update(`meta-v5\u0000${full}\u0000${st.size}`).digest('hex').slice(0, 32);
+  const cacheFile = path.join(META_DIR, `${key}.json`);
+  try {
+    return res.json(JSON.parse(await fsp.readFile(cacheFile, 'utf8')));
+  } catch { /* look it up */ }
+
+  const mediaShelf = shelfOf(req.params[0]);
+  const relParts = String(req.params[0]).replace(/\\/g, '/').split('/').filter(Boolean);
+  // A movie folder is usually a cleaner identity than the release filename
+  // inside it (and handles generic names such as movie.mkv or main.mkv).
+  const name = mediaShelf === 'movies' && relParts.length > 2 ? relParts[1] : path.basename(full);
+  const identity = mediaShelf === 'series' ? require('./public/watch-model').episode({name:path.basename(full),dir:relParts.slice(1,-1).join('/')}) : null;
+  const guessed = identity && identity.show !== 'Unsorted shows'
+    ? { ...guessTitle(identity.show + '.mkv'), kind:'tv', season:identity.season, episode:identity.episode }
+    : guessTitle(name);
+  const title = guessed.title;
+  const year = guessed.year;
+  const season = guessed.season;
+  // The shelf is stronger evidence than a fuzzy search result. Movies should
+  // never turn into a TV match merely because search/multi ranked one first.
+  const guessKind = mediaShelf === 'series' ? 'tv' : mediaShelf === 'movies' ? 'movie' : guessed.kind;
+  if (!title || title.length < 2) return res.json({ enabled: true, found: false });
+
+  const data = await lookupTmdb({title,year,season,kind:guessKind});
   await fsp.mkdir(META_DIR, { recursive: true }).catch(() => {});
   await fsp.writeFile(cacheFile, JSON.stringify(data)).catch(() => {});
   res.json(data);
@@ -3064,6 +3097,7 @@ app.get('/api/music-meta/*', auth, shelfGate, async (req, res) => {
 });
 
 app.post('/api/meta/clear', auth, adminOnly, async (req, res) => {
+  showMetadata.reset();
   await fsp.rm(META_DIR, { recursive: true, force: true }).catch(() => {});
   res.json({ ok: true });
 });
@@ -3417,6 +3451,8 @@ app.use(express.static(path.join(__dirname, 'public'), {
   await fsp.mkdir(CONVERSION_DIR, { recursive: true });
 
   await sweepParts();
+  void warmShowLibrary().catch(() => {});
+  setInterval(() => { void warmShowLibrary().catch(() => {}); }, 5 * 60 * 1000).unref();
   setInterval(sweepParts, 3600 * 1000).unref();
   setInterval(sweepHlsSessions, 30 * 1000).unref();
   setInterval(() => {

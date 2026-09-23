@@ -233,3 +233,7 @@ body:not(.media-mode) .global-search input { border:0; background:transparent; b
   .share-actions .ghost { border:1px solid var(--line); border-radius:5px; padding:9px 12px; }
   .shares-empty { padding:40px 4px; }
 }
+
+.rows .file-sort-heading{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0;color:inherit;font:inherit;text-transform:none;letter-spacing:inherit;white-space:nowrap}
+.rows .file-sort-heading:hover,.rows th[aria-sort]:not([aria-sort="none"]){color:var(--accent)}
+.rows .file-sort-heading i{font-size:12px}

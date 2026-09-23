@@ -25,6 +25,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Document reading.** Double-click PDFs, Word (`.docx`/`.doc`), Markdown, LaTeX, or plain-text files to read in the site. PDFs use the browser reader; DOCX and Markdown use a simplified reading view, older Word files show extracted text, and LaTeX shows source (no compilation). Unsupported formats still download automatically. Word previews support files up to 20 MB; text previews up to 2 MB. Encrypted, damaged, or overly complex documents keep an explicit Download option. Previews do not modify originals or send documents to an external service.
 - **Create ZIP in Vault.** Create a ZIP from a file, folder, or checked selection using the context menu or bulk bar. Choose its name and destination; it appears as a normal file that can be downloaded or shared. ZIP creation runs in the background, preserves nested and empty folders, leaves originals intact, and never overwrites an existing archive. Up to two archive jobs run at once.
 - **Shared links overview.** Open Shared links in the Library sidebar to search and filter your links, see the shared path, expiry countdown/date, remaining downloads/opens, and active, expired, exhausted, or missing-file status. Copy or revoke a link from the same view. Admins can manage all links; other accounts see only their own. Counters refresh while the view is open; media opens also consume use limits.
+- **Column sorting.** Library defaults to natural name order (A–Z, with folders first). Click Name, Size, Shelf, or Added to toggle ascending/descending; the sort menu provides the same choices in grid and mobile views.
 - **Folder history.** Browser/mouse Back and Forward, toolbar arrows, and Alt+Left/Right follow visited folders. Alt+Up goes to the parent.
 - **Create from empty space.** Right-click the Library background for New file or New folder. New files start empty; the dialog defaults to `Untitled.txt`. Creation uses the current folder, or a chosen shelf from All files, and never overwrites an existing item.
 - **Quiet file rows.** Names, size, shelf, and added date remain visible on hover. Actions live in the context menu, also accessible with Shift+F10 on a focused filename.
@@ -33,7 +34,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Share links** — hand someone a URL for one file, no account needed.
 - **Resume where you left off**, per person, with a Continue watching rail.
 - **Subtitles**, embedded or sidecar, converted on the fly.
-- **Automatic media metadata.** Movies and shows use TMDB when configured; music reads embedded tags first, then fills album, artist, year, and cover art from MusicBrainz and Cover Art Archive.
+- **Automatic media metadata.** TV shows fetch artwork, synopsis, cast, genres, and year automatically using TMDB when configured, with a key-free TVmaze fallback. New uploads start enrichment immediately; startup and a five-minute background scan pick up existing shows and files added directly on disk. Metadata is cached per show, with retries after temporary failures. Movies use TMDB when configured; music reads embedded tags first, then fills album, artist, year, and cover art from MusicBrainz and Cover Art Archive.
 - **Entertainment libraries.** Movies and Shows get a streaming-service browser; Music gets its own Spotify-inspired library and persistent player.
 - **Local AI subtitles.** Generate WebVTT sidecars with faster-whisper, on GPU when CUDA is available or CPU otherwise.
 - **Spotify-style Listen.** Grey panels and blue accents, album pages, song search, liked songs, playlists, a queue, shuffle/repeat, and a persistent bottom player. Albums follow existing music folders without moving files. Favorites, playlists, and recent listening are saved per account in this browser.
@@ -321,17 +322,19 @@ The first generation with a model downloads that model once. Vault reports the l
 
 ## Poster art
 
-Off unless you add a TMDB key:
+TV shows enrich automatically without setup through [TVmaze](https://www.tvmaze.com/api). A show folder such as `Breaking Bad (2008)/Season 1/01 - Pilot.mkv`, or a filename containing `S01E01`, provides the identity. All episodes share one cached show record. New uploads trigger lookup immediately, and startup plus a five-minute scan cover files added outside the website. Successful results refresh after seven days; unmatched titles retry after six hours and network failures after five minutes. Existing artwork remains usable during an outage. Metadata source attribution appears in show details.
+
+Add a TMDB key to enable movie artwork and prefer TMDB for shows:
 
 ```json
 "tmdbKey": "your-key-from-themoviedb.org"
 ```
 
-With it, grid tiles show real posters instead of frame grabs, and titles are replaced with the matched name and year. The Movies entertainment library groups alternate versions, suppresses samples/trailers/extras, chooses the main feature, and sends movie-shelf lookups only to TMDB's movie search. Nothing is deleted—the complete file shelf still exposes every source file. Results are cached under `.meta` in your storage path; **Clear** them by calling `POST /api/meta/clear` as an admin.
+With it, grid tiles show real posters instead of frame grabs, and titles are replaced with the matched name and year. The Movies entertainment library groups alternate versions, suppresses samples/trailers/extras, chooses the main feature, and sends movie-shelf lookups only to TMDB's movie search. Nothing is deleted—the complete file shelf still exposes every source file. Movie results and show records are cached under `.meta` in your storage path; **Clear** them by calling `POST /api/meta/clear` as an admin.
 
-Matching works from the filename, so it will sometimes be wrong. `Blade Runner 2049 (2017)` correctly yields the 2017 film rather than reading 2049 as the year, and `Arcane - S01E03` searches for the show rather than a film. But a filename with no useful title in it won't match anything, and a wrong match is possible — anything TMDB doesn't recognise simply keeps its video frame.
+Matching uses the show folder or filename and an optional release year, so it can still be wrong. Unrecognizable titles keep their local fallback. `Blade Runner 2049 (2017)` correctly yields the 2017 film rather than reading 2049 as the year, and `Arcane - S01E03` searches for the show rather than a film. But a filename with no useful title in it won't match anything, and a wrong match is possible — anything TMDB doesn't recognise simply keeps its video frame.
 
-This is the one feature I could not test against the live API, since it needs your key. If it misbehaves, `POST /api/meta/clear` and check what `guessed` comes back in `/api/meta/<path>`.
+To refresh a stale match, call `POST /api/meta/clear` and check what `guessed` comes back in `/api/meta/<path>`.
 
 ---
 

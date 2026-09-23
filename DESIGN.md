@@ -502,3 +502,7 @@ Copy link is disabled for inactive links. Revoke opens the existing confirmation
 - **Don't** use mono for body copy, large headings, or atmosphere.
 - **Don't** interpret icon sizes as typography tokens or apply one surface's typography, colors, and corner scale to another.
 - **Don't** make metadata, artwork, transcoding, or network access prerequisites for reaching the original file.
+
+## Metadata and Library sorting behavior
+
+Watch enriches show artwork and metadata automatically, with a TVmaze source link in show details when that provider supplies the record. The existing artwork, typography, and hierarchy stay unchanged. Library defaults to name A–Z with folders first. Name, Size, Shelf, and Added headers are keyboard-operable sort buttons with a direction caret and `aria-sort`; the toolbar menu mirrors the same ordering for grid and mobile views.

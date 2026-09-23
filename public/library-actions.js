@@ -240,3 +240,9 @@ function wireFileInteractions(list){
   if(state.shelf!=='all')wireDropTarget($('#scroll'),[state.shelf,state.folder].filter(Boolean).join('/'));
   else {$('#scroll').ondragover=null;$('#scroll').ondrop=null;$('#scroll').ondragleave=null;}
 }
+
+function fileSortHeading(field,label,className=''){
+  const [active,direction]=LibrarySort.options[state.sort]||LibrarySort.options.az;
+  const selected=active===field;
+  return `<th class="${className}" aria-sort="${selected?direction:'none'}"><button class="file-sort-heading" data-file-sort="${field}" title="Sort by ${label.toLowerCase()}">${label}${selected?icon(direction==='ascending'?'caret-up':'caret-down'):''}</button></th>`;
+}

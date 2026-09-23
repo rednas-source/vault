@@ -13,7 +13,8 @@ function watchCatalog(list){
   const movies=movieGroups(list.filter(file=>file.shelf==='movies')).map(group=>({...group,type:'movie',modified:group.representative.modified||0}));
   return [...shows,...movies];
 }
-const watchMeta=group=>watchMetaCache.get(group.representative.rel)||{};
+const watchMetaKey=group=>group.type+':'+group.key;
+const watchMeta=group=>watchMetaCache.get(watchMetaKey(group))||{};
 const watchTitle=group=>watchMeta(group).title||group.label;
 function watchDetailAttrs(group){return `data-watch-detail="${esc(group.key)}" data-kind="${group.type}"`;}
 function watchFacts(group){
@@ -69,7 +70,7 @@ function watchShowDetail(group,list){
 }
 function watchAbout(group){
   const meta=watchMeta(group);
-  return `<section class="watch-about" data-about-rel="${esc(group.representative.rel)}" ${!meta.cast?.length&&!meta.genres?.length?'hidden':''}>${meta.cast?.length?`<p><span>Cast:</span> ${esc(meta.cast.slice(0,8).map(person=>person.name).join(', '))}</p>`:''}${meta.genres?.length?`<p><span>Genres:</span> ${esc(meta.genres.join(', '))}</p>`:''}</section>`;
+  return `<section class="watch-about" data-about-rel="${esc(group.representative.rel)}" ${!meta.cast?.length&&!meta.genres?.length&&!meta.provider?'hidden':''}>${meta.cast?.length?`<p><span>Cast:</span> ${esc(meta.cast.slice(0,8).map(person=>person.name).join(', '))}</p>`:''}${meta.genres?.length?`<p><span>Genres:</span> ${esc(meta.genres.join(', '))}</p>`:''}${meta.provider==='TVmaze'?`<p><a href="${esc(meta.sourceUrl)}" target="_blank" rel="noopener noreferrer">Metadata from TVmaze</a></p>`:''}</section>`;
 }
 function watchMovieDetail(group,list){
   const other=[...group.files,...group.extras].filter(file=>file!==group.representative);
@@ -137,8 +138,8 @@ async function hydrateWatch(catalog){
   async function worker(){
     while(pending.length&&version===watchRenderVersion&&watchActive()){
       const group=pending.shift(),file=group.representative;
-      const meta=watchMetaCache.get(file.rel)||await fetchMediaMeta(url('meta',file.rel));
-      if(!meta.found)continue;watchMetaCache.set(file.rel,meta);
+      const meta=watchMetaCache.get(watchMetaKey(group))||await fetchMediaMeta(url('meta',file.rel));
+      if(!meta.found)continue;watchMetaCache.set(watchMetaKey(group),meta);
       if(version!==watchRenderVersion||!watchActive())return;
       $('#scroll').querySelectorAll('[data-art-rel]').forEach(art=>{
         if(art.dataset.artRel!==file.rel)return;const src=watchImage(group,art.dataset.artKind);if(!src)return;

@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-chromatic-production-20260907">
+<meta name="vault-build" content="vault-metadata-sort-20260923">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1311,11 +1311,11 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-listen-20260922">
-<link rel="stylesheet" href="/library.css?v=vault-listen-20260922">
-<link rel="stylesheet" href="/watch.css?v=vault-listen-20260922">
-<link rel="stylesheet" href="/listen.css?v=vault-listen-20260922">
-<link rel="stylesheet" href="/appearance.css?v=vault-listen-20260922">
+<link rel="stylesheet" href="/chromatic.css?v=vault-metadata-sort-20260923">
+<link rel="stylesheet" href="/library.css?v=vault-metadata-sort-20260923">
+<link rel="stylesheet" href="/watch.css?v=vault-metadata-sort-20260923">
+<link rel="stylesheet" href="/listen.css?v=vault-metadata-sort-20260923">
+<link rel="stylesheet" href="/appearance.css?v=vault-metadata-sort-20260923">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1397,11 +1397,14 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         <span class="sp"></span>
         <button class="ghost" id="btnNewFolder">New folder</button>
         <select class="sort" id="sort" aria-label="Sort files">
-          <option value="new">Newest</option>
-          <option value="old">Oldest</option>
-          <option value="big">Largest</option>
-          <option value="small">Smallest</option>
-          <option value="az">A → Z</option>
+          <option value="az">Name: A → Z</option>
+          <option value="za">Name: Z → A</option>
+          <option value="shelf">Shelf: A → Z</option>
+          <option value="shelfDesc">Shelf: Z → A</option>
+          <option value="new">Added: newest</option>
+          <option value="old">Added: oldest</option>
+          <option value="big">Size: largest</option>
+          <option value="small">Size: smallest</option>
         </select>
         <button class="ghost" id="tGroup" title="Collapse episodes into seasons">SERIES</button>
         <div class="view-tog">
@@ -1543,19 +1546,20 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-listen-20260922"></script>
-<script src="/listen.js?v=vault-listen-20260922"></script>
-<script src="/watch-model.js?v=vault-listen-20260922"></script>
-<script src="/watch.js?v=vault-listen-20260922"></script>
-<script src="/document-reader.js?v=vault-listen-20260922"></script>
-<script src="/library-tools.js?v=vault-listen-20260922"></script>
-<script src="/library-actions.js?v=vault-listen-20260922"></script>
+<script src="/appearance.js?v=vault-metadata-sort-20260923"></script>
+<script src="/listen.js?v=vault-metadata-sort-20260923"></script>
+<script src="/watch-model.js?v=vault-metadata-sort-20260923"></script>
+<script src="/watch.js?v=vault-metadata-sort-20260923"></script>
+<script src="/document-reader.js?v=vault-metadata-sort-20260923"></script>
+<script src="/library-tools.js?v=vault-metadata-sort-20260923"></script>
+<script src="/library-sort.js?v=vault-metadata-sort-20260923"></script>
+<script src="/library-actions.js?v=vault-metadata-sort-20260923"></script>
 <script>
 'use strict';
 
 const $ = (s) => document.querySelector(s);
 const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
-const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'new', view: 'list', mode: 'files', showDetail: null, movieDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, musicMetadata: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set(), featureCycle: { movies:0, series:0 } };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'az', view: 'list', mode: 'files', showDetail: null, movieDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, musicMetadata: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set(), featureCycle: { movies:0, series:0 } };
 const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
@@ -1724,7 +1728,13 @@ const mediaMetaCache = new Map();
 const musicMetaCache = new Map();
 
 async function fetchMediaMeta(endpoint){
-  if(!mediaMetaCache.has(endpoint)) mediaMetaCache.set(endpoint, fetch(endpoint).then((r)=>r.json()).catch(()=>({found:false})));
+  if(!mediaMetaCache.has(endpoint)) {
+    const request=fetch(endpoint).then(r=>r.ok?r.json():{found:false}).catch(()=>({found:false})).then(meta=>{
+      if(!meta.found){setTimeout(()=>{if(mediaMetaCache.get(endpoint)===request)mediaMetaCache.delete(endpoint);},5*60*1000);}
+      return meta;
+    });
+    mediaMetaCache.set(endpoint,request);
+  }
   return mediaMetaCache.get(endpoint);
 }
 
@@ -1840,12 +1850,7 @@ function visible(){
     list = [...state.folders.filter(f => inScope(f) && (f.dir||'') === state.folder),
       ...state.files.filter(f => inScope(f) && (libraryHome || (f.dir||'') === state.folder))];
   }
-  const by = {
-    new:(a,b)=>b.modified-a.modified, old:(a,b)=>a.modified-b.modified,
-    big:(a,b)=>b.size-a.size, small:(a,b)=>a.size-b.size,
-    az:(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}),
-  };
-  return list.sort((a,b) => (b.kind==='folder')-(a.kind==='folder') || by[state.sort](a,b));
+  return LibrarySort.sort(list,state.sort,SHELF_LABEL);
 }
 
 const mediaHomeActive = () => state.mode === 'entertainment' && ['movies','series','music'].includes(state.shelf) && !state.folder;
@@ -2137,6 +2142,7 @@ function renderBreadcrumbs(){
 /* ── render */
 function render(){
   closeFileMenu();
+  $('#sort').value=state.sort;
   document.body.classList.toggle('watch-mode',watchActive());
   document.body.classList.toggle('listen-mode',listenActive());
   applyAppearance();syncListenDock();
@@ -2353,7 +2359,7 @@ function listView(list){
 
   return `<table class="rows"><thead><tr>
     <th class="col-pick"><input type="checkbox" id="pickAll" title="Select all" aria-label="Select all items"></th>
-    <th>Name</th><th>Size</th><th class="col-shelf">Shelf</th><th class="col-added">Added</th><th></th>
+    ${fileSortHeading('name','Name')}${fileSortHeading('size','Size')}${fileSortHeading('shelf','Shelf','col-shelf')}${fileSortHeading('modified','Added','col-added')}<th></th>
   </tr></thead><tbody>${rows.join('')}</tbody></table>`;
 }
 
@@ -2561,6 +2567,7 @@ function initCinemaRails(){
 
 function wire(){
   const list = visible();
+  $('#scroll').querySelectorAll('[data-file-sort]').forEach(button=>button.onclick=()=>{const field=button.dataset.fileSort;state.sort=LibrarySort.toggle(state.sort,field);render();$('#scroll').querySelector(`[data-file-sort="${field}"]`)?.focus();});
 
   $('#scroll').querySelectorAll('[data-act]').forEach((el) => {
     el.onclick = (e) => {
