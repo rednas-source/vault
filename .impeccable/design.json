@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-09-24T14:26:24.904860Z",
-  "title": "Design System: Vault — Library, Watch, Listen, and Apps",
+  "title": "Design System: Vault \u2014 Library, Watch, Listen, and Apps",
   "extensions": {
     "assets": {
       "scope": "Library asset packages; preserves the incumbent Vault world and global tokens.",
@@ -19,7 +19,7 @@
         "Upload incomplete",
         "No matching assets",
         "Start your asset library",
-        "Assets couldn’t load",
+        "Assets couldn\u2019t load",
         "3D preview unavailable"
       ],
       "evidence": [
@@ -50,11 +50,21 @@
         ".impeccable/review/assets-actions/guide-mobile.png",
         ".impeccable/review/assets-actions/guide-light.png",
         ".impeccable/review/assets-actions/image-expanded.png",
-        ".impeccable/review/assets-actions/image-fullscreen.png"
+        ".impeccable/review/assets-actions/image-fullscreen.png",
+        ".impeccable/review/assets-studio/desktop.png",
+        ".impeccable/review/assets-studio/mobile.png",
+        ".impeccable/review/assets-studio/animation.png",
+        ".impeccable/review/assets-studio/mobile-animation.png",
+        ".impeccable/review/assets-studio/static.png",
+        ".impeccable/review/assets-studio/fullscreen.png",
+        ".impeccable/review/assets-studio/solid-rig.png",
+        ".impeccable/review/assets-studio/user-900.png",
+        ".impeccable/review/assets-studio/light.png",
+        ".impeccable/review/assets-studio/untextured-import.png"
       ],
       "evidenceScope": "Supplied browser captures and source inspection only. Workbench fresh reviewer returned SHIP with no material findings. ASSETS-VERIFICATION.md records interaction/server/Blender evidence; this documentation merge is not another full review, physical-device test or production-scale benchmark.",
-      "workbench": "Selection and view changes preserve card/image nodes without catalog fetch. Search includes tags. Type plus Relationship finds connected model contents with Contains labels. Bulk metadata editing and reversible Trash use inline confirmation forms. Prepared source add-ons match source ID and collection, keeping existing card identity and primary preview.",
-      "viewer": "One intentional dark local stage in both themes. Textured/solid/wireframe, Bones, camera reset, Expand and browser Fullscreen; manual clip playback, seeking, 1/30-second steps, speed, loop and temporary In/Out ranges. Preview controls do not rewrite animation files.",
+      "workbench": "Selection and view changes preserve card/image nodes without catalog fetch. Search includes tags. Type plus Relationship finds connected model contents with Contains labels. Bulk metadata editing and reversible Trash use inline confirmation forms. Prepared source add-ons match source ID and collection, keeping existing card identity and primary preview. Reimports automatically add missing files using stable source ID+collection or ordinary folder name+collection.",
+      "viewer": "Integrated bottom icon dock on canvas ground. Default Mesh mode hides timeline and restores rest pose. Animate reveals clips/transport; file and range controls disclose on demand. Top-right Exit 3D remains during loading/fullscreen. Stage 540px desktop, 320px phone; two-row mobile dock. Preview controls never rewrite source files.",
       "viewerExtensionStyles": {
         "controlBorder": "#4b5c64",
         "divider": "#34454c",
@@ -66,7 +76,7 @@
       "sourceAddon": "35 editable Blender conversions of approved GLBs with packed images; Blender confirmed 12 rigs/animation sets. Not original sculpt history.",
       "packageActions": "Right-click or persistent three-dot menu: Open, Edit details, Save to favorites, Get asset, Delete. Keyboard arrows/Home/End/Escape. Detail Delete confirms package name, connected-file count and size before permanent whole-package removal; stale revisions rejected. Existing bulk Trash remains reversible.",
       "favorites": "Private account-backed favorites across browsers/devices; existing browser-local IDs migrate on the next Assets visit from that browser. Save preserves detail image/3D preview nodes. Saved-only gallery refreshes after changing favorites. Package metadata/revision and Listen preferences are unchanged.",
-      "imageInspection": "Preview/reference/texture image selector, 280–1000px height slider, desktop vertical resize handle, Expand/Collapse and browser Fullscreen. Fullscreen hides height adjustment; Image preview returns from 3D inside the asset.",
+      "imageInspection": "Preview/reference/texture image selector, 280\u20131000px height slider, desktop vertical resize handle, Expand/Collapse and browser Fullscreen. Fullscreen hides height adjustment; Image preview returns from 3D inside the asset.",
       "importGuide": "40px question-circle beside Add assets in gallery and import form. Inline Library-themed guide with prepare/select/import flow, two-column folder tree and grouped-card example (stacked below 700px), collapsible recipe, Download example asset.json, tags, paths and source-ID matching guidance.",
       "actionStyles": "Menu: existing theme colors, 8px corners, 40px minimum items, accent hover/focus, viewport-clamped. Delete dialog: theme colors, 10px corners, max 520px width/85dvh height, 16px viewport clearance, 24px padding, 22px heading, 14px body, Cancel initial focus.",
       "actionsReview": {
@@ -1157,8 +1167,8 @@
       ],
       "authority": "The user explicitly chose conventional Netflix / HBO / Emby streaming style; the current Listen/header direction contract does not replace Watch composition.",
       "scope": "Watch browsing remains an independent neutral dark palette, even under the Library light theme. Shared header layout and accent follow Appearance; Library and Listen retain their separately documented compositions.",
-      "hierarchy": "Home / Movies / TV Shows → title detail → season → ordered episodes. Back, All seasons, season selection, and browser history preserve context. This is a presentation hierarchy; no file moves. Specials and Unsorted episodes are explicit groups.",
-      "layout": "Internally scrolling pane beneath the shared header; 62px local navigation, 570px minimum home feature, 510px minimum desktop detail feature, 60px rail overlap. Upright 2:3 posters, 16:9 resume/episode art, 2:2.65 season art. Catalog grid starts at a 170px minimum, season columns at 155–190px. Desktop episode columns: 28px number, 190px image, flexible text, 36px options.",
+      "hierarchy": "Home / Movies / TV Shows \u2192 title detail \u2192 season \u2192 ordered episodes. Back, All seasons, season selection, and browser history preserve context. This is a presentation hierarchy; no file moves. Specials and Unsorted episodes are explicit groups.",
+      "layout": "Internally scrolling pane beneath the shared header; 62px local navigation, 570px minimum home feature, 510px minimum desktop detail feature, 60px rail overlap. Upright 2:3 posters, 16:9 resume/episode art, 2:2.65 season art. Catalog grid starts at a 170px minimum, season columns at 155\u2013190px. Desktop episode columns: 28px number, 190px image, flexible text, 36px options.",
       "responsive": "At 1000px: 510px minimum home feature, 145px minimum catalog columns, 160px episode thumbnail. At 700px: 20px gutter, 56px navigation, 590px minimum home feature with image above copy, 540px detail feature, two-column catalogs/seasons, 145px poster rail cards, 280px resume cards, 24px overlap, and episode rows of 110px image / flexible text / 30px options. At 1800px: 680px minimum home feature and 205px minimum catalog columns.",
       "states": "White 2px focus outline with 4px offset, persistent poster labels and options, text for watched/resume status, neutral progress bars. Primary actions have 46px minimum height, 44px on phones. Phone rails use touch scrolling and omit arrow controls.",
       "motion": "No automatic feature rotation, orbit/canvas decoration, tilted posters, or chromatic storyworld treatments. Only restrained hover/focus and manual rail scrolling. Reduced motion removes transitions and smooth scrolling.",
@@ -1192,7 +1202,7 @@
       ],
       "palette": "Six explicit palettes: Orange, Light blue, Purple, Green, Rose, Gold. Default restores orange in Library/Watch and blue in Listen. Light variants apply only to light Library; Watch and Listen keep dark surfaces.",
       "variables": "Runtime --accent-rgb, --accent, --accent-soft, --star, --star-soft, --star-edge, --flare, --flare-edge, --sky, and --select share the selected palette. Token primitives live in DESIGN.md.",
-      "layout": "68px desktop header; centered 260–400px search, 38px utilities. 112px at 1100px and below, 150px at 600px and below. 330px Appearance popover, three-column palette grid. Listen overrides this at <=900px with a 52px header and an Appearance popover below it.",
+      "layout": "68px desktop header; centered 260\u2013400px search, 38px utilities. 112px at 1100px and below, 150px at 600px and below. 330px Appearance popover, three-column palette grid. Listen overrides this at <=900px with a 52px header and an Appearance popover below it.",
       "navigation": "Unboxed section tabs with optional icon-only mode. Labels and titles remain accessible; owner controls retain existing permission visibility.",
       "persistence": "Accent choice and icon-navigation preference persist in vault-appearance in this browser; Library theme remains browser-local.",
       "states": "Popover Escape and outside click close it; controls preserve focus after selection, and closing from its control returns focus to Appearance."
@@ -1209,7 +1219,7 @@
       ],
       "authority": "User-pinned Spotify composition, grey/blue instead of grey/green; current direction contract in public/index.html. This supersedes Chromatic Listen guidance.",
       "layout": "Desktop above 900px: 264px library / flexible main panel, or 244px / flexible main / 280px side panel. 8px gaps and panel corners; independently scrolling content. Sticky 70px navigation. Home quick shortcuts, square albums, collection hero and track rows.",
-      "responsive": "Above 900px the desktop panels remain: 1250px narrows sidebar and overlays queue, 1100px hides track album column. At 900px and below: 52px header, flat full-height content, hidden sidebar/side panel, Home / Search / Your Library bottom navigation at 64px plus safe area. Two quick columns; horizontal home albums at 43% width, 27% at 601–900px. Other album grids are two columns, three at 601–900px. Centered min(66vw,290px) collection art; 66px minimum rows with title/artist and 44px Options, no inline like/number/duration/album columns. Expanded Now playing becomes two columns at <=900px width and <=500px height; Queue remains vertical.",
+      "responsive": "Above 900px the desktop panels remain: 1250px narrows sidebar and overlays queue, 1100px hides track album column. At 900px and below: 52px header, flat full-height content, hidden sidebar/side panel, Home / Search / Your Library bottom navigation at 64px plus safe area. Two quick columns; horizontal home albums at 43% width, 27% at 601\u2013900px. Other album grids are two columns, three at 601\u2013900px. Centered min(66vw,290px) collection art; 66px minimum rows with title/artist and 44px Options, no inline like/number/duration/album columns. Expanded Now playing becomes two columns at <=900px width and <=500px height; Queue remains vertical.",
       "transport": "One persistent audio element across sections and views. Desktop retains its 92px full-width black dock. Within mobile Listen, active playback shows a 64px blue-grey mini player, inset 8px and 4px above 64px bottom navigation plus safe area. Identity, play/next and slim progress remain; identity opens fullscreen Now playing with art, title/artist, seek, all transport controls, likes, volume and Queue. Main content reserves footer space; mini player is hidden without an active track.",
       "states": "Selected filter pills keep dark text on light fill, including hover. Active tracks, likes and repeat/shuffle use the selected accent. Desktop album play appears on hover/focus; mobile cards open collections. Mobile options stay visible and provide likes and track actions in a bottom sheet. Empty music, collections, search and queue have explanatory next actions. Mobile icon targets are at least 44px; track sheet actions at least 48px. Focus uses white outlines on mobile app/expanded surfaces.",
       "type": "Desktop retains its documented functional sans scale and display. Mobile uses 26px/700 Home headings, 23px section headings, 28px collection titles, 16px song/album titles, 14px artists, 14px/12px mini identity. Expanded title is 24px (20px short landscape), artist 16px and time 12px. Icon-font sizes including 26px controls and 84px fallback are geometry, not typography.",
@@ -1315,7 +1325,7 @@
       "name": "Assets Missing Preview Card",
       "kind": "card",
       "description": "Honest fallback for a package without supplied artwork; metadata remains visible beneath the preview frame.",
-      "html": "<article class=\"ds-asset-card\"><button class=\"ds-asset-preview\" aria-label=\"Open sample package\"><svg width=\"35\" height=\"35\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" aria-hidden=\"true\"><path d=\"m12 2 9 5v10l-9 5-9-5V7l9-5Zm0 10 9-5M12 12 3 7m9 5v10\"/></svg><span>No preview yet</span></button><button class=\"ds-asset-title\">Sample package</button><p>Props</p><small>Unspecified style · Static</small></article>",
+      "html": "<article class=\"ds-asset-card\"><button class=\"ds-asset-preview\" aria-label=\"Open sample package\"><svg width=\"35\" height=\"35\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" aria-hidden=\"true\"><path d=\"m12 2 9 5v10l-9 5-9-5V7l9-5Zm0 10 9-5M12 12 3 7m9 5v10\"/></svg><span>No preview yet</span></button><button class=\"ds-asset-title\">Sample package</button><p>Props</p><small>Unspecified style \u00b7 Static</small></article>",
       "css": ".ds-asset-card{width:220px;font-family:var(--sans,Arial,sans-serif)}.ds-asset-preview{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;width:100%;aspect-ratio:1.17;border:0;border-radius:10px;background:#111719;color:#a8b8bd;outline:1px solid var(--line-soft,#242929);font:12px var(--sans,Arial,sans-serif);cursor:pointer}.ds-asset-title{display:block;text-align:left;padding:0;margin-top:12px;border:0;background:none;color:var(--light,#f3f0e8);font:600 14px/1.4 var(--sans,Arial,sans-serif);cursor:pointer}.ds-asset-title:hover{color:var(--accent,#ff6b3c)}.ds-asset-card button:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}.ds-asset-card p{margin:5px 0 9px;color:var(--muted,#aab0aa);font-size:12px}.ds-asset-card small{color:var(--muted,#aab0aa);font-size:10px}"
     },
     {
@@ -1400,7 +1410,7 @@
       "name": "Apps Directory Row",
       "kind": "custom",
       "description": "Flat personal-app row with an accent symbol, persistent description, opening mode, and Edit action. Apps inherits Library theme roles.",
-      "html": "<article class=\"ds-app-row\"><button class=\"ds-app-launch\"><span class=\"ds-app-symbol\"><svg width=\"25\" height=\"25\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 9h18\"/></svg></span><span><strong>My project</strong><small>A personal web workspace</small></span></button><span class=\"ds-app-mode\">Vault</span><button class=\"ds-app-edit\" aria-label=\"Edit My project\">•••</button></article>",
+      "html": "<article class=\"ds-app-row\"><button class=\"ds-app-launch\"><span class=\"ds-app-symbol\"><svg width=\"25\" height=\"25\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 9h18\"/></svg></span><span><strong>My project</strong><small>A personal web workspace</small></span></button><span class=\"ds-app-mode\">Vault</span><button class=\"ds-app-edit\" aria-label=\"Edit My project\">\u2022\u2022\u2022</button></article>",
       "css": ".ds-app-row{display:grid;grid-template-columns:minmax(0,1fr) 120px 40px;align-items:center;gap:20px;padding:20px 0;border-bottom:1px solid var(--line-soft,#252a27);font-family:var(--sans,Arial,sans-serif)}.ds-app-launch{display:flex;align-items:center;gap:16px;text-align:left;min-width:0;width:100%;border:0;background:none;color:var(--light,#f3f0e8);cursor:pointer}.ds-app-symbol{width:48px;height:48px;display:grid;place-items:center;flex:none;background:var(--star-soft,rgba(255,107,60,.1));color:var(--accent,#ff6b3c);border-radius:10px}.ds-app-launch strong{display:block;font-size:15px;font-weight:600}.ds-app-launch small{display:block;margin-top:6px;font-size:12px;color:var(--muted,#aab0aa)}.ds-app-launch:hover strong{color:var(--accent,#ff6b3c)}.ds-app-mode{font-size:12px;color:var(--muted,#aab0aa)}.ds-app-edit{width:36px;height:36px;border:0;border-radius:6px;background:none;color:var(--muted,#aab0aa);cursor:pointer}.ds-app-edit:hover{background:var(--hover,rgba(255,255,255,.04));color:var(--light,#f3f0e8)}.ds-app-row button:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}.ds-app-row button:active{transform:translateY(1px)}@media(max-width:600px){.ds-app-row{grid-template-columns:minmax(0,1fr) 36px;gap:10px}.ds-app-mode{display:none}.ds-app-symbol{width:40px;height:40px}.ds-app-launch{gap:12px}}"
     },
     {
@@ -1431,13 +1441,13 @@
       "kind": "custom",
       "refersTo": "assets-viewer-controls",
       "description": "Dark local inspection controls in both Library themes; original clips remain unchanged.",
-      "html": "<div class=\"ds-asset-controls\"><label>Surface <select aria-label=\"Surface\"><option>Textured</option><option>Solid</option><option>Wireframe</option></select></label><button>Expand</button><p>Preview only · original clips stay unchanged</p></div>",
+      "html": "<div class=\"ds-asset-controls\"><label>Surface <select aria-label=\"Surface\"><option>Textured</option><option>Solid</option><option>Wireframe</option></select></label><button>Expand</button><p>Preview only \u00b7 original clips stay unchanged</p></div>",
       "css": ".ds-asset-controls{padding:14px;background:#182329;color:#d8e3e9;font:12px/1.4 var(--sans,Arial,sans-serif);border-top:1px solid #34454c}.ds-asset-controls label{display:inline-flex;align-items:center;gap:6px}.ds-asset-controls select,.ds-asset-controls button{min-height:34px;padding:5px 8px;background:#202e35;color:#e3edf1;border:1px solid #4b5c64;border-radius:5px;font:12px var(--sans,Arial,sans-serif)}.ds-asset-controls button{margin-left:10px;cursor:pointer}.ds-asset-controls button:hover{background:#34464f}.ds-asset-controls :is(button,select):focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}.ds-asset-controls p{color:#bccbd3;margin:12px 0 0}@media(max-width:700px){.ds-asset-controls button{min-height:40px}}"
     }
   ],
   "narrative": {
     "northStar": "A private archive with familiar streaming rooms",
-    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show → season → episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated content-first theater, movable mini-player, and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search. Mobile Listen uses a 52px header, in-surface Search, Home / Search / Your Library navigation, an active blue-grey mini player and fullscreen Now playing.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
+    "overview": "Vault combines distinct, scoped surfaces. Library remains a dense, calm private archive; Watch follows the user's Netflix / HBO / Emby-style streaming conventions. Listen follows the user's Spotify-style composition: charcoal panels, square album artwork, a dedicated music library, track lists, an optional queue, and a persistent bottom transport, with light blue as its default accent.\n\nLibrary retains its Explorer-style hierarchy and compact file tools. Watch retains cinematic backdrops, upright posters, and show \u2192 season \u2192 episode navigation. Listen's September 2026 panel system supersedes the earlier Chromatic Listen prototype. Apps extends the quiet Library workspace with a compact personal app directory and an embedded working area. Administration retains its established structure. Video playback extends the approved Watch world with an integrated content-first theater, movable mini-player, and familiar Netflix / YouTube-style controls. The shared header has compact utility icons, optional icon-only section tabs, and centered sans search. Mobile Listen uses a 52px header, in-surface Search, Home / Search / Your Library navigation, an active blue-grey mini player and fullscreen Now playing.\n\nAppearance chooses one accent palette for the site, with a default reset that restores orange in Library/Watch and blue in Listen. The Library theme may be light or dark; Watch and Listen retain dark playback backgrounds. Artwork remains runtime enrichment, with usable local-file fallbacks.",
     "keyCharacteristics": [
       "Near-black tonal layering with distinct file, video, and music compositions.",
       "One configurable accent; default orange in Library/Watch and light blue in Listen.",
@@ -1475,7 +1485,7 @@
       "Do keep selected Listen filter pills legible on hover and preserve visible focus, persistent transport, and phone actions.",
       "Do provide a graceful local fallback when thumbnails or remote metadata are unavailable.",
       "Do mirror media hover disclosure with keyboard focus and persistent detail views.",
-      "Do keep Watch's feature stable, respect reduced motion, and preserve show → season → episode navigation and browser history."
+      "Do keep Watch's feature stable, respect reduced motion, and preserve show \u2192 season \u2192 episode navigation and browser history."
     ],
     "donts": [
       "Don't apply Watch's explicitly selected Netflix / HBO / Emby conventions to Library or Listen, or revive storyworlds, orbit/canvas effects, tilted posters, or automatic hero rotation in Watch.",

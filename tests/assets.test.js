@@ -68,3 +68,13 @@ test('favorites survive reloads, remain account-private, migrate legacy IDs and 
  await library.saveFavorites('alice',{id:a.id,saved:false});assert.deepEqual(await library.favorites('alice'),[b.id]);await library.remove(b.id,b.revision);assert.deepEqual(await library.favorites('alice'),[]);
  await assert.rejects(library.saveFavorites('alice',{id:a.id,saved:'yes'}),/Choose/);await assert.rejects(library.saveFavorites('alice',{ids:['../../private']}),/Invalid/);
 });
+
+test('stable asset identity adds files to existing packages despite a changed import fingerprint',async t=>{
+ const {root,library}=await fixture(t),meta={name:'Archer',sourceAssetId:'amara_archer',collection:'Amber Road',importIdentity:'first files',files:[{path:'model.glb',role:'model'}]};
+ let a=await library.create(meta);await fs.writeFile(path.join(root,a.rel,'model.glb'),'model');a=await library.finish(a.id);
+ a=await library.update(a.id,{revision:a.revision,name:'My renamed archer',tags:['favorite archer']});
+ const next=await library.create({...meta,importIdentity:'first files plus source',files:[...meta.files,{path:'source.blend',role:'source'}]});assert.equal(next.id,a.id);assert.equal(next.existing,true);assert.equal(next.name,'My renamed archer');assert.deepEqual(next.tags,['favorite archer']);assert.equal((await library.list()).total,1);
+ const together=await Promise.all([library.create({...meta,sourceAssetId:'folder:cedar'}),library.create({...meta,sourceAssetId:'folder:cedar',importIdentity:'changed'})]);assert.equal(together[0].id,together[1].id);
+ const other=await library.create({...meta,collection:'Different collection',importIdentity:'different'});assert.notEqual(other.id,a.id);
+ await library.bulk({action:'trash',items:[{id:a.id,revision:a.revision}]});await assert.rejects(library.create(meta),e=>e.status===409&&/Trash/.test(e.message));
+});
