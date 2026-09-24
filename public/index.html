@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-assets-favorites-20260924">
+<meta name="vault-build" content="vault-assets-drag-20260924">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1314,15 +1314,15 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/assets.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/library.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/watch.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/listen.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/appearance.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/apps.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-favorites-20260924">
-<link rel="stylesheet" href="/player.css?v=vault-assets-favorites-20260924">
+<link rel="stylesheet" href="/chromatic.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/assets.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/library.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/watch.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/listen.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/appearance.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/apps.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/player.css?v=vault-assets-drag-20260924">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1555,20 +1555,20 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-assets-favorites-20260924"></script>
-<script src="/listen.js?v=vault-assets-favorites-20260924"></script>
-<script src="/listen-mobile.js?v=vault-assets-favorites-20260924"></script>
-<script src="/watch-model.js?v=vault-assets-favorites-20260924"></script>
-<script src="/watch.js?v=vault-assets-favorites-20260924"></script>
-<script src="/captions.js?v=vault-assets-favorites-20260924"></script>
-<script src="/player.js?v=vault-assets-favorites-20260924"></script>
-<script src="/apps.js?v=vault-assets-favorites-20260924"></script>
-<script src="/document-reader.js?v=vault-assets-favorites-20260924"></script>
-<script src="/library-tools.js?v=vault-assets-favorites-20260924"></script>
-<script src="/library-sort.js?v=vault-assets-favorites-20260924"></script>
+<script src="/appearance.js?v=vault-assets-drag-20260924"></script>
+<script src="/listen.js?v=vault-assets-drag-20260924"></script>
+<script src="/listen-mobile.js?v=vault-assets-drag-20260924"></script>
+<script src="/watch-model.js?v=vault-assets-drag-20260924"></script>
+<script src="/watch.js?v=vault-assets-drag-20260924"></script>
+<script src="/captions.js?v=vault-assets-drag-20260924"></script>
+<script src="/player.js?v=vault-assets-drag-20260924"></script>
+<script src="/apps.js?v=vault-assets-drag-20260924"></script>
+<script src="/document-reader.js?v=vault-assets-drag-20260924"></script>
+<script src="/library-tools.js?v=vault-assets-drag-20260924"></script>
+<script src="/library-sort.js?v=vault-assets-drag-20260924"></script>
 <script type="importmap">{"imports":{"three":"/vendor/three/build/three.module.js"}}</script>
-<script src="/assets.js?v=vault-assets-favorites-20260924"></script>
-<script src="/library-actions.js?v=vault-assets-favorites-20260924"></script>
+<script src="/assets.js?v=vault-assets-drag-20260924"></script>
+<script src="/library-actions.js?v=vault-assets-drag-20260924"></script>
 <script>
 'use strict';
 
@@ -3875,16 +3875,23 @@ async function filesFromDrop(dataTransfer){
   return out.length ? out : [...(dataTransfer.files || [])];
 }
 
-let dragDepth = 0;
+let dragDepth = 0, internalFileDrag = false;
+window.addEventListener('dragstart', e => {
+  internalFileDrag = true;
+  if(state.mode==='assets' && e.target.closest?.('.asset-visual,.asset-art')){
+    e.preventDefault();internalFileDrag=false;
+  }
+});
+window.addEventListener('dragend',()=>{internalFileDrag=false;dragDepth=0;$('#drop').classList.remove('on');});
 window.addEventListener('dragenter', (e) => {
-  if(!state.user || !e.dataTransfer?.types.includes('Files')) return;
+  if(internalFileDrag || !state.user || !e.dataTransfer?.types.includes('Files')) return;
   dragDepth++; $('#drop').classList.add('on');
 });
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('dragleave', () => { if(--dragDepth <= 0){ dragDepth = 0; $('#drop').classList.remove('on'); } });
 window.addEventListener('drop', async (e) => {
   e.preventDefault();
-  if(e.dataTransfer?.types.includes('application/x-vault-items'))return;
+  if(internalFileDrag || e.dataTransfer?.types.includes('application/x-vault-items')){internalFileDrag=false;dragDepth=0;$('#drop').classList.remove('on');return;}
   dragDepth = 0; $('#drop').classList.remove('on');
   const files = await filesFromDrop(e.dataTransfer || {});
   if(state.user && files.length){if(state.mode==='assets')assetImportForm(files);else chooseShelf(files);}

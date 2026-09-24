@@ -25,7 +25,7 @@ const assetDesktop=matchMedia('(min-width:701px)');assetDesktop.addEventListener
 function assetNavigate(id=''){state.assetId=id;state.mode='assets';state.shelf='assets';render();assetScrollTop();}
 function assetOptions(values,current,all){return `<option value="">${all}</option>`+values.map(v=>`<option value="${esc(v)}" ${v===current?'selected':''}>${esc(v)}</option>`).join('');}
 function assetPlaceholder(a){return `<div class="asset-no-preview">${icon(a.kind==='audio'?'waveform':a.kind==='texture'?'image':'cube')}<span>No preview yet</span></div>`;}
-function assetImage(a,large=false){return a.preview?`<img ${large?'':'loading="lazy"'} src="${assetFileURL(a,a.preview)}" alt="${esc(a.name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="asset-image-failed" hidden>Preview unavailable</span>`:assetPlaceholder(a);}
+function assetImage(a,large=false){return a.preview?`<img draggable="false" ${large?'':'loading="lazy"'} src="${assetFileURL(a,a.preview)}" alt="${esc(a.name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="asset-image-failed" hidden>Preview unavailable</span>`:assetPlaceholder(a);}
 async function renderAssets(){
   const request=++assetRequest,pane=$('#scroll');
   $('.library-heading h2').textContent='Assets';$('.library-heading p').textContent='Models, materials and motion. Every file stays connected.';
@@ -45,7 +45,7 @@ async function renderAssets(){
       <label>Art style<select id="assetStyle">${assetOptions(data.facets.style,filters.style,'All styles')}</select></label>
       <label>Collection<select id="assetCollection">${assetOptions(data.facets.collection,filters.collection,'All collections')}</select></label>
     </div></details><details class="asset-advanced"><summary>More filters & sorting</summary><div class="asset-filter-row secondary">
-      
+
       <label class="asset-inline-label">Motion<select id="assetRig">${assetOptions(['rigged','animated'],filters.rig,'Any').replace('>rigged<','>Rigged<').replace('>animated<','>Animated<')}</select></label>
       <label class="asset-inline-label">Format<select id="assetFormat">${assetOptions(['glb','gltf','fbx','obj','blend','png','jpg','exr','wav','ogg','mp3'],filters.format,'Any')}</select></label>
       <label class="asset-inline-label">Review<select id="assetStatus">${assetOptions(['ready','review','draft'],filters.status,'Any').replace('>ready<','>Ready<').replace('>review<','>Needs review<').replace('>draft<','>Upload incomplete<')}</select></label>
@@ -215,7 +215,7 @@ function assetPreviewControls(a){
   const images=a.files.filter(f=>/\.(png|jpe?g|webp|avif)$/i.test(f.path));if(!images.length){host.hidden=true;return;}
   stage.classList.add('asset-image-stage');host.hidden=false;host.className='asset-viewer-controls';host.innerHTML=`<div class="asset-viewer-row"><label>Image<select aria-label="Preview image file" id="assetImageFile">${images.map(f=>`<option value="${esc(f.path)}" ${f.path===a.preview?'selected':''}>${esc(f.label||f.path)}</option>`).join('')}</select></label><button class="asset-btn" id="assetImageExpand" aria-pressed="${visual.classList.contains('is-expanded')}">${visual.classList.contains('is-expanded')?'Collapse':'Expand'}</button><button class="asset-btn" id="assetImageFullscreen">Fullscreen</button><label class="asset-image-height">Height<input type="range" min="280" max="1000" step="10" value="${Math.round(stage.getBoundingClientRect().height/10)*10}" aria-label="Preview height"></label></div>`;
   const caption=()=>{const file=images.find(f=>f.path===$('#assetImageFile').value);$('#assetPreviewCaption').textContent=assetRoles[file?.role]||'Image preview';};caption();
-  $('#assetImageFile').onchange=e=>{const img=document.createElement('img');img.src=assetFileURL(a,e.target.value);img.alt=images.find(f=>f.path===e.target.value).label||a.name;img.onerror=()=>{stage.textContent='Preview unavailable. Download the file to view it.';};stage.replaceChildren(img);caption();};
+  $('#assetImageFile').onchange=e=>{const img=document.createElement('img');img.draggable=false;img.src=assetFileURL(a,e.target.value);img.alt=images.find(f=>f.path===e.target.value).label||a.name;img.onerror=()=>{stage.textContent='Preview unavailable. Download the file to view it.';};stage.replaceChildren(img);caption();};
   $('#assetImageExpand').onclick=e=>{const on=visual.classList.toggle('is-expanded');stage.style.height='';e.currentTarget.textContent=on?'Collapse':'Expand';e.currentTarget.setAttribute('aria-pressed',String(on));host.querySelector('input[type=range]').value=Math.round(stage.getBoundingClientRect().height/10)*10;};
   host.querySelector('input[type=range]').oninput=e=>{stage.style.height=e.target.value+'px';};
   const full=$('#assetImageFullscreen');full.disabled=!shell.requestFullscreen;full.onclick=async()=>{try{if(document.fullscreenElement===shell)await document.exitFullscreen();else await shell.requestFullscreen();}catch{assetNotice('Fullscreen is unavailable in this browser. Use Expand instead.');}};
