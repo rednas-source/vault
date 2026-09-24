@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-24T14:11:54.321046Z",
+  "generatedAt": "2026-09-24T14:26:24.904860Z",
   "title": "Design System: Vault — Library, Watch, Listen, and Apps",
   "extensions": {
     "assets": {
@@ -39,7 +39,18 @@
         ".impeccable/review/assets-workbench-final/expanded.png",
         ".impeccable/review/assets-workbench-final/fullscreen.png",
         ".impeccable/review/assets-workbench-final/light.png",
-        ".impeccable/review/assets-workbench-final/user-900.png"
+        ".impeccable/review/assets-workbench-final/user-900.png",
+        ".impeccable/review/assets-actions/desktop.png",
+        ".impeccable/review/assets-actions/mobile.png",
+        ".impeccable/review/assets-actions/menu.png",
+        ".impeccable/review/assets-actions/detail.png",
+        ".impeccable/review/assets-actions/detail-mobile.png",
+        ".impeccable/review/assets-actions/delete-mobile.png",
+        ".impeccable/review/assets-actions/guide-desktop.png",
+        ".impeccable/review/assets-actions/guide-mobile.png",
+        ".impeccable/review/assets-actions/guide-light.png",
+        ".impeccable/review/assets-actions/image-expanded.png",
+        ".impeccable/review/assets-actions/image-fullscreen.png"
       ],
       "evidenceScope": "Supplied browser captures and source inspection only. Workbench fresh reviewer returned SHIP with no material findings. ASSETS-VERIFICATION.md records interaction/server/Blender evidence; this documentation merge is not another full review, physical-device test or production-scale benchmark.",
       "workbench": "Selection and view changes preserve card/image nodes without catalog fetch. Search includes tags. Type plus Relationship finds connected model contents with Contains labels. Bulk metadata editing and reversible Trash use inline confirmation forms. Prepared source add-ons match source ID and collection, keeping existing card identity and primary preview.",
@@ -52,7 +63,16 @@
         "focus": "2px solid var(--accent), 3px offset",
         "buttonMinHeight": "34px desktop, 40px phone"
       },
-      "sourceAddon": "35 editable Blender conversions of approved GLBs with packed images; Blender confirmed 12 rigs/animation sets. Not original sculpt history."
+      "sourceAddon": "35 editable Blender conversions of approved GLBs with packed images; Blender confirmed 12 rigs/animation sets. Not original sculpt history.",
+      "packageActions": "Right-click or persistent three-dot menu: Open, Edit details, Save to favorites, Get asset, Delete. Keyboard arrows/Home/End/Escape. Detail Delete confirms package name, connected-file count and size before permanent whole-package removal; stale revisions rejected. Existing bulk Trash remains reversible.",
+      "favorites": "Private account-backed favorites across browsers/devices; existing browser-local IDs migrate on the next Assets visit from that browser. Save preserves detail image/3D preview nodes. Saved-only gallery refreshes after changing favorites. Package metadata/revision and Listen preferences are unchanged.",
+      "imageInspection": "Preview/reference/texture image selector, 280–1000px height slider, desktop vertical resize handle, Expand/Collapse and browser Fullscreen. Fullscreen hides height adjustment; Image preview returns from 3D inside the asset.",
+      "importGuide": "40px question-circle beside Add assets in gallery and import form. Inline Library-themed guide with prepare/select/import flow, two-column folder tree and grouped-card example (stacked below 700px), collapsible recipe, Download example asset.json, tags, paths and source-ID matching guidance.",
+      "actionStyles": "Menu: existing theme colors, 8px corners, 40px minimum items, accent hover/focus, viewport-clamped. Delete dialog: theme colors, 10px corners, max 520px width/85dvh height, 16px viewport clearance, 24px padding, 22px heading, 14px body, Cancel initial focus.",
+      "actionsReview": {
+        "disposition": "SHIP",
+        "scope": "Eleven supplied asset-actions captures and .qa/assets-actions-review.log; stale Saved documentation corrected. Targeted factual documentation merge only; no new visual review or physical-device validation."
+      }
     },
     "colorMeta": {
       "signal-orange": {

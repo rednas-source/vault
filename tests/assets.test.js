@@ -30,7 +30,7 @@ test('pagination and filters remain bounded for a large cached catalog',async t=
 test('every asset endpoint enforces existing shelf permissions and authentication',async t=>{
   const {root}=await fixture(t),app=express();app.use(express.json());mountAssetRoutes(app,{root,auth:(req,res,next)=>{if(!req.headers.authorization)return res.sendStatus(401);req.user={name:'tester'};next();},canUse:req=>false,note:()=>{}});
   const server=app.listen(0,'127.0.0.1');t.after(()=>new Promise(resolve=>server.close(resolve)));await new Promise(resolve=>server.on('listening',resolve));const base='http://127.0.0.1:'+server.address().port;
-  for(const [method,url] of [['GET','/api/assets'],['GET','/api/assets/abc'],['POST','/api/assets'],['POST','/api/assets/refresh'],['POST','/api/assets/bulk'],['POST','/api/assets/abc/finish'],['PATCH','/api/assets/abc']]){assert.equal((await fetch(base+url,{method})).status,401);assert.equal((await fetch(base+url,{method,headers:{Authorization:'test'}})).status,404);}
+  for(const [method,url] of [['GET','/api/assets'],['GET','/api/assets/abc'],['POST','/api/assets'],['POST','/api/assets/refresh'],['POST','/api/assets/bulk'],['POST','/api/assets/abc/finish'],['PATCH','/api/assets/abc'],['DELETE','/api/assets/abc'],['GET','/api/assets/favorites'],['POST','/api/assets/favorites'],['PUT','/api/assets/abc/favorite']]){assert.equal((await fetch(base+url,{method})).status,401);assert.equal((await fetch(base+url,{method,headers:{Authorization:'test'}})).status,404);}
 });
 test('type filters include attached content without splitting the model package; tag search is searchable',async t=>{
  const {root,library}=await fixture(t);const a=await library.create({name:'Highland cedar',kind:'model',tags:['tree','evergreen'],files:[{path:'bark.png',role:'texture'},{path:'walk.glb',role:'animation'},{path:'preview.png',role:'preview'}]});
@@ -52,4 +52,19 @@ test('bulk editing preserves files, stale batches change nothing, Trash restores
  await library.bulk({action:'trash',items:[{id:a.id,revision:a.revision}]});assert.equal((await library.list()).total,1);assert.equal((await library.list({trash:'1'})).total,1);assert.equal(await fs.readFile(path.join(root,a.rel,'model.glb'),'utf8'),'original bytes');
  const reloaded=new AssetLibrary(root),trashed=await reloaded.get(a.id);assert(trashed.trashedAt>0);await reloaded.bulk({action:'restore',items:[{id:a.id,revision:trashed.revision}]});assert.equal((await reloaded.list()).total,2);
  await assert.rejects(library.bulk({action:'edit',items:[{id:b.id,revision:b.revision}],changes:{primary:'elsewhere.glb'}}),/Unsupported/);
+});
+
+test('permanent deletion removes the entire package while protecting stale revisions and other assets',async t=>{
+ const {root,library}=await fixture(t);let a=await library.create({name:'Delete me'}),keep=await library.create({name:'Keep me'});
+ await fs.mkdir(path.join(root,a.rel,'textures'));await fs.writeFile(path.join(root,a.rel,'model.glb'),'model');await fs.writeFile(path.join(root,a.rel,'textures/map.png'),'map');await fs.writeFile(path.join(root,keep.rel,'keep.txt'),'keep');a=await library.finish(a.id);
+ await assert.rejects(library.remove(a.id,'stale'),e=>e.status===409);assert.equal(await fs.readFile(path.join(root,a.rel,'model.glb'),'utf8'),'model');
+ const deleted=await library.remove(a.id,a.revision);assert.equal(deleted.deletedFiles,2);await assert.rejects(fs.stat(path.join(root,a.rel)),e=>e.code==='ENOENT');assert.equal(await fs.readFile(path.join(root,keep.rel,'keep.txt'),'utf8'),'keep');
+ await assert.rejects(new AssetLibrary(root).get(a.id),e=>e.status===404);assert.equal((await library.list()).total,1);await assert.rejects(library.remove('../assets',a.revision));
+});
+test('favorites survive reloads, remain account-private, migrate legacy IDs and exclude deleted assets',async t=>{
+ const {root,library}=await fixture(t);const a=await library.create({name:'Cedar'}),b=await library.create({name:'Stone'});
+ assert.deepEqual(await library.saveFavorites('alice',{id:a.id,saved:true}),[a.id]);assert.deepEqual(await new AssetLibrary(root).favorites('alice'),[a.id]);assert.deepEqual(await library.favorites('bob'),[]);
+ await library.saveFavorites('alice',{ids:[a.id,b.id,'0'.repeat(24)]});assert.deepEqual(new Set(await library.favorites('alice')),new Set([a.id,b.id]));
+ await library.saveFavorites('alice',{id:a.id,saved:false});assert.deepEqual(await library.favorites('alice'),[b.id]);await library.remove(b.id,b.revision);assert.deepEqual(await library.favorites('alice'),[]);
+ await assert.rejects(library.saveFavorites('alice',{id:a.id,saved:'yes'}),/Choose/);await assert.rejects(library.saveFavorites('alice',{ids:['../../private']}),/Invalid/);
 });

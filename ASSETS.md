@@ -18,7 +18,7 @@ You can also copy complete packages beneath the server's configured `storagePath
 ## Find and reuse
 
 - Search names, tags, descriptions, categories, styles and filenames. Combine category, collection, art-style, format, review-state and rig/animation filters.
-- **Saved** keeps favorites per account in the current browser. They do not currently sync between devices.
+- **Saved** keeps favorites privately on your Vault account, including across browsers/devices. Existing browser-local saves migrate when that browser next opens Assets. Saving does not reset the active preview.
 - Results are paginated, 48 at a time; model files are fetched only when **Inspect in 3D** is selected. The server caches the catalog, refreshes it after five minutes on the next request, and offers explicit Refresh for disk changes.
 - Open an asset to see related files, generation recipe, version, source/license notes and practical import instructions. Editing metadata does not rewrite the model.
 - **Get asset** downloads the entire package as a ZIP, including its manifest. **Get selected** bundles selected packages. Individual files and the main GLB can also be downloaded directly.
@@ -99,3 +99,14 @@ For animation clips, use the timeline, 1/30-second stepping, speed, loop and In/
 The Amber Road game was authored as Meshy GLBs, so it has no original Blender sculpt history to recover. The optional Amber-Road-Blender-Sources collection contains editable Blender conversions of all 35 approved model GLBs. They open in Solid shading and include imported geometry, UVs, materials, packed images, and available rigs/animations. The conversion notes explicitly distinguish them from original pre-texturing authoring projects.
 
 Extract the source add-on ZIP, choose its folder in Assets > Add assets, and enable **Add files to matching assets**. Matching requires exactly one active package with the same sourceAssetId and collection. Existing names, tags, primary GLB and preview are preserved; new source files join the same card. Import the original collection first. Existing paths with a different file size stop the update instead of being overwritten; unchanged existing paths are skipped. A renamed collection or duplicate source entries must be resolved before matching. Successful imports are marked Needs review. Uploading through Add files on an individual card remains available for unrelated sources.
+
+
+## Package actions, image inspection and import help
+
+Right-click a card, or use its three-dot Actions button on touch/keyboard, for Open, Edit details, Save to favorites, Get asset and Delete. The menu supports arrow keys, Home/End and Escape. Delete is also in the asset detail action row. It requires a confirmation naming the asset, connected-file count and size, then permanently removes the whole package directory, manifest and related files. Stale revisions are rejected. This differs from the existing recoverable bulk Trash action; deleting cannot be undone.
+
+Image previews now have in-panel image selection, Expand/Collapse, Fullscreen and a height slider, plus a desktop resize handle. Choose between the package's preview/reference/texture images. Image preview returns from 3D without leaving the asset. Browser fullscreen depends on platform support.
+
+The question-circle next to Add assets, in both the gallery and import form, opens an inline guide. Its collection tree and grouped-result diagram explain one asset.json per asset folder, selecting the outer collection folder, ordinary file selection versus prepared imports, tags and source-ID matching. Download example asset.json provides an editable recipe; change its sample paths and remove entries for files you do not have. All listed files must be present. The guide does not generate models or use paid services.
+
+Account favorite IDs are stored in hidden .asset-favorites.json at the storage root. Back up this file to retain account preferences; it is not part of an exported asset package. Favorites do not change asset metadata or revision. Saved-only filtering is resolved server-side, avoiding large ID lists in URLs.

@@ -30,3 +30,14 @@ No new paid generations were requested. Production deployment and copying these 
 - Blender 5.2 reopened all 35 converted files, verified nonempty meshes and packed images; 12 contain rigs and animation actions. Source ZIP has 35 packages, 770,710,859 bytes, and passed archive CRC plus every declared SHA-256 check. Original Meshy/game exports were not changed. This is editable GLB conversion, not recovered original sculpt history.
 - Existing full npm regression suite, folder-sharing integration, browser syntax and eight Python subtitle recovery tests pass. One initial document worker timed out during concurrent Blender activity; the rerun after conversion completed passed.
 - Evidence: .qa/assets-workbench-review.log, .qa/assets-source-import.log, .qa/workbench-tests.log, .qa/workbench-check.log; .impeccable/review/assets-workbench-final. Local fixtures/captures remain ignored.
+
+
+## Package actions follow-up — 24 September 2026
+
+- Nine asset tests pass, adding whole-package permanent deletion, stale-revision rejection, preservation of other packages, persistent account-private favorites, local-ID migration and deletion cleanup. New routes retain authentication and shelf permissions.
+- Actual Chrome verified account favorites from a separate browser context, the Saved filter, bookmark state, and in-place Save toggling while image and 3D canvas remain mounted. Legacy local IDs migrate to the account store.
+- Card right-click and three-dot menus, keyboard Escape, Edit details, image height/expansion/native fullscreen, return from 3D, inline import guidance and a real downloaded JSON recipe were exercised.
+- Permanent deletion was confirmed only on a newly-created disposable QA package; its nested model and texture paths no longer existed afterward. The real Cedar delete prompt was canceled.
+- Captured desktop, phone, dark/light help, model detail, fullscreen image and centered phone confirmation. No browser JS errors or phone horizontal overflow. Physical phone hardware is not claimed.
+- Full npm tests, npm run check and eight Python tests passed with native spawning/temp-file access permitted. Sandboxed attempts hit worker/time-limit and temp-path permission errors; the permitted runs passed.
+- Evidence remains local/ignored: .qa/assets-actions-review.log, .qa/assets-actions-tests.log, .qa/assets-actions-detector.json, and .impeccable/review/assets-actions/.
