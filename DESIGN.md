@@ -267,6 +267,19 @@ spacing:
   lg: "18px"
   xl: "26px"
 components:
+  assets-viewer-stage:
+    backgroundColor: "#141c20"
+    rounded: "10px"
+  assets-viewer-controls:
+    backgroundColor: "#182329"
+    textColor: "#d8e3e9"
+    padding: "14px"
+  assets-viewer-control:
+    backgroundColor: "#202e35"
+    textColor: "#e3edf1"
+    rounded: "5px"
+  assets-viewer-control-hover:
+    backgroundColor: "#34464f"
   player-control:
     textColor: "{colors.player-control}"
     rounded: "{rounded.player-control}"
@@ -506,9 +519,9 @@ Player menus sit above the bottom controls, 32px from the right and 100px from t
 
 ### Assets workspace
 
-Assets inherits Library's shared header, compact sans typography, shelf navigation, theme and selected Appearance accent. Its sidebar entry sits immediately above Entertainment. The catalog uses 24px side gutters and an auto-fill preview grid with 210px minimum columns, 24px row gaps and 20px column gaps; columns grow to a 235px minimum at 1650px. Type, Category, Art style and Collection lead the filter area, with Add assets beside them and secondary filters, Saved, Refresh and sorting below. Selection and result count occupy a separate restrained row before the images.
+Assets inherits Library's shared header, compact sans typography, shelf navigation, theme and selected Appearance accent. Its sidebar entry sits immediately above Entertainment. Its dedicated search field, Search, View and Add assets lead the workspace; the shared header search is hidden here. Type, Relationship, Category, Art style and Collection follow, then secondary filters, Saved, Trash, Refresh and sorting. Selection and result count occupy a restrained wrapping row before the images. The catalog uses 24px side gutters. Small, medium and large grids use minimum columns of 145px, 205px and 310px respectively; medium/large retain 24px by 20px gaps, while small uses 22px by 16px. List view pairs a 100px square preview with metadata and flat row dividers. Changing view and selecting cards keep their existing preview nodes mounted.
 
-Asset detail pairs a contained model/reference image with a metadata column in a 1.65:1 split, followed by connected files and import notes. The preview stage is 440px high, increasing to 530px on wide desktops. At 1100px and below, detail becomes one column with metadata after the preview. At 700px and below, the active Assets workspace hides the Library shelf rail, uses 16px gutters, a two-column catalog, paired primary filters and a full-width Add assets action. More filters & sorting collapses the secondary controls; detail actions wrap, the stage is 330px high, and edit/import fields become one column. These rules are scoped to Assets and do not change other Library or playback compositions.
+Asset detail pairs a contained model/reference image with a metadata column in a 1.65:1 split, followed by connected files and import notes. The preview stage is 440px high, increasing to 530px on wide desktops. At 1100px and below, detail becomes one column with a 420px stage. At 700px and below, Assets hides the Library shelf rail and uses 16px gutters; small/medium/large grids show three/two/one columns. Search remains prominent, with View and Add assets sharing the next row. Filters and More filters & sorting collapse; bulk actions wrap and inactive actions are hidden. Detail actions wrap, the stage becomes 330px high, and edit/import/bulk fields become one column. Expanded inspection spans the content width with a 65vh stage (minimum 400px), or 55vh (minimum 280px) on phones. Fullscreen keeps controls inside the viewport with their own scrollable area, at most 45vh. These rules are scoped to Assets.
 
 ## Elevation & Depth
 
@@ -667,7 +680,13 @@ Asset cards prioritize the supplied object image in a contained frame with 10px 
 
 Cards enlarge the image subtly on hover (1.035 over 180ms); reduced motion removes this effect. Assets controls share existing theme variables, modest corners, compact labels and accent focus outlines. Form errors, import progress, empty results and catalog failures appear in the working surface with a relevant recovery action. Incomplete packages visibly retain their upload status.
 
-Detail keeps All assets, Save, Edit details and Get asset above the content. Inspect in 3D is an explicit action beneath the image; the dark preview stage becomes the interactive canvas only after it is requested. File and animation selectors, Play/Pause, Reset view and Wireframe stay below the canvas. Animation playback is manual. Connected file rows disclose each path, role, size and direct download; practical notes and expandable generation/clip information remain alongside or below. Model inspection failure preserves package access and download. This is a reusable-assets workspace within Vault, with no separate brand, display typeface or entertainment-style hero.
+Detail keeps All assets, Save, Edit details and Get asset above the content. Inspect in 3D is explicit; the dark preview becomes interactive only after it is requested. The stage and its controls form one rounded panel that stays dark under both Library themes. Its component-specific colors are recorded in the frontmatter and sidecar; this local inspection environment does not replace the global palette. Controls use a cool dark fill, lighter borders and pale text, with the selected Appearance accent retained for focus and sliders.
+
+File and Surface selectors, Bones, Reset view, Expand and Fullscreen stay inside the panel. Animation controls add clip selection, Play/Pause, speed, loop, a timeline with frame steps and In/Out preview range. The visible preview-only note distinguishes these temporary controls from source editing. Controls wrap on phones, viewer buttons reach 40px minimum height, and timeline output moves to its own centered line. Connected files retain paths, roles, sizes and direct downloads; preview failure preserves package access.
+
+The search hint explicitly mentions tags. Related-content matches show a Contains label while retaining one card per reusable package. The inline bulk form uses the established raised surface, concise consequences and Apply/Cancel actions; Trash and Restore describe recoverable package state. Import exposes Add files to matching assets with its source-ID-and-collection relationship. These working controls extend the approved Assets composition without adding a separate brand, display typeface or entertainment hero.
+
+The workbench follow-up received a fresh **SHIP** disposition with no material findings across nine supplied desktop, phone, 900px, light-theme, expanded and fullscreen captures. Paths are recorded in `.impeccable/assets-surface.md` and `.impeccable/design.json`; this documents the supplied review and source inspection, not a new physical-device or whole-product test.
 
 ## Do's and Don'ts
 

@@ -1,17 +1,58 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-24T13:01:09.6639709Z",
+  "generatedAt": "2026-09-24T14:11:54.321046Z",
   "title": "Design System: Vault — Library, Watch, Listen, and Apps",
   "extensions": {
     "assets": {
       "scope": "Library asset packages; preserves the incumbent Vault world and global tokens.",
       "surfaceBrief": ".impeccable/assets-surface.md",
-      "sources": ["public/assets.js", "public/assets.css", "public/asset-viewer.js"],
-      "layout": "24px desktop gutters; auto-fill 210px minimum preview columns with 24px by 20px gaps; 1.65:1 detail split; 440px stage. At 1650px columns use 235px minimum and stage 530px. At 1100px detail stacks. At 700px Assets hides the shelf rail, uses 16px gutters, two catalog columns, collapsed secondary filters and a 330px stage.",
+      "sources": [
+        "public/assets.js",
+        "public/assets.css",
+        "public/asset-viewer.js"
+      ],
+      "layout": "24px desktop gutters; small/medium/large grid minima 145/205/310px; list uses 100px square previews. Dedicated search, View and Add assets precede filters and wrapping selection actions. Detail remains 1.65:1 with 440px stage, 530px wide and 420px below 1100px. At 700px: 16px gutters, three/two/one columns, collapsed Filters and secondary controls, 330px stage, single-column forms. Expand: 65vh/minimum 400px desktop, 55vh/minimum 280px phone. Fullscreen controls scroll within 45vh.",
       "motion": "Preview hover scales to 1.035 over 180ms ease-out; reduced motion removes it. Embedded animation playback is manual.",
-      "states": ["No preview yet", "Preview unavailable", "Upload incomplete", "No matching assets", "Start your asset library", "Assets couldn’t load", "3D preview unavailable"],
-      "evidence": [".impeccable/review/assets-final/desktop.png", ".impeccable/review/assets-final/detail.png", ".impeccable/review/assets-final/gold-3d.png", ".impeccable/review/assets-final/character-3d.png", ".impeccable/review/assets-final/import.png", ".impeccable/review/assets-corrections/mobile.png", ".impeccable/review/assets-corrections/mobile-detail.png", ".impeccable/review/assets-corrections/light-actual.png"],
-      "evidenceScope": "Supplied browser captures and final source inspection; documentation only, not a new full review or physical-device validation. Corrected light-theme evidence uses the actual theme application."
+      "states": [
+        "No preview yet",
+        "Preview unavailable",
+        "Upload incomplete",
+        "No matching assets",
+        "Start your asset library",
+        "Assets couldn’t load",
+        "3D preview unavailable"
+      ],
+      "evidence": [
+        ".impeccable/review/assets-final/desktop.png",
+        ".impeccable/review/assets-final/detail.png",
+        ".impeccable/review/assets-final/gold-3d.png",
+        ".impeccable/review/assets-final/character-3d.png",
+        ".impeccable/review/assets-final/import.png",
+        ".impeccable/review/assets-corrections/mobile.png",
+        ".impeccable/review/assets-corrections/mobile-detail.png",
+        ".impeccable/review/assets-corrections/light-actual.png",
+        ".impeccable/review/assets-workbench-final/desktop.png",
+        ".impeccable/review/assets-workbench-final/mobile.png",
+        ".impeccable/review/assets-workbench-final/viewer.png",
+        ".impeccable/review/assets-workbench-final/mobile-viewer.png",
+        ".impeccable/review/assets-workbench-final/mobile-controls.png",
+        ".impeccable/review/assets-workbench-final/expanded.png",
+        ".impeccable/review/assets-workbench-final/fullscreen.png",
+        ".impeccable/review/assets-workbench-final/light.png",
+        ".impeccable/review/assets-workbench-final/user-900.png"
+      ],
+      "evidenceScope": "Supplied browser captures and source inspection only. Workbench fresh reviewer returned SHIP with no material findings. ASSETS-VERIFICATION.md records interaction/server/Blender evidence; this documentation merge is not another full review, physical-device test or production-scale benchmark.",
+      "workbench": "Selection and view changes preserve card/image nodes without catalog fetch. Search includes tags. Type plus Relationship finds connected model contents with Contains labels. Bulk metadata editing and reversible Trash use inline confirmation forms. Prepared source add-ons match source ID and collection, keeping existing card identity and primary preview.",
+      "viewer": "One intentional dark local stage in both themes. Textured/solid/wireframe, Bones, camera reset, Expand and browser Fullscreen; manual clip playback, seeking, 1/30-second steps, speed, loop and temporary In/Out ranges. Preview controls do not rewrite animation files.",
+      "viewerExtensionStyles": {
+        "controlBorder": "#4b5c64",
+        "divider": "#34454c",
+        "mutedText": "#bccbd3",
+        "solidMesh": "#bcc6ce",
+        "focus": "2px solid var(--accent), 3px offset",
+        "buttonMinHeight": "34px desktop, 40px phone"
+      },
+      "sourceAddon": "35 editable Blender conversions of approved GLBs with packed images; Blender confirmed 12 rigs/animation sets. Not original sculpt history."
     },
     "colorMeta": {
       "signal-orange": {
@@ -1364,6 +1405,14 @@
       "description": "Home, Search and Your Library navigation; fixed above the device safe area in mobile Listen. Active icon uses the chosen accent.",
       "html": "<nav class=\"ds-music-nav\" aria-label=\"Music navigation\"><button aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"25\" height=\"25\" aria-hidden=\"true\"><path d=\"M3 11 12 3l9 8v10h-7v-7h-4v7H3z\" fill=\"currentColor\"/></svg>Home</button><button><svg viewBox=\"0 0 24 24\" width=\"25\" height=\"25\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"m15 15 6 6\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>Search</button><button><svg viewBox=\"0 0 24 24\" width=\"25\" height=\"25\" aria-hidden=\"true\"><path d=\"M4 3v18M10 3v18M15 4l5 16\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>Your Library</button></nav>",
       "css": ".ds-music-nav{display:flex;justify-content:space-around;padding:0 16px env(safe-area-inset-bottom);background:#121212}.ds-music-nav button{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:64px;min-width:64px;border:0;background:none;color:#b3b3b3;font:12px var(--sans,Arial,sans-serif);cursor:pointer}.ds-music-nav [aria-current]{color:#fff}.ds-music-nav [aria-current] svg{color:var(--accent,#69bbff)}.ds-music-nav button:hover{color:#fff}.ds-music-nav button:focus-visible{outline:2px solid #fff;outline-offset:-2px}.ds-music-nav button:active{transform:translateY(1px)}"
+    },
+    {
+      "name": "Assets Viewer Controls",
+      "kind": "custom",
+      "refersTo": "assets-viewer-controls",
+      "description": "Dark local inspection controls in both Library themes; original clips remain unchanged.",
+      "html": "<div class=\"ds-asset-controls\"><label>Surface <select aria-label=\"Surface\"><option>Textured</option><option>Solid</option><option>Wireframe</option></select></label><button>Expand</button><p>Preview only · original clips stay unchanged</p></div>",
+      "css": ".ds-asset-controls{padding:14px;background:#182329;color:#d8e3e9;font:12px/1.4 var(--sans,Arial,sans-serif);border-top:1px solid #34454c}.ds-asset-controls label{display:inline-flex;align-items:center;gap:6px}.ds-asset-controls select,.ds-asset-controls button{min-height:34px;padding:5px 8px;background:#202e35;color:#e3edf1;border:1px solid #4b5c64;border-radius:5px;font:12px var(--sans,Arial,sans-serif)}.ds-asset-controls button{margin-left:10px;cursor:pointer}.ds-asset-controls button:hover{background:#34464f}.ds-asset-controls :is(button,select):focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}.ds-asset-controls p{color:#bccbd3;margin:12px 0 0}@media(max-width:700px){.ds-asset-controls button{min-height:40px}}"
     }
   ],
   "narrative": {

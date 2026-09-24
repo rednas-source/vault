@@ -19,3 +19,14 @@ Local evidence is ignored under `.qa/` and `.impeccable/review/`: assets-review-
 `RTS/Exports/Amber-Road-Asset-Library` contains 35 active asset packages and 278 related files (~2.9 GB). All 278 declared SHA-256 hashes were checked against exported bytes. Source models are unchanged. The collection includes readable names/tags, previews/references, portable GLBs, extracted texture maps, available rigs/animations, engine-specific optional motion libraries, provenance and import guides. Woodcutting axe naming was corrected against its actual preview and generation prompt.
 
 No new paid generations were requested. Production deployment and copying these packages to the remote storage disk are separate from these local checks.
+
+## Workbench follow-up — 24 September 2026
+
+- Seven asset tests pass, including tag search, standalone/attached type filtering, source/VFX kinds, revision-safe bulk edits, persistent recoverable Trash and shelf protection on the new bulk endpoint.
+- Real Chrome confirms checkbox/select-page operations make zero catalog requests and retain the same card/image DOM nodes; small/medium/large/list changes also stay local. Tree search finds Highland cedar, 35 model packages match textures and 12 match animations.
+- Bulk edit, tag changes, Trash and restore were exercised on disposable QA packages. No real user assets were deleted.
+- Real animated Amara Artisan GLB verified in solid and bone-overlay modes, with seeking, playback speed, In/Out preview range, expansion and actual Fullscreen API entry/exit. Captures include 1440 desktop, 900 user-width, 390 phone, and light theme. No physical device test is claimed.
+- A real 3.8 MB tree Blender source add-on was uploaded to its existing QA asset card. ID, main GLB, preview, tags and catalog count stayed unchanged; new roles/labels were preserved.
+- Blender 5.2 reopened all 35 converted files, verified nonempty meshes and packed images; 12 contain rigs and animation actions. Source ZIP has 35 packages, 770,710,859 bytes, and passed archive CRC plus every declared SHA-256 check. Original Meshy/game exports were not changed. This is editable GLB conversion, not recovered original sculpt history.
+- Existing full npm regression suite, folder-sharing integration, browser syntax and eight Python subtitle recovery tests pass. One initial document worker timed out during concurrent Blender activity; the rerun after conversion completed passed.
+- Evidence: .qa/assets-workbench-review.log, .qa/assets-source-import.log, .qa/workbench-tests.log, .qa/workbench-check.log; .impeccable/review/assets-workbench-final. Local fixtures/captures remain ignored.

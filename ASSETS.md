@@ -63,8 +63,8 @@ Minimum useful `asset.json`:
 }
 ```
 
-Kinds: `model`, `texture`, `material`, `animation`, `audio`, `vfx`, `scene`, `ui`, `other`.
-File roles: `model`, `rig`, `animation`, `texture`, `preview`, `reference`, `source`, `documentation`, `other`.
+Kinds: `model`, `texture`, `material`, `animation`, `audio`, `vfx`, `source`, `scene`, `ui`, `other`.
+File roles: `model`, `rig`, `animation`, `vfx`, `texture`, `preview`, `reference`, `source`, `documentation`, `other`.
 Review states: `draft` (upload incomplete), `review` (needs review), `ready` (ready to reuse).
 Additional fields: `description`, `source`, `sourceAssetId`, `license`, and `provenance` with generator/model/prompt/texturePrompt. Categories, styles and collection names are editable text. The version field is descriptive; this is not automatic version control. Keep alternate versions as explicitly named files or separate packages.
 
@@ -77,3 +77,25 @@ Assets is a dedicated shelf governed by Vault's existing server-enforced shelf p
 No generated media ships in the application repository. Collections belong on the storage disk and in your backups. Back up entire package directories, including manifests. The assets shelf is reserved for this feature and cannot be deleted through Manage.
 
 The catalog has server-side pagination and bounded indexing (100,000 visited collection directories, nesting depth 8 before packages; up to 5,000 connected files per package). Filtering was tested against a synthetic 12,000-entry cached catalog. This is not a production storage benchmark or a guarantee for millions of assets. A persistent database index would be the next step at substantially larger scale.
+
+## Search, views and bulk actions
+
+Search assets is inside the Assets page. Submit with Enter or Search; it matches names, descriptions, tags, categories, styles and filenames. For example, `tree` finds Highland cedar because its tags include tree. Small/medium/large grid and list preferences are saved per account in this browser. Selection updates the existing cards in place; it does not reload previews or fetch the catalog. Select page affects only the visible page, with up to 200 selected packages per batch.
+
+Type defaults to matching both standalone assets and connected model content. Textures and Animations therefore find model packages that contain those files (or embedded GLB texture/animation data). Relationship = Belongs to model limits results to matching model packages. Standalone assets limits the type to the package's own type. Packages still appear as one card; their related files are not duplicated into loose library entries. VFX and Source files are explicit types; VFX is also a file role. VFX packages can hold engine-specific files and a preview image; Vault does not execute arbitrary engine effects in the browser.
+
+Edit selected changes category, style, collection, review state, or adds/removes tags. Blank fields stay unchanged. It does not edit geometry or rewrite model contents. Revision checks reject stale selections before changing the batch; storage failures report completed and failed items rather than claiming atomic multi-file transactions.
+
+Move to Trash hides complete packages from the active catalog. Use Trash, select packages and Restore selected to recover them. Trash is reversible metadata; it does not erase files, reclaim disk space or revoke an already shared file link. Existing shelf permissions still apply.
+
+## 3D workbench
+
+Controls are inside the viewer panel. Expand uses the full Assets content width; Fullscreen uses the browser Fullscreen API when supported. Surface switches between textured, solid without textures, and wireframe display. Bones shows an overlay for files with an actual skeleton. These are inspection settings and do not rewrite the model.
+
+For animation clips, use the timeline, 1/30-second stepping, speed, loop and In/Out preview range. Play/Pause and scrubbing animate the actual skeleton. Preview ranges are temporary playback controls, not destructive trimming or a saved animation edit. Change file to inspect another GLB in the package. Native Blender files remain downloadable for editing in Blender.
+
+## Add Blender sources to existing cards
+
+The Amber Road game was authored as Meshy GLBs, so it has no original Blender sculpt history to recover. The optional Amber-Road-Blender-Sources collection contains editable Blender conversions of all 35 approved model GLBs. They open in Solid shading and include imported geometry, UVs, materials, packed images, and available rigs/animations. The conversion notes explicitly distinguish them from original pre-texturing authoring projects.
+
+Extract the source add-on ZIP, choose its folder in Assets > Add assets, and enable **Add files to matching assets**. Matching requires exactly one active package with the same sourceAssetId and collection. Existing names, tags, primary GLB and preview are preserved; new source files join the same card. Import the original collection first. Existing paths with a different file size stop the update instead of being overwritten; unchanged existing paths are skipped. A renamed collection or duplicate source entries must be resolved before matching. Successful imports are marked Needs review. Uploading through Add files on an individual card remains available for unrelated sources.

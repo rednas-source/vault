@@ -30,5 +30,26 @@ test('pagination and filters remain bounded for a large cached catalog',async t=
 test('every asset endpoint enforces existing shelf permissions and authentication',async t=>{
   const {root}=await fixture(t),app=express();app.use(express.json());mountAssetRoutes(app,{root,auth:(req,res,next)=>{if(!req.headers.authorization)return res.sendStatus(401);req.user={name:'tester'};next();},canUse:req=>false,note:()=>{}});
   const server=app.listen(0,'127.0.0.1');t.after(()=>new Promise(resolve=>server.close(resolve)));await new Promise(resolve=>server.on('listening',resolve));const base='http://127.0.0.1:'+server.address().port;
-  for(const [method,url] of [['GET','/api/assets'],['GET','/api/assets/abc'],['POST','/api/assets'],['POST','/api/assets/refresh'],['POST','/api/assets/abc/finish'],['PATCH','/api/assets/abc']]){assert.equal((await fetch(base+url,{method})).status,401);assert.equal((await fetch(base+url,{method,headers:{Authorization:'test'}})).status,404);}
+  for(const [method,url] of [['GET','/api/assets'],['GET','/api/assets/abc'],['POST','/api/assets'],['POST','/api/assets/refresh'],['POST','/api/assets/bulk'],['POST','/api/assets/abc/finish'],['PATCH','/api/assets/abc']]){assert.equal((await fetch(base+url,{method})).status,401);assert.equal((await fetch(base+url,{method,headers:{Authorization:'test'}})).status,404);}
+});
+test('type filters include attached content without splitting the model package; tag search is searchable',async t=>{
+ const {root,library}=await fixture(t);const a=await library.create({name:'Highland cedar',kind:'model',tags:['tree','evergreen'],files:[{path:'bark.png',role:'texture'},{path:'walk.glb',role:'animation'},{path:'preview.png',role:'preview'}]});
+ for(const f of ['bark.png','walk.glb','preview.png'])await fs.writeFile(path.join(root,a.rel,f),'fixture');await library.finish(a.id);
+ assert.equal((await library.list({q:'tree'})).total,1);
+ assert.equal((await library.list({kind:'texture'})).items[0].id,a.id);
+ assert.equal((await library.list({kind:'animation',belongs:'model'})).total,1);
+ assert.equal((await library.list({kind:'texture',belongs:'standalone'})).total,0);
+ const standalone=await library.create({name:'Fire particles',kind:'vfx'});assert.equal((await library.list({kind:'vfx'})).items[0].id,standalone.id);
+ const source=await library.create({name:'Paint source',kind:'source'});assert.equal((await library.list({kind:'source'})).items[0].id,source.id);
+});
+test('bulk editing preserves files, stale batches change nothing, Trash restores across reloads',async t=>{
+ const {root,library}=await fixture(t);let a=await library.create({name:'Rock',tags:['stone']}),b=await library.create({name:'Tree',tags:['leaf']});
+ await fs.writeFile(path.join(root,a.rel,'model.glb'),'original bytes');a=await library.finish(a.id);
+ await assert.rejects(library.bulk({action:'edit',items:[{id:a.id,revision:a.revision},{id:b.id,revision:'stale'}],changes:{style:'Wrong'}}),e=>e.status===409);
+ assert.equal((await library.get(a.id)).style,'Unspecified');
+ const result=await library.bulk({action:'edit',items:[a,b].map(x=>({id:x.id,revision:x.revision})),changes:{style:'Stylized',addTags:['nature'],removeTags:['leaf']}});assert.equal(result.completed.length,2);assert.deepEqual(result.errors,[]);
+ a=await library.get(a.id);b=await library.get(b.id);assert.deepEqual(a.tags,['stone','nature']);assert.deepEqual(b.tags,['nature']);
+ await library.bulk({action:'trash',items:[{id:a.id,revision:a.revision}]});assert.equal((await library.list()).total,1);assert.equal((await library.list({trash:'1'})).total,1);assert.equal(await fs.readFile(path.join(root,a.rel,'model.glb'),'utf8'),'original bytes');
+ const reloaded=new AssetLibrary(root),trashed=await reloaded.get(a.id);assert(trashed.trashedAt>0);await reloaded.bulk({action:'restore',items:[{id:a.id,revision:trashed.revision}]});assert.equal((await reloaded.list()).total,2);
+ await assert.rejects(library.bulk({action:'edit',items:[{id:b.id,revision:b.revision}],changes:{primary:'elsewhere.glb'}}),/Unsupported/);
 });
