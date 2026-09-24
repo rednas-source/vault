@@ -32,7 +32,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 - **Quiet file rows.** Names, size, shelf, and added date remain visible on hover. Actions live in the context menu, also accessible with Shift+F10 on a focused filename.
 - **An activity log**, so "where did that file go" has an answer.
 - **A health endpoint** for uptime monitoring, which detects a dropped mount.
-- **Share links** — hand someone a URL for one file, no account needed.
+- **Share links** — read-only files or editable folders, no account needed.
 - **Resume where you left off**, per person, with a Continue watching rail.
 - **Subtitles**, embedded or sidecar, converted on the fly.
 - **Automatic media metadata.** TV shows fetch artwork, synopsis, cast, genres, and year automatically using TMDB when configured, with a key-free TVmaze fallback. New uploads start enrichment immediately; startup and a five-minute background scan pick up existing shows and files added directly on disk. Metadata is cached per show, with retries after temporary failures. Movies use TMDB when configured; music reads embedded tags first, then fills album, artist, year, and cover art from MusicBrainz and Cover Art Archive.
@@ -271,22 +271,20 @@ On a machine inside your network, point `VAULT_URL` at the LAN address instead a
 
 ## Share links
 
-**Share** on any file row. Pick an expiry and a maximum number of opens, and you get a URL anyone can use without an account. Video plays in place — including MKV, which is prepared the same way it is inside the app.
+**Share** works on both files and folders:
 
-The page a recipient sees is deliberately self-contained: one file, its name and size, a player, a download button. No listing, no navigation, nothing about the rest of the vault.
+- A file link remains read-only. Pick an expiry and an optional maximum number of opens; the recipient can watch or download that one file without an account.
+- A folder link is a collaborative workspace. Anyone holding it can browse only that folder, upload files or complete folder trees, create subfolders, rename items, download files, and delete files or folders. Folder links use expiry and explicit revocation rather than an open count.
 
-**All links** shows everything you've shared, with open counts, and revokes instantly. Admins see everyone's.
+Folder recipients get a responsive, self-contained file browser with drag-and-drop, folder picking, per-file progress, and resumable chunk uploads. Large files are split below Cloudflare's request-size ceiling. They never see the signed-in Vault interface, other shelves, sibling folders, accounts, or server metadata.
 
-What a link is scoped to:
+**All links** labels editable folders separately and revokes either kind immediately. Admins see everyone's links. Every folder request and every upload chunk re-checks the token and expiry, so revoking a link also stops an in-progress upload from accepting more data.
 
-- one file, re-resolved on every request — if it's renamed or deleted the link stops working
-- read only; there is no path parameter to manipulate
-- expiry and open-count limits, both enforced server-side
-- range requests don't count as opens, so seeking a video doesn't burn a use-limited link
+The folder boundary is enforced server-side. Paths are parsed as strict relative segments, every existing segment is checked without following symlinks, and create/rename/delete/upload targets must remain below the original shared root. File links retain their original single-file route and open-count behavior.
 
-The permission that created it is checked at creation, not at use. A link outliving its creator's access is intentional — it's the same as handing someone a copy. Revoke it if that isn't what you want.
+The permission that created a link is checked at creation, not at use. A link outliving its creator's shelf access is intentional — it is a capability you handed out. Revoke it if that is no longer wanted.
 
-> **If Cloudflare Access guards your hostname, share links will not work.** Recipients hit the email prompt and never reach Vault. To fix it, add a second policy to your Access application with **Action: Bypass**, **Include: Everyone**, and a path of `/s` — then add another for `/api/share`. That exempts only the share routes; everything else still requires sign-in. Do this deliberately: those paths are then genuinely public, which is the point, but it's worth understanding before you enable it.
+> **If Cloudflare Access guards your hostname, share links will not work.** Recipients hit the email prompt and never reach Vault. To fix it, add a second policy to your Access application with **Action: Bypass**, **Include: Everyone**, and a path of `/s` — then add another for `/api/share`. That exempts only the share routes; everything else still requires sign-in. Do this deliberately: those paths are then genuinely public, which is the point, but it is worth understanding before you enable it.
 
 ---
 
@@ -426,7 +424,7 @@ If GitHub branch protection blocks the workflow from updating `production`, allo
 
 Drop files or whole folders anywhere on the page, or press **Upload** and choose **files** or **folder**. Folder structure is preserved. Use **New folder** inside a shelf to create an empty folder directly. Files over 80 MB automatically use the chunked path.
 
-Video and audio stream with seeking. Images open inline. Tick the boxes to select several files, then move or delete them together. **Share** hands out a link for one file.
+Video and audio stream with seeking. Images open inline. Tick the boxes to select several files, then move or delete them together. **Share** creates a read-only file link or an editable folder workspace.
 
 `/` focuses search, `j` and `k` move a row cursor, `Enter` opens, `Backspace` deletes, `?` lists the keys.
 
@@ -451,7 +449,8 @@ MP4 and WebM play natively. MKV is either repackaged or converted to browser-com
 - Chunked uploads verify the final byte count before the file is moved into place. A short upload is refused rather than silently saved truncated.
 - Bulk actions check every file individually, so a selection spanning shelves can't let a permitted file carry a forbidden one along with it.
 - Live ffmpeg jobs are killed when the viewer disconnects, and bounded by a maximum lifetime so a client that vanishes without closing its connection can't leak a process.
-- Share links are 24 random bytes, resolve to exactly one file, and take no path parameter. Public playback obeys the same stream cap as signed-in playback, so a link can't be used to spawn unlimited encoders.
+- Share links are 24 random bytes. File links resolve to exactly one file. Folder links accept paths only through a strict shared-root jail, reject symlinks, and re-check revocation for every operation and upload chunk. Public playback obeys the same stream cap as signed-in playback, so a link cannot spawn unlimited encoders.
+- Collaborative uploads use the same maximum-file-size cap and exact final-byte verification as signed-in chunked uploads.
 - Subtitle sidecar names are resolved through the same path check as everything else, so a track id can't reach outside the file's own folder.
 
 What it deliberately doesn't do: virus scanning, read-only permissions, or per-file ownership. Anyone with access to a shelf can delete anything on it. That's the right model for a few friends and the wrong one for anything larger.

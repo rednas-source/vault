@@ -42,21 +42,21 @@ function renderSharedLinks(){
   const links=(sharedLinks||[]).map(link=>({...link,status:link.expires&&link.expires<=Date.now()?'expired':link.status}));
   const q=state.q.toLowerCase();
   const shown=links.filter(link=>(sharesFilter==='all'||(sharesFilter==='active'?link.status==='active':link.status!=='active'))&&`${link.rel} ${link.label} ${link.by}`.toLowerCase().includes(q));
-  const labels={active:'Active',expired:'Expired',exhausted:'Limit reached',missing:'File missing',unavailable:'Unavailable'};
+  const labels={active:'Active',expired:'Expired',exhausted:'Limit reached',missing:'Item missing',unavailable:'Unavailable'};
   $('#librarySummary').textContent=sharedLinks?`${links.length} ${links.length===1?'link':'links'}`:'';
   $('#scroll').innerHTML=`<section class="shared-links" aria-label="Shared links overview">
     <div class="shares-toolbar"><label>Show <select id="sharesFilter" aria-label="Filter shared links"><option value="all">All links</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label><button class="ghost" id="refreshShares" ${sharesLoading?'disabled':''}>${icon('arrow-clockwise')} ${sharesLoading?'Refreshing…':'Refresh'}</button></div>
-    <p class="shares-help">Download limits also count media opens. Copying a link does not use a download.</p>
+    <p class="shares-help">File links are read-only. Editable folder links allow uploads, subfolders, renames, and deletions until they expire or are revoked.</p>
     ${sharesError?`<p class="operation-error" role="alert">${esc(sharesError)} Use Refresh to try again.</p>`:''}
     ${!sharedLinks&&sharesLoading?'<p class="shares-empty" role="status">Loading shared links…</p>':shown.length?`
-    <div class="shares-table" role="table" aria-label="Shared files"><div class="share-row share-table-head" role="row"><span role="columnheader">Shared file</span><span role="columnheader">Status</span><span role="columnheader">Time left</span><span role="columnheader">Downloads left</span><span role="columnheader" class="sr-only">Actions</span></div>
+    <div class="shares-table" role="table" aria-label="Shared items"><div class="share-row share-table-head" role="row"><span role="columnheader">Shared item</span><span role="columnheader">Status</span><span role="columnheader">Time left</span><span role="columnheader">Access</span><span role="columnheader" class="sr-only">Actions</span></div>
     ${shown.map(link=>`<div class="share-row" role="row" data-share-id="${esc(link.id)}">
-      <div class="share-file" role="cell">${icon('link')}<div><b>${esc(link.rel.split('/').pop())}</b><small title="${esc(link.rel)}">${esc(link.rel)}</small>${link.label?`<small>${esc(link.label)}</small>`:''}<small>Shared by ${esc(link.by)}</small></div></div>
+      <div class="share-file" role="cell">${icon(link.kind==='folder'?'folder':'link')}<div><b>${esc(link.rel.split('/').pop())}</b><small title="${esc(link.rel)}">${esc(link.rel)}</small>${link.label?`<small>${esc(link.label)}</small>`:''}<small>${link.kind==='folder'?'Editable folder':'Read-only file'} · Shared by ${esc(link.by)}</small></div></div>
       <div role="cell" class="share-state ${link.status==='active'?'active':''}"><span class="mobile-label">Status</span>${esc(labels[link.status]||'Unavailable')}</div>
       <div role="cell" class="share-value"><span class="mobile-label">Time left</span><b>${shareTimeLeft(link.expires)}</b>${link.expires?`<small>${esc(new Date(link.expires).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'}))}</small>`:''}</div>
-      <div role="cell" class="share-value"><span class="mobile-label">Downloads left</span><b>${link.remaining===null?'Unlimited':`${link.remaining} of ${link.maxUses}`}</b><small>${link.uses} used</small></div>
+      <div role="cell" class="share-value"><span class="mobile-label">Access</span><b>${link.kind==='folder'?'Edit access':link.remaining===null?'Unlimited downloads':`${link.remaining} of ${link.maxUses}`}</b><small>${link.kind==='folder'?'Expires or revokes as one workspace':`${link.uses} used`}</small></div>
       <div role="cell" class="share-actions"><button class="ghost" data-copy-share="${esc(link.id)}" ${link.status!=='active'?'disabled':''} aria-label="Copy link for ${esc(link.rel.split('/').pop())}">Copy link</button><button class="ghost" data-revoke-share="${esc(link.id)}" aria-label="Revoke link for ${esc(link.rel.split('/').pop())}">Revoke</button></div>
-    </div>`).join('')}</div>`:`<div class="shares-empty"><h3>${links.length?'No matching links':'No shared links yet'}</h3><p>${links.length?'Try another search or show all links.':'Right-click a file and choose Share. You can manage its link here.'}</p>${!links.length?'<button class="ghost" id="sharesBrowse">Browse files</button>':''}</div>`}
+    </div>`).join('')}</div>`:`<div class="shares-empty"><h3>${links.length?'No matching links':'No shared links yet'}</h3><p>${links.length?'Try another search or show all links.':'Open an item’s options and choose Share. Files stay read-only; folders become collaborative workspaces.'}</p>${!links.length?'<button class="ghost" id="sharesBrowse">Browse files</button>':''}</div>`}
     </section>`;
   $('#sharesFilter').value=sharesFilter;$('#sharesFilter').onchange=event=>{sharesFilter=event.target.value;renderSharedLinks();};
   $('#refreshShares').onclick=refreshSharedLinks;
@@ -69,7 +69,7 @@ function renderSharedLinks(){
   $('#scroll').querySelectorAll('[data-revoke-share]').forEach(button=>button.onclick=()=>revokeSharedLink(links.find(link=>link.id===button.dataset.revokeShare)));
 }
 function revokeSharedLink(link){
-  sheet(`<h3>Revoke shared link?</h3><p>The link for <b>${esc(link.rel.split('/').pop())}</b> will stop working. The file stays in your vault.</p><p class="operation-error" id="revokeError" role="alert"></p><div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Revoke link</button></div>`);
+  sheet(`<h3>Revoke shared link?</h3><p>The link for <b>${esc(link.rel.split('/').pop())}</b> will stop working immediately. Everything already in your vault stays there.</p><p class="operation-error" id="revokeError" role="alert"></p><div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost danger" id="yes">Revoke link</button></div>`);
   $('#no').onclick=closeSheet;
   $('#yes').onclick=async()=>{
     $('#yes').disabled=true;
