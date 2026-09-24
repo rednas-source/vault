@@ -41,6 +41,7 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 - Play browser-native video or prepare MKV/HLS streams with quality selection, subtitles, AI subtitles, theatre mode, picture-in-picture, and progress tracking.
 - Convert MKV to MP4, inspect activity, manage accounts and API tokens, and monitor storage.
 - Enrich local media automatically while keeping local filenames and files as the source of truth.
+- Organize reusable game assets as portable packages with connected source files, previews, models, textures, rigs, animations, provenance and import notes; search, inspect and download packages without separating their dependencies.
 
 ## Brand commitments
 
@@ -118,3 +119,13 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 Listen at widths up to 900px follows a mobile music-app layout in the established grey/blue palette. Home, Search, and Your Library sit in bottom navigation; the active-track mini player stays above it. Browsing uses horizontal artwork shelves, larger album artwork, simple song rows, and bottom-sheet song actions. A compact Vault header retains spaces and Appearance, with upload/activity/management in Vault tools.
 
 Tapping the mini-player identity opens a full-screen Now playing surface with transport, seeking, likes, shuffle/repeat, volume, and queue. Closing it, swiping down its header, or browser Back returns to browsing without replacing the audio element. The view accounts for safe areas, small phones, tablets, and landscape; desktop panels and transport remain intact. Validation uses browser/device emulation, not physical iOS/Android hardware.
+
+## Reusable game assets — September 2026
+
+- Assets is a Library workspace above Entertainment in the sidebar, using Vault's existing name, theme and Appearance accent. Each catalog entry represents one reusable asset package, with its dependencies kept together; art style and actual geometry statistics remain separate facts.
+- Creators can import files for one asset or prepared collection folders containing `asset.json` manifests. Uploads preserve nested paths and resume when the same unchanged selection is chosen again. Directly copied packages under `storagePath/assets` become discoverable through Refresh. Ordinary loose files without a manifest are not catalog entries.
+- Search and combine type, category, style, collection, format, review and rig/animation filters. Saved assets persist per account in the current browser. Results are paginated; models load only on explicit 3D inspection.
+- Detail views connect preview, source/license notes, generation recipe when recorded, import instructions, measured GLB statistics and file roles. Metadata edits preserve the original model; missing declared files keep imports incomplete. Get asset and Get selected download portable ZIP packages including manifests.
+- Local 3D inspection supports self-contained GLBs up to 256 MB with embedded textures, camera orbit/zoom/pan, reset, wireframe and manual embedded-animation playback. Other asset formats remain stored and downloadable. Unsupported previews offer a download fallback; inspection does not fetch external model resources or use a hosted renderer.
+- The dedicated assets shelf uses existing server-enforced account permissions and stays outside All files and entertainment libraries. All-shelves accounts retain access. Catalog indexing is bounded; the synthetic 12,000-entry cached-catalog check is not a production storage benchmark. Asset content belongs on the storage disk and in backups, not in the application repository.
+- [ASSETS.md](ASSETS.md) is the operational reference for package schema, upload recovery, access and limits. Version metadata is descriptive, saved assets do not synchronize across devices, and declared checksums are not universally verified during upload.

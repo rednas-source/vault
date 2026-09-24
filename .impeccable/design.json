@@ -1,8 +1,18 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T13:21:03.005799+00:00",
+  "generatedAt": "2026-09-24T13:01:09.6639709Z",
   "title": "Design System: Vault — Library, Watch, Listen, and Apps",
   "extensions": {
+    "assets": {
+      "scope": "Library asset packages; preserves the incumbent Vault world and global tokens.",
+      "surfaceBrief": ".impeccable/assets-surface.md",
+      "sources": ["public/assets.js", "public/assets.css", "public/asset-viewer.js"],
+      "layout": "24px desktop gutters; auto-fill 210px minimum preview columns with 24px by 20px gaps; 1.65:1 detail split; 440px stage. At 1650px columns use 235px minimum and stage 530px. At 1100px detail stacks. At 700px Assets hides the shelf rail, uses 16px gutters, two catalog columns, collapsed secondary filters and a 330px stage.",
+      "motion": "Preview hover scales to 1.035 over 180ms ease-out; reduced motion removes it. Embedded animation playback is manual.",
+      "states": ["No preview yet", "Preview unavailable", "Upload incomplete", "No matching assets", "Start your asset library", "Assets couldn’t load", "3D preview unavailable"],
+      "evidence": [".impeccable/review/assets-final/desktop.png", ".impeccable/review/assets-final/detail.png", ".impeccable/review/assets-final/gold-3d.png", ".impeccable/review/assets-final/character-3d.png", ".impeccable/review/assets-final/import.png", ".impeccable/review/assets-corrections/mobile.png", ".impeccable/review/assets-corrections/mobile-detail.png", ".impeccable/review/assets-corrections/light-actual.png"],
+      "evidenceScope": "Supplied browser captures and final source inspection; documentation only, not a new full review or physical-device validation. Corrected light-theme evidence uses the actual theme application."
+    },
     "colorMeta": {
       "signal-orange": {
         "role": "primary",
@@ -1233,6 +1243,20 @@
     }
   },
   "components": [
+    {
+      "name": "Assets Package Action",
+      "kind": "button",
+      "description": "Primary package import/download action inheriting Library theme and selected accent.",
+      "html": "<button class=\"ds-asset-primary\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path d=\"M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5\"/></svg>Get asset</button>",
+      "css": ".ds-asset-primary{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:7px 12px;border:1px solid var(--accent,#ff6b3c);border-radius:7px;background:var(--accent,#ff6b3c);color:var(--night,#070909);font:650 12px/1.4 var(--sans,Arial,sans-serif);cursor:pointer}.ds-asset-primary:hover{background:var(--accent,#ff6b3c)}.ds-asset-primary:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}.ds-asset-primary:disabled{cursor:not-allowed;opacity:.45}@media(max-width:700px){.ds-asset-primary{min-height:40px}}"
+    },
+    {
+      "name": "Assets Missing Preview Card",
+      "kind": "card",
+      "description": "Honest fallback for a package without supplied artwork; metadata remains visible beneath the preview frame.",
+      "html": "<article class=\"ds-asset-card\"><button class=\"ds-asset-preview\" aria-label=\"Open sample package\"><svg width=\"35\" height=\"35\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" aria-hidden=\"true\"><path d=\"m12 2 9 5v10l-9 5-9-5V7l9-5Zm0 10 9-5M12 12 3 7m9 5v10\"/></svg><span>No preview yet</span></button><button class=\"ds-asset-title\">Sample package</button><p>Props</p><small>Unspecified style · Static</small></article>",
+      "css": ".ds-asset-card{width:220px;font-family:var(--sans,Arial,sans-serif)}.ds-asset-preview{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;width:100%;aspect-ratio:1.17;border:0;border-radius:10px;background:#111719;color:#a8b8bd;outline:1px solid var(--line-soft,#242929);font:12px var(--sans,Arial,sans-serif);cursor:pointer}.ds-asset-title{display:block;text-align:left;padding:0;margin-top:12px;border:0;background:none;color:var(--light,#f3f0e8);font:600 14px/1.4 var(--sans,Arial,sans-serif);cursor:pointer}.ds-asset-title:hover{color:var(--accent,#ff6b3c)}.ds-asset-card button:focus-visible{outline:2px solid var(--accent,#ff6b3c);outline-offset:3px}.ds-asset-card p{margin:5px 0 9px;color:var(--muted,#aab0aa);font-size:12px}.ds-asset-card small{color:var(--muted,#aab0aa);font-size:10px}"
+    },
     {
       "name": "Library Row",
       "kind": "custom",

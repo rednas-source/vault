@@ -8,6 +8,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 
 ## What it does
 
+- **Reusable game assets.** Assets sits above Entertainment in the Library sidebar. Keep a model, preview, textures, rig, animations, sources and import notes in one searchable package; filter by style/category/collection, inspect self-contained GLBs and embedded animation clips in 3D, and download complete packages. File/folder imports preserve related files and support resumable uploads. See [ASSETS.md](ASSETS.md) for package preparation, permissions and viewer limits.
 - **Folder-first Library.** All files opens your working shelves as folders. Browse with breadcrumbs and Up (Alt+Up), or search within the current shelf/folder and its descendants. Movies, shows, and music stay out of All files; their lower-left shortcuts open their file folders. The top Watch and Listen tabs open playback libraries.
 - **Shelves.** Files are sorted onto shelves by type on upload, or filed by hand. Folder uploads use one chosen shelf so mixed file types stay together. You define the shelves and the rules.
 - **Streams video and audio** with range requests, so seeking works and nothing has to download in full before it plays.

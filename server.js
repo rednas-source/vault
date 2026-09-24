@@ -15,6 +15,7 @@ const { operate, createFile } = require('./lib/file-operations');
 const { previewDocument } = require('./lib/document-preview');
 const { createZip } = require('./lib/create-zip');
 const { listSharedLinks } = require('./lib/shared-links');
+const { mountAssetRoutes } = require('./lib/assets');
 const { subtitleModel, cudaFailure, subtitleEstimate } = require('./lib/subtitle-options');
 
 // ---------------------------------------------------------------- config
@@ -31,7 +32,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-listen-mobile-20260923';
+const BUILD_ID = 'vault-assets-20260924';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -69,6 +70,7 @@ const DEFAULT_SHELVES = [
   { id: 'photos',   label: 'Photos',    exts: ['jpg','jpeg','png','gif','webp','bmp','svg','heic','tiff','avif'] },
   { id: 'docs',     label: 'Documents', exts: ['pdf','doc','docx','txt','md','epub','mobi','xlsx','pptx','csv','rtf'] },
   { id: 'archives', label: 'Archives',  exts: ['zip','rar','7z','tar','gz','bz2','iso','dmg','xz'] },
+  { id: 'assets', label: 'Assets', exts: [] },
   { id: 'misc',     label: 'Other',     exts: [] },
 ];
 
@@ -1403,7 +1405,7 @@ app.patch('/api/shelves/:id', auth, adminOnly, (req, res) => {
     if (!label) return res.status(400).json({ error: 'A shelf needs a name.' });
     sh.label = label.slice(0, 40);
   }
-  if (req.body.exts !== undefined) sh.exts = cleanExts(req.body.exts);
+  if (req.body.exts !== undefined) sh.exts = sh.id === 'assets' ? [] : cleanExts(req.body.exts);
 
   // Reordering: the client sends the full id list in the order it wants.
   if (Array.isArray(req.body.order)) {
@@ -1417,6 +1419,7 @@ app.patch('/api/shelves/:id', auth, adminOnly, (req, res) => {
 });
 
 app.delete('/api/shelves/:id', auth, adminOnly, async (req, res) => {
+  if(req.params.id==='assets') return res.status(400).json({error:'The Assets shelf supports the asset library and cannot be deleted.'});
   const sh = shelfById(req.params.id);
   if (!sh) return res.status(404).json({ error: 'No such shelf' });
   if (shelves.length <= 1) return res.status(400).json({ error: 'You need at least one shelf.' });
@@ -1521,7 +1524,7 @@ app.get('/api/files', auth, async (req, res) => {
   const out = [];
   const folders = [];
   const mine = allowedShelves(req.user);
-  for (const shelf of mine) {
+  for (const shelf of mine.filter(id => id !== 'assets')) {
     const scanned = await scanShelf(shelf);
     out.push(...scanned.files);
     folders.push(...scanned.folders);
@@ -3184,6 +3187,8 @@ app.post('/api/meta/clear', auth, adminOnly, async (req, res) => {
   res.json({ ok: true });
 });
 
+const assetLibrary = mountAssetRoutes(app, {root:ROOT,auth,canUse,note});
+
 // ---------------------------------------------------------------- bulk actions
 
 // Validate the whole selection before sending an archive. Each shelf is checked
@@ -3517,6 +3522,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 (async () => {
   loadShelves();
+  if (!shelfById('assets')) { shelves.push({id:'assets',label:'Assets',exts:[]}); saveShelves(); }
   loadAccounts();
   loadLog();
   loadShares();

@@ -1,0 +1,145 @@
+/* Asset packages are independent of the ordinary file browser. */
+const assetKinds={model:'3D models',texture:'Textures',material:'Materials',animation:'Animations',audio:'Audio',vfx:'Effects',scene:'Scenes',ui:'UI & sprites',other:'Other'};
+const assetRoles={model:'Model',rig:'Rig',animation:'Animation',texture:'Texture',preview:'Preview',reference:'Concept reference',source:'Source file',documentation:'Import notes',other:'Related file'};
+let assetRequest=0,assetViewer=null,assetPage=null,assetSelected=new Map(),assetImportBusy=false;
+const assetSaved=()=>{try{return JSON.parse(localStorage.getItem('vault-assets-saved:'+state.user)||'[]');}catch{return [];}};
+const assetFileURL=(a,p,mode='stream')=>url(mode,`${a.rel}/${p}`);
+async function assetAPI(endpoint,options={}){const r=await fetch(endpoint,{...options,headers:{'Content-Type':'application/json',...options.headers}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Could not complete this asset action.');return d;}
+function assetNotice(message){const box=document.querySelector('#assetNotice');if(box){box.textContent=message;box.hidden=false;}else toast(message);}
+function syncAssetsSurface(){
+  const on=state.mode==='assets';document.body.classList.toggle('assets-mode',on);
+  const nav=$('#assetsNav');nav.hidden=!SHELF_ORDER.includes('assets');nav.classList.toggle('on',on);nav.toggleAttribute('aria-current',on);
+  $('#assetsSection').hidden=!SHELF_ORDER.includes('assets');
+  nav.onclick=()=>{state.mode='assets';state.shelf='assets';state.folder='';state.assetId='';state.q='';$('#q').value='';state.picked.clear();render();};
+  if(assetViewer){assetViewer.dispose();assetViewer=null;}assetRequest++;
+}
+function assetScrollTop(){for(let el=$('#scroll');el;el=el.parentElement)el.scrollTop=0;window.scrollTo(0,0);}
+const assetDesktop=matchMedia('(min-width:701px)');assetDesktop.addEventListener('change',e=>{const details=document.querySelector('.asset-advanced');if(details)details.open=e.matches;});
+function assetNavigate(id=''){state.assetId=id;state.mode='assets';state.shelf='assets';render();assetScrollTop();}
+function assetOptions(values,current,all){return `<option value="">${all}</option>`+values.map(v=>`<option value="${esc(v)}" ${v===current?'selected':''}>${esc(v)}</option>`).join('');}
+function assetPlaceholder(a){return `<div class="asset-no-preview">${icon(a.kind==='audio'?'waveform':a.kind==='texture'?'image':'cube')}<span>No preview yet</span></div>`;}
+function assetImage(a,large=false){return a.preview?`<img ${large?'':'loading="lazy"'} src="${assetFileURL(a,a.preview)}" alt="${esc(a.name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="asset-image-failed" hidden>Preview unavailable</span>`:assetPlaceholder(a);}
+async function renderAssets(){
+  const request=++assetRequest,pane=$('#scroll');
+  $('.library-heading h2').textContent='Assets';$('.library-heading p').textContent='Models, materials and motion. Every file stays connected.';
+  $('#q').placeholder='Search assets, tags and styles';$('#librarySummary').textContent='';
+  pane.innerHTML='<div class="asset-loading" role="status">Loading your asset library…</div>';
+  try{
+    if(state.assetId){const a=await assetAPI('/api/assets/'+state.assetId);if(request!==assetRequest)return;assetDetail(a);return;}
+    const filters=state.assetFilters||{},params=new URLSearchParams({q:state.q||'',sort:state.assetSort||'name',offset:String(state.assetOffset||0),limit:'48',...filters});
+    if(state.assetSavedOnly)params.set('ids',assetSaved().join(',')||'none');
+    const data=await assetAPI('/api/assets?'+params);if(request!==assetRequest)return;assetPage=data;
+    $('#librarySummary').textContent=`${data.libraryTotal} asset${data.libraryTotal===1?'':'s'}`;
+    const selected=assetSelected.size;
+    pane.innerHTML=`<div class="asset-toolbar"><div class="asset-filter-row">
+      <label>Type<select id="assetKind">${assetOptions(Object.keys(assetKinds),filters.kind,'All types').replace(/>(model|texture|material|animation|audio|vfx|scene|ui|other)</g,(_,k)=>'>'+assetKinds[k]+'<')}</select></label>
+      <label>Category<select id="assetCategory">${assetOptions(data.facets.category,filters.category,'All categories')}</select></label>
+      <label>Art style<select id="assetStyle">${assetOptions(data.facets.style,filters.style,'All styles')}</select></label>
+      <label>Collection<select id="assetCollection">${assetOptions(data.facets.collection,filters.collection,'All collections')}</select></label>
+      <button class="asset-btn asset-primary" id="assetAdd">${icon('plus')} Add assets</button>
+    </div><details class="asset-advanced"><summary>More filters & sorting</summary><div class="asset-filter-row secondary">
+      <button class="asset-btn ${state.assetSavedOnly?'active':''}" id="assetSaved" aria-pressed="${!!state.assetSavedOnly}">${icon('bookmark-simple')} Saved</button>
+      <label class="asset-inline-label">Motion<select id="assetRig">${assetOptions(['rigged','animated'],filters.rig,'Any').replace('>rigged<','>Rigged<').replace('>animated<','>Animated<')}</select></label>
+      <label class="asset-inline-label">Format<select id="assetFormat">${assetOptions(['glb','gltf','fbx','obj','blend','png','jpg','exr','wav','ogg','mp3'],filters.format,'Any')}</select></label>
+      <label class="asset-inline-label">Review<select id="assetStatus">${assetOptions(['ready','review','draft'],filters.status,'Any').replace('>ready<','>Ready<').replace('>review<','>Needs review<').replace('>draft<','>Upload incomplete<')}</select></label>
+      <button class="asset-btn" id="assetClear">Clear filters</button><span class="asset-spacer"></span>
+      <button class="asset-btn" id="assetRefresh" title="Find new packages added on disk">${icon('arrows-clockwise')} Refresh</button>
+      <label class="asset-inline-label">Sort<select id="assetSort"><option value="name">Name A–Z</option><option value="newest">Newest first</option><option value="size">Largest first</option></select></label>
+    </div></details></div>
+    <div id="assetNotice" class="asset-notice" role="status" hidden></div>
+    ${data.issues.length?`<div class="asset-notice">${data.issues.length} package${data.issues.length===1?' needs':'s need'} attention. <details><summary>Show details</summary>${data.issues.map(x=>`<p>${esc(x.path)}: ${esc(x.message)}</p>`).join('')}</details></div>`:''}
+    <div class="asset-results-bar"><label><input type="checkbox" id="assetSelectPage" ${data.items.length&&data.items.every(a=>assetSelected.has(a.id))?'checked':''}> Select page</label><span>${data.total} results</span><span class="asset-spacer"></span><button id="assetDownloadSelected" class="asset-btn" ${selected?'':'disabled'}>${icon('download-simple')} Get selected${selected?' ('+selected+')':''}</button></div>
+    ${data.items.length?`<div class="asset-grid">${data.items.map(a=>assetCard(a)).join('')}</div>`:`<div class="asset-empty">${icon('cube')}<h3>${data.libraryTotal?'No matching assets':'Start your asset library'}</h3><p>${data.libraryTotal?'Try another category, clear the filters or use a shorter search.':'Add a model with its textures and a preview, or import a prepared collection folder. Related files become one searchable asset.'}</p><button class="asset-btn asset-primary" id="assetEmptyAction">${data.libraryTotal?'Clear filters':'Add your first asset'}</button></div>`}
+    <div class="asset-pagination"><button class="asset-btn" id="assetPrev" ${data.offset?'':'disabled'}>Previous</button><span>${data.total?`${data.offset+1}–${Math.min(data.offset+data.limit,data.total)} of ${data.total}`:'0 results'}</span><button class="asset-btn" id="assetNext" ${data.offset+data.limit<data.total?'':'disabled'}>Next</button></div>`;
+    pane.querySelector('.asset-advanced').open=innerWidth>700;
+    const bind=(selector,fn)=>{const el=pane.querySelector(selector);if(el)el.onclick=fn;};
+    for(const [id,key] of [['Kind','kind'],['Category','category'],['Style','style'],['Collection','collection'],['Rig','rig'],['Format','format'],['Status','status']])pane.querySelector('#asset'+id).onchange=e=>{state.assetFilters={...filters,[key]:e.target.value};state.assetOffset=0;render();};
+    const clear=()=>{state.assetFilters={};state.assetSavedOnly=false;state.assetOffset=0;state.q='';$('#q').value='';render();};
+    bind('#assetClear',clear);bind('#assetEmptyAction',data.libraryTotal?clear:assetImportForm);bind('#assetAdd',assetImportForm);
+    bind('#assetSaved',()=>{state.assetSavedOnly=!state.assetSavedOnly;state.assetOffset=0;render();});
+    bind('#assetRefresh',async()=>{try{await assetAPI('/api/assets/refresh',{method:'POST',body:'{}'});render();}catch(e){assetNotice(e.message);}});
+    pane.querySelector('#assetSort').value=state.assetSort||'name';pane.querySelector('#assetSort').onchange=e=>{state.assetSort=e.target.value;render();};
+    bind('#assetPrev',()=>{state.assetOffset=Math.max(0,data.offset-data.limit);render();});bind('#assetNext',()=>{state.assetOffset=data.offset+data.limit;render();});
+    bind('#assetDownloadSelected',()=>assetDownload([...assetSelected.values()]));
+    pane.querySelector('#assetSelectPage').onchange=e=>{for(const a of data.items)e.target.checked?assetSelected.set(a.id,a.rel):assetSelected.delete(a.id);render();};
+    pane.querySelectorAll('[data-asset-open]').forEach(b=>b.onclick=()=>assetNavigate(b.dataset.assetOpen));
+    pane.querySelectorAll('[data-asset-save]').forEach(b=>b.onclick=()=>{assetToggleSaved(b.dataset.assetSave);render();});
+    pane.querySelectorAll('[data-asset-check]').forEach(b=>b.onchange=()=>{const a=data.items.find(a=>a.id===b.dataset.assetCheck);b.checked?assetSelected.set(a.id,a.rel):assetSelected.delete(a.id);render();});
+  }catch(e){if(request!==assetRequest)return;pane.innerHTML=`<div class="asset-empty" role="alert"><h3>Assets couldn’t load</h3><p>${esc(e.message)}</p><button class="asset-btn" id="assetRetry">Try again</button></div>`;$('#assetRetry').onclick=render;}
+}
+function assetCard(a){
+  const saved=assetSaved().includes(a.id),clips=a.technical?.clips?.length||0;
+  return `<article class="asset-card ${assetSelected.has(a.id)?'selected':''}"><div class="asset-art"><button class="asset-open-image" data-asset-open="${a.id}" aria-label="Open ${esc(a.name)}">${assetImage(a)}</button><label class="asset-check"><input aria-label="Select ${esc(a.name)}" type="checkbox" data-asset-check="${a.id}" ${assetSelected.has(a.id)?'checked':''}></label><button class="asset-save ${saved?'active':''}" data-asset-save="${a.id}" aria-label="${saved?'Unsave':'Save'} ${esc(a.name)}" aria-pressed="${saved}">${icon('bookmark-simple',saved?'ph-fill':'')}</button>${a.previewRole==='reference'?'<span class="asset-preview-label">Concept reference</span>':''}</div><div class="asset-caption"><button class="asset-name" data-asset-open="${a.id}">${esc(a.name)}</button><p>${esc(a.category)}${a.technical?.triangles?' · '+Math.round(a.technical.triangles/100)/10+'k tris':''}</p><div class="asset-card-meta"><span>${esc(a.style)}</span><span>${a.animated?`${clips||'+'} clips`:a.rigged?'Rigged':a.kind==='model'?'Static':assetKinds[a.kind]}</span></div>${a.status==='draft'?'<span class="asset-incomplete">Upload incomplete</span>':''}</div></article>`;
+}
+function assetToggleSaved(id){const saved=new Set(assetSaved());saved.has(id)?saved.delete(id):saved.add(id);localStorage.setItem('vault-assets-saved:'+state.user,JSON.stringify([...saved]));}
+async function assetDownload(rels){try{const d=await assetAPI('/api/files/download',{method:'POST',body:JSON.stringify({rels,prepare:true})});const a=document.createElement('a');a.href=d.url;a.click();}catch(e){assetNotice(e.message);}}
+function assetDetail(a){
+  assetRequest++;
+  if(assetViewer){assetViewer.dispose();assetViewer=null;}
+  const pane=$('#scroll'),main=a.files.find(f=>f.path===a.primary),tech=a.technical||{},saved=assetSaved().includes(a.id);
+  $('#librarySummary').textContent=`${a.fileCount} connected files · ${bytes(a.size)}`;
+  pane.innerHTML=`<div class="asset-detail-top"><button class="asset-btn" id="assetBack">${icon('arrow-left')} All assets</button><span class="asset-spacer"></span><button class="asset-btn" id="assetSave" aria-pressed="${saved}">${icon('bookmark-simple')} ${saved?'Saved':'Save'}</button><button class="asset-btn" id="assetEdit">${icon('pencil-simple')} Edit details</button><button class="asset-btn asset-primary" id="assetGet">${icon('download-simple')} Get asset</button></div>
+    <div id="assetNotice" class="asset-notice" role="status" hidden></div>
+    <div class="asset-detail"><section class="asset-visual"><div class="asset-stage" id="assetStage">${assetImage(a,true)}</div><div class="asset-view-actions"><span id="assetPreviewCaption">${a.previewRole==='reference'?'Concept reference · the model can differ':'Model preview'}</span><span class="asset-spacer"></span>${a.files.some(f=>f.ext==='glb')?'<button class="asset-btn" id="asset3D">'+icon('cube')+' Inspect in 3D</button>':''}</div><div id="assetViewerControls" hidden></div></section>
+    <section class="asset-info"><h1>${esc(a.name)}</h1><p class="asset-description">${esc(a.description||'Add a description to remember where this asset works best.')}</p><dl><dt>Art style</dt><dd>${esc(a.style)}</dd><dt>Category</dt><dd>${esc(a.category)}</dd><dt>Collection</dt><dd>${esc(a.collection||'None')}</dd><dt>Type / version</dt><dd>${assetKinds[a.kind]} · ${esc(a.version)}</dd><dt>Review</dt><dd>${{ready:'Ready to reuse',review:'Needs review',draft:'Upload incomplete'}[a.status]}</dd><dt>Source</dt><dd>${esc(a.source||'Not recorded')}</dd>${tech.triangles?`<dt>Geometry</dt><dd>${tech.triangles.toLocaleString()} triangles</dd>`:''}${tech.bones?`<dt>Rig</dt><dd>${tech.bones} bones</dd>`:''}${tech.textures?`<dt>Textures</dt><dd>${tech.textures} ${tech.embedded?'embedded in GLB':'images'}</dd>`:''}</dl><div class="asset-tags">${a.tags.map(t=>`<button data-asset-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div>${main?`<a class="asset-direct" href="${assetFileURL(a,main.path,'download')}">${icon('download-simple')} Download main ${esc(main.ext.toUpperCase())}</a>`:''}</section>
+    <section class="asset-files"><div class="asset-section-heading"><h2>Connected files</h2><button class="asset-btn" id="assetAttach">${icon('paperclip')} Add files</button></div><p class="asset-help">Get asset downloads this entire package, including the files below and its metadata.</p><div class="asset-file-list">${a.files.map(f=>`<div class="asset-file"><span class="asset-file-type">${esc(f.ext.toUpperCase())}</span><div><strong>${esc(f.label||f.path)}</strong><small>${esc(f.path)}</small></div><span class="asset-role">${assetRoles[f.role]}</span><span>${bytes(f.size)}</span><a class="asset-btn" href="${url('download',f.rel)}" aria-label="Download ${esc(f.path)}">${icon('download-simple')}</a></div>`).join('')}</div></section>
+    <section class="asset-notes"><h2>Using this asset</h2><p>${esc(a.notes||'No import notes yet. Use Edit details to record scale, orientation, dependencies and engine-specific setup.')}</p><h3>License & provenance</h3><p>${esc(a.license||'No license recorded. Add the source license before distributing this asset.')}</p>${a.provenance?.prompt?`<details><summary>Generation recipe</summary><p>${esc(a.provenance.generator)} · ${esc(a.provenance.model)}</p><p>${esc(a.provenance.prompt)}</p><p>${esc(a.provenance.texturePrompt||'')}</p></details>`:''}${tech.clips?.length?`<details><summary>${tech.clips.length} embedded animation clips</summary>${tech.clips.map(c=>`<p>${esc(c.name)} · ${c.duration.toFixed(2)} s</p>`).join('')}</details>`:''}</section></div>`;
+  assetScrollTop();requestAnimationFrame(assetScrollTop);
+  $('#assetBack').onclick=()=>assetNavigate();$('#assetGet').onclick=()=>assetDownload([a.rel]);$('#assetSave').onclick=()=>{assetToggleSaved(a.id);assetDetail(a);};$('#assetEdit').onclick=()=>assetEditForm(a);$('#assetAttach').onclick=()=>assetAttach(a);
+  pane.querySelectorAll('[data-asset-tag]').forEach(b=>b.onclick=()=>{state.q=b.dataset.assetTag;$('#q').value=state.q;state.assetOffset=0;assetNavigate();});
+  if($('#asset3D'))$('#asset3D').onclick=()=>assetOpen3D(a);
+}
+async function assetOpen3D(a){
+  const container=$('#assetStage'),request=assetRequest,button=$('#asset3D');button.disabled=true;
+  if(assetViewer){assetViewer.dispose();assetViewer=null;}
+  container.innerHTML='<div class="asset-loading" role="status">Loading 3D preview…</div>';
+  try{const {createViewer}=await import('/asset-viewer.js?v=20260924');if(request!==assetRequest)return;const viewer=await createViewer(container,a,$('#assetViewerControls'));if(request!==assetRequest){viewer.dispose();}else{assetViewer=viewer;$('#asset3D').hidden=true;$('#assetPreviewCaption').textContent='Drag to orbit · scroll to zoom · right-drag to pan';}}
+  catch(e){if(request!==assetRequest)return;button.disabled=false;container.innerHTML=`<div class="asset-empty"><h3>3D preview unavailable</h3><p>${esc(e.message)}</p><p>Your files are intact. You can still download this package.</p></div>`;}
+}
+function assetFields(a={}){
+  return `<div class="asset-form-grid"><label class="wide">Asset name<input name="name" required maxlength="140" value="${esc(a.name||'')}"></label><label>Type<select name="kind">${Object.entries(assetKinds).map(([v,l])=>`<option value="${v}" ${v===(a.kind||'model')?'selected':''}>${l}</option>`).join('')}</select></label><label>Category<input name="category" list="assetCategories" value="${esc(a.category||'Unsorted')}"><datalist id="assetCategories">${['Rocks','Vegetation','Resources','Terrain','Characters','Buildings','Weapons & tools','Props','Surfaces','UI','Audio'].map(v=>`<option>${v}</option>`).join('')}</datalist></label><label>Art style<input name="style" placeholder="e.g. Stylized Strategy" value="${esc(a.style||'')}"></label><label>Collection<input name="collection" placeholder="e.g. Amber Road" value="${esc(a.collection||'')}"></label><label class="wide">Tags, separated by commas<input name="tags" placeholder="gold, mining, warm stone" value="${esc((a.tags||[]).join(', '))}"></label><label class="wide">Description<textarea name="description" rows="2">${esc(a.description||'')}</textarea></label></div>`;
+}
+function assetEditForm(a){
+  assetRequest++;
+  if(assetViewer){assetViewer.dispose();assetViewer=null;}
+  const pane=$('#scroll');pane.innerHTML=`<div class="asset-editor"><button class="asset-btn" id="assetEditBack">${icon('arrow-left')} Back to asset</button><h1>Edit ${esc(a.name)}</h1><form id="assetEditForm">${assetFields(a)}<div class="asset-form-grid"><label>Version<input name="version" value="${esc(a.version)}"></label><label>Review status<select name="status">${assetOptions(['review','ready','draft'],a.status,'Choose status').replace('>review<','>Needs review<').replace('>ready<','>Ready to reuse<').replace('>draft<','>Upload incomplete<')}</select></label><label>Main file<select name="primary">${assetOptions(a.files.map(f=>f.path),a.primary,'Choose main file')}</select></label><label>Preview image<select name="preview">${assetOptions(a.files.filter(f=>/\.(png|jpe?g|webp|avif)$/i.test(f.path)).map(f=>f.path),a.preview,'Choose preview')}</select></label><label class="wide">Import notes<textarea name="notes" rows="6">${esc(a.notes)}</textarea></label><label>Source<input name="source" value="${esc(a.source)}"></label><label>License / usage notes<textarea name="license" rows="3">${esc(a.license)}</textarea></label></div><details><summary>File roles</summary>${a.files.map((f,i)=>`<label class="asset-role-editor">${esc(f.path)}<select data-file-role="${i}">${Object.entries(assetRoles).map(([v,l])=>`<option value="${v}" ${v===f.role?'selected':''}>${l}</option>`).join('')}</select></label>`).join('')}</details><p id="assetFormError" role="alert"></p><button class="asset-btn asset-primary" type="submit">Save details</button></form></div>`;
+  $('#assetEditBack').onclick=()=>assetDetail(a);$('#assetEditForm').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{const data=Object.fromEntries(new FormData(e.target));data.tags=data.tags.split(',').map(s=>s.trim()).filter(Boolean);data.revision=a.revision;data.files=a.files.map((f,i)=>({...f,role:document.querySelector(`[data-file-role="${i}"]`).value}));const saved=await assetAPI('/api/assets/'+a.id,{method:'PATCH',body:JSON.stringify(data)});assetDetail(saved);}catch(err){$('#assetFormError').textContent=err.message;button.disabled=false;}};
+}
+function assetImportForm(incoming=null){
+  assetRequest++;
+  if(assetImportBusy){assetNotice('An import is already running. Keep this tab open until it finishes.');return;}
+  if(assetViewer){assetViewer.dispose();assetViewer=null;}
+  window.scrollTo(0,0);$('#scroll').scrollTop=0;
+  const pane=$('#scroll');pane.innerHTML=`<div class="asset-editor"><button class="asset-btn" id="assetImportBack">${icon('arrow-left')} Back to assets</button><h1>Add assets</h1><p class="asset-help">Keep the model, textures, animations and preview together. Choose files for one asset, or a folder to preserve its structure. Prepared collections with asset.json files become separate library entries automatically.</p><div class="asset-import-choices"><button type="button" class="asset-btn" id="assetChooseFiles">${icon('files')} Choose files</button><input type="file" id="assetPickFiles" multiple hidden><button type="button" class="asset-btn" id="assetChooseFolder">${icon('folder-open')} Choose folder</button><input type="file" id="assetPickFolder" webkitdirectory multiple hidden></div><div id="assetImportSelection" role="status">No files selected. You can also drop files or a folder here.</div><form id="assetImportForm">${assetFields({style:state.assetFilters?.style||'',collection:state.assetFilters?.collection||''})}<p class="asset-help">For a prepared collection, its names, categories, styles and file relationships are preserved. The fields above apply to an ordinary file selection.</p><p id="assetFormError" role="alert"></p><button class="asset-btn asset-primary" id="assetImportStart" type="submit" disabled>Import assets</button><div id="assetImportProgress" role="status" aria-live="polite"></div></form></div>`;
+  let chosen=[];const choose=files=>{chosen=[...files];$('#assetImportSelection').textContent=`${chosen.length} files · ${bytes(chosen.reduce((n,f)=>n+f.size,0))}`;$('#assetImportStart').disabled=!chosen.length;const input=$('#assetImportForm [name=name]');if(!input.value&&chosen.length)input.value=(relativePathOf(chosen[0])||chosen[0].name).split('/')[0].replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');};
+  $('#assetChooseFiles').onclick=()=>$('#assetPickFiles').click();$('#assetChooseFolder').onclick=()=>$('#assetPickFolder').click();
+  $('#assetPickFiles').onchange=e=>choose(e.target.files);$('#assetPickFolder').onchange=e=>choose(e.target.files);$('#assetImportBack').onclick=()=>assetNavigate();if(incoming && typeof incoming[Symbol.iterator]==='function')choose(incoming);
+  $('#assetImportForm').onsubmit=async e=>{e.preventDefault();if(assetImportBusy)return;assetImportBusy=true;const button=e.submitter;button.disabled=true;const data=Object.fromEntries(new FormData(e.target));data.tags=data.tags.split(',').map(s=>s.trim()).filter(Boolean);try{const result=await assetImportFiles(chosen,data,msg=>{const el=$('#assetImportProgress');if(el)el.textContent=msg;});assetImportBusy=false;assetNavigate();setTimeout(()=>assetNotice(`Imported ${result.added} assets${result.skipped?', skipped '+result.skipped+' already in your library':''}. New imports are marked Needs review.`),250);}catch(err){const el=$('#assetFormError');if(el)el.textContent=err.message+' Choose the same files again to resume.';button.disabled=false;assetImportBusy=false;}};
+}
+async function assetUpload(file,relative,asset,progress){
+  const parts=relative.split('/'),name=parts.pop(),directory=asset.rel.slice('assets/'.length)+(parts.length?'/'+parts.join('/'):'');
+  if(!file.size){const d=await assetAPI('/api/files/create',{method:'POST',body:JSON.stringify({shelf:'assets',directory,name})});return d;}
+  const init=await assetAPI('/api/upload/init',{method:'POST',body:JSON.stringify({shelf:'assets',directory,name,size:file.size})});let sent=init.received||0,retries=0;
+  while(sent<file.size){try{const response=await fetch(`/api/upload/chunk/${init.id}?offset=${sent}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file.slice(sent,Math.min(sent+8*1024*1024,file.size))});const out=await response.json();if(response.status===409&&Number.isFinite(out.received)){sent=out.received;continue;}if(!response.ok)throw new Error(out.error||'Upload interrupted.');sent=out.received;retries=0;progress(`${name} · ${Math.round(sent/file.size*100)}%`);}catch(e){if(++retries>3)throw e;await new Promise(r=>setTimeout(r,retries*1000));const status=await assetAPI('/api/upload/status/'+init.id);sent=status.received||0;}}
+  return assetAPI('/api/upload/finish/'+init.id,{method:'POST',body:'{}'});
+}
+async function assetImportFiles(files,defaults,progress){
+  const entries=files.map(file=>({file,path:relativePathOf(file)||file.name})).filter(x=>!x.path.split('/').some(p=>p.startsWith('.')));
+  const manifests=entries.filter(x=>x.path.split('/').pop()==='asset.json'),groups=[];
+  if(manifests.length){for(const m of manifests){const prefix=m.path.slice(0,-'asset.json'.length),meta=JSON.parse(await m.file.text());const grouped=entries.filter(x=>x!==m&&x.path.startsWith(prefix)&&!manifests.some(other=>other!==m&&other.path.startsWith(prefix)&&x.path.startsWith(other.path.slice(0,-10)))).map(x=>({...x,path:x.path.slice(prefix.length)}));groups.push({meta,files:grouped});}}
+  else{const first=entries[0]?.path.split('/');const prefix=first?.length>1&&entries.every(x=>x.path.startsWith(first[0]+'/'))?first[0]+'/':'';groups.push({meta:defaults,files:entries.map(x=>({...x,path:x.path.slice(prefix.length)}))});}
+  let added=0,skipped=0;
+  for(const [index,g] of groups.entries()){
+    if(!g.files.length)continue;
+    if(g.files.some(x=>x.path.includes('\\')||x.path.split('/').some(p=>!p||p==='..')||x.path.includes(':')))throw new Error('A package has an invalid file path.');
+    const fingerprint=JSON.stringify({name:g.meta.name,source:g.meta.id||'',files:g.files.map(x=>[x.path,x.file.size,x.file.lastModified]).sort()});
+    const declared=new Map((g.meta.files||[]).map(f=>[f.path,f]));
+    const asset=await assetAPI('/api/assets',{method:'POST',body:JSON.stringify({...g.meta,importIdentity:fingerprint,files:g.files.map(x=>declared.get(x.path)||{path:x.path})})});
+    if(asset.existing&&asset.status!=='draft'){skipped++;continue;}
+    const existing=new Map(asset.files.map(f=>[f.path,f]));
+    for(const entry of g.files){if(existing.get(entry.path)?.size===entry.file.size)continue;progress(`Asset ${index+1}/${groups.length}: ${g.meta.name} · ${entry.path}`);await assetUpload(entry.file,entry.path,asset,msg=>progress(`Asset ${index+1}/${groups.length}: ${g.meta.name} · ${msg}`));}
+    await assetAPI('/api/assets/'+asset.id+'/finish',{method:'POST',body:'{}'});added++;
+  }
+  return {added,skipped};
+}
+function assetAttach(a){const input=document.createElement('input');input.type='file';input.multiple=true;input.onchange=async()=>{try{for(const f of input.files)await assetUpload(f,f.name,a,assetNotice);await assetAPI('/api/assets/'+a.id+'/finish',{method:'POST',body:'{}'});render();}catch(e){assetNotice(e.message);}};input.click();}

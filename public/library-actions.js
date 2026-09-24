@@ -3,8 +3,8 @@ let navIndex=0, navMax=0, navReady=false, restoringNav=false;
 let fileMenu=null, menuAnchor=null;
 let selectionAnchor=null, selectionScope='';
 const ITEM_DRAG_TYPE='application/x-vault-items';
-const browserLocation=()=>({mode:state.mode,shelf:state.shelf,folder:state.folder,q:state.q,showDetail:state.showDetail,movieDetail:state.movieDetail,watchTab:state.watchTab,watchSeason:state.watchSeason,listenPage:state.listenPage,listenDetail:state.listenDetail,appDetail:state.appDetail});
-const locationKey=nav=>JSON.stringify([nav.mode,nav.shelf,nav.folder,nav.showDetail,nav.movieDetail,nav.watchTab,nav.watchSeason,nav.listenPage,nav.listenDetail,nav.appDetail]);
+const browserLocation=()=>({mode:state.mode,shelf:state.shelf,folder:state.folder,q:state.q,showDetail:state.showDetail,movieDetail:state.movieDetail,watchTab:state.watchTab,watchSeason:state.watchSeason,listenPage:state.listenPage,listenDetail:state.listenDetail,appDetail:state.appDetail,assetId:state.assetId,assetFilters:state.assetFilters,assetOffset:state.assetOffset,assetSort:state.assetSort,assetSavedOnly:state.assetSavedOnly});
+const locationKey=nav=>JSON.stringify([nav.mode,nav.shelf,nav.folder,nav.showDetail,nav.movieDetail,nav.watchTab,nav.watchSeason,nav.listenPage,nav.listenDetail,nav.appDetail,nav.assetId,nav.assetFilters,nav.assetOffset,nav.assetSort,nav.assetSavedOnly]);
 
 function recordBrowserLocation(){
   if(restoringNav)return;

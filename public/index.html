@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-listen-mobile-20260923">
+<meta name="vault-build" content="vault-assets-20260924">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1311,14 +1311,15 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-listen-mobile-20260923">
-<link rel="stylesheet" href="/library.css?v=vault-listen-mobile-20260923">
-<link rel="stylesheet" href="/watch.css?v=vault-listen-mobile-20260923">
-<link rel="stylesheet" href="/listen.css?v=vault-listen-mobile-20260923">
-<link rel="stylesheet" href="/appearance.css?v=vault-listen-mobile-20260923">
-<link rel="stylesheet" href="/apps.css?v=vault-listen-mobile-20260923">
-<link rel="stylesheet" href="/listen-mobile.css?v=vault-listen-mobile-20260923">
-<link rel="stylesheet" href="/player.css?v=vault-listen-mobile-20260923">
+<link rel="stylesheet" href="/chromatic.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/assets.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/library.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/watch.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/listen.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/appearance.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/apps.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-20260924">
+<link rel="stylesheet" href="/player.css?v=vault-assets-20260924">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1375,6 +1376,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <div class="tag">Shelves</div>
       <div class="shelves" id="shelves"></div>
       <div class="library-utilities"><button class="shelf" id="sharedLinksNav"><i class="ph ph-link" aria-hidden="true"></i><b>Shared links</b></button></div>
+      <div class="assets-section" id="assetsSection" hidden><button class="shelf" id="assetsNav"><i class="ph ph-cube" aria-hidden="true"></i><b>Assets</b></button></div>
       <div class="ent-side-label tag">Entertainment</div>
       <div class="entertainment-side" id="entertainment"></div>
       <div class="meter">
@@ -1550,18 +1552,20 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-listen-mobile-20260923"></script>
-<script src="/listen.js?v=vault-listen-mobile-20260923"></script>
-<script src="/listen-mobile.js?v=vault-listen-mobile-20260923"></script>
-<script src="/watch-model.js?v=vault-listen-mobile-20260923"></script>
-<script src="/watch.js?v=vault-listen-mobile-20260923"></script>
-<script src="/captions.js?v=vault-listen-mobile-20260923"></script>
-<script src="/player.js?v=vault-listen-mobile-20260923"></script>
-<script src="/apps.js?v=vault-listen-mobile-20260923"></script>
-<script src="/document-reader.js?v=vault-listen-mobile-20260923"></script>
-<script src="/library-tools.js?v=vault-listen-mobile-20260923"></script>
-<script src="/library-sort.js?v=vault-listen-mobile-20260923"></script>
-<script src="/library-actions.js?v=vault-listen-mobile-20260923"></script>
+<script src="/appearance.js?v=vault-assets-20260924"></script>
+<script src="/listen.js?v=vault-assets-20260924"></script>
+<script src="/listen-mobile.js?v=vault-assets-20260924"></script>
+<script src="/watch-model.js?v=vault-assets-20260924"></script>
+<script src="/watch.js?v=vault-assets-20260924"></script>
+<script src="/captions.js?v=vault-assets-20260924"></script>
+<script src="/player.js?v=vault-assets-20260924"></script>
+<script src="/apps.js?v=vault-assets-20260924"></script>
+<script src="/document-reader.js?v=vault-assets-20260924"></script>
+<script src="/library-tools.js?v=vault-assets-20260924"></script>
+<script src="/library-sort.js?v=vault-assets-20260924"></script>
+<script type="importmap">{"imports":{"three":"/vendor/three/build/three.module.js"}}</script>
+<script src="/assets.js?v=vault-assets-20260924"></script>
+<script src="/library-actions.js?v=vault-assets-20260924"></script>
 <script>
 'use strict';
 
@@ -1835,7 +1839,7 @@ function groupSeries(list){
 }
 
 const MEDIA_SHELVES = new Set(['movies', 'series', 'music']);
-const libraryShelves = () => SHELF_ORDER.filter(s => !MEDIA_SHELVES.has(s));
+const libraryShelves = () => SHELF_ORDER.filter(s => s!=='assets' && !MEDIA_SHELVES.has(s));
 function shelfFolders(){
   return libraryShelves().map(shelf => {
     const files = state.files.filter(f => f.shelf === shelf);
@@ -2128,6 +2132,7 @@ function goLibraryRoot(){
   state.mode='files'; state.shelf='all'; state.folder=''; state.q=''; $('#q').value=''; state.picked.clear(); render();
 }
 function goUp(){
+  if(state.mode==='assets')return assetNavigate();
   if(state.q){ state.q=''; $('#q').value=''; }
   else if(state.folder) state.folder=state.folder.split('/').slice(0,-1).join('/');
   else return goLibraryRoot();
@@ -2152,6 +2157,7 @@ function renderBreadcrumbs(){
 
 /* ── render */
 function render(){
+  syncAssetsSurface();
   closeFileMenu();
   syncAppsSurface();
   $('#sort').value=state.sort;
@@ -2178,7 +2184,7 @@ function render(){
     button.classList.toggle('on',active);button.toggleAttribute('aria-current',active);
   });
   $('#q').placeholder=state.mode==='apps'?'Search apps':state.mode==='shares'?'Search shared links':state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
-  const libraryFiles=state.files.filter(f=>!MEDIA_SHELVES.has(f.shelf));
+  const libraryFiles=state.files.filter(f=>f.shelf!=='assets'&&!MEDIA_SHELVES.has(f.shelf));
   const summaryFiles=state.shelf!=='all'?state.files.filter(f=>f.shelf===state.shelf):libraryFiles;
   $('.library-heading h2').textContent=MEDIA_SHELVES.has(state.shelf)&&state.mode==='files'?`${SHELF_LABEL[state.shelf]} files`:'Library';
   $('#librarySummary').textContent=`${summaryFiles.length} files · ${bytes(summaryFiles.reduce((n,f)=>n+f.size,0))}`;
@@ -2234,6 +2240,11 @@ function render(){
     ? present.map((s)=>`<span>${SHELF_LABEL[s]} <b>${bytes(sizes[s])}</b></span>`).join('')
     : '<span>Vault empty</span>';
 
+  if(state.mode==='assets'){
+    clearTimeout(featureTimer);document.body.classList.remove('media-mode');
+    $('#resume').classList.remove('on');$('#resume').innerHTML='';
+    wireFileInteractions([]);updateBulkBar();renderAssets();return;
+  }
   if(state.mode==='apps'){
     clearTimeout(featureTimer);document.body.classList.remove('media-mode');
     wireFileInteractions([]);updateBulkBar();renderApps();return;
@@ -3548,6 +3559,7 @@ $('#tGroup').onclick = () => {
 
 /* ── uploads */
 $('#btnUpload').onclick = () => {
+  if(state.mode==='assets')return assetImportForm();
   sheet(`<span class="tag">Add to Vault</span>
     <p>Choose individual files or a whole folder. Folder structure is kept.</p>
     <div class="upload-choices">
@@ -3625,13 +3637,14 @@ function directoryForUpload(file, shelf){
 }
 
 function chooseShelf(files){
+  if(state.mode==='assets')return assetImportForm(files);
   const hasFolders = files.some((f) => relativePathOf(f).includes('/'));
   const initial = state.shelf !== 'all' ? state.shelf : (hasFolders ? (libraryShelves()[0] || SHELF_ORDER[0]) : 'auto');
   sheet(`<span class="tag">Upload ${files.length} ${files.length===1?'file':'files'}</span>
     <p>${hasFolders ? 'Choose one shelf for this folder. All files and subfolders stay together.' : 'Pick a shelf, or let Vault sort by file type.'}</p>
     <div class="shelf-pick">
       ${hasFolders?'':`<button data-s="auto" class="${initial==='auto'?'on':''}">Auto-sort</button>`}
-      ${SHELF_ORDER.map((s)=>`<button data-s="${s}" class="${initial===s?'on':''}">${SHELF_LABEL[s]}</button>`).join('')}
+      ${SHELF_ORDER.filter(s=>s!=='assets').map((s)=>`<button data-s="${s}" class="${initial===s?'on':''}">${SHELF_LABEL[s]}</button>`).join('')}
     </div>
     <div class="sheet-row"><button class="ghost" id="no">Cancel</button><button class="ghost accent" id="go">Start upload</button></div>`);
   let pick = initial;
@@ -3858,14 +3871,14 @@ window.addEventListener('drop', async (e) => {
   if(e.dataTransfer?.types.includes('application/x-vault-items'))return;
   dragDepth = 0; $('#drop').classList.remove('on');
   const files = await filesFromDrop(e.dataTransfer || {});
-  if(state.user && files.length) chooseShelf(files);
+  if(state.user && files.length){if(state.mode==='assets')assetImportForm(files);else chooseShelf(files);}
 });
 
 /* ── controls */
 let qTimer;
 $('#q').addEventListener('input', (e) => {
   clearTimeout(qTimer);
-  qTimer = setTimeout(() => { state.q = e.target.value.trim(); state.picked.clear(); render(); }, 120);
+  qTimer = setTimeout(() => { state.q = e.target.value.trim(); if(state.mode==='assets'){state.assetId='';state.assetOffset=0;} state.picked.clear(); render(); }, 120);
 });
 $('#sort').onchange = (e) => { state.sort = e.target.value; render(); };
 $('#vList').onclick = () => setView('list');

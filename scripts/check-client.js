@@ -5,7 +5,7 @@ const path = require('path');
 
 const file = path.join(__dirname, '..', 'public', 'index.html');
 const html = fs.readFileSync(file, 'utf8');
-const blocks = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+const blocks = [...html.matchAll(/<script(?![^>]*type="(?:importmap|application\/json)")(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1])
   .filter((source) => source.trim());
 
