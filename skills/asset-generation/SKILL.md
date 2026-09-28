@@ -15,7 +15,7 @@ For a sheet, isolate each intended asset and retain its link to the original. Do
 
 Check current official API models, pricing and supported operations using [Meshy notes](references/meshy.md). Select the best suitable image model from the user's GPT Image / Nano Banana preferences, and the best available 3D model for the desired fidelity. Do not equate maximum polygon count with polished game art. Preserve a high-quality master; make optimized derivatives when useful.
 
-Establish the authorized batch credit cap from the current task. An old project's cap does not authorize a new batch. If missing, give a concrete estimate and ask for the cap before paid submissions, while preparing prompts and manifests. Track concepts, meshes, texturing, rigs, animations, remesh/UV and retries in one ledger. Reserve costs for in-flight jobs and stop before exceeding the cap. Do not buy credits or change the plan.
+Establish the spending authorization from the current task and existing session. A user may explicitly authorize necessary spending with no fixed cap; honor that choice without requesting a numeric cap again. Record the authorization and still avoid waste, purchases, subscription changes and unproductive retries. If neither a cap nor uncapped spending is authorized, give a concrete estimate and ask before paid submissions while preparing prompts and manifests. Do not reset an older project's ledger. Track concepts, meshes, texturing, rigs, animations, remesh/UV and retries in one ledger. Reserve costs for in-flight jobs and enforce a cap when one was specified. Do not buy credits or change the plan.
 
 ## Generate and review
 
