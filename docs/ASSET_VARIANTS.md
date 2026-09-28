@@ -14,3 +14,13 @@ Use stable unique lowercase IDs, names, existing main files and optional existin
 The detail page and public share have an accessible thumbnail selector. Show variants expands family members into gallery cards before filtering/pagination; default search includes variant names/tags. Cards retain their parent's ID. Saving, batch selection, edits, deletion and full-package downloads operate on the family once. The detail's direct main-file download follows the selected variant.
 
 Verification: unit coverage includes metadata validation, search, pagination, persistence, favorite grouping and complete-family deletion. Browser QA exercises owner/shared image and 3D switching, gallery expansion, selection deduplication and mobile overflow. Existing no-variant packages remain unchanged.
+
+## Model inspection and clean packages
+
+The 3D viewer exposes a Model chooser inside its controls. Changing a GLB reuses the renderer and keeps expanded/fullscreen inspection active. Variant selections synchronize with the chooser; the main-file download and image shown after Exit 3D follow the selected variant. Owner and public share pages use the same viewer.
+
+Default import packs contain useful model/texture/mask/rig/animation/source/reference/preview files, provenance and a single README. Keep Godot demo projects, engine caches, QA captures and detailed inspection reports outside the import ZIP. Render previews transparently with correct proportions and uncropped framing.
+
+Revised content uses new filenames to avoid same-size import skips. Existing imports retain old attachments and chosen defaults: select the new main model and preview in Edit details. Fresh imports use the revised manifest defaults.
+
+2026-09-28 verification: real ore GLBs switched in owner and public viewers without replacing the canvas; expanded mode remained active; variant selectors, downloads and exit previews synchronized. Desktop/mobile captures checked layout. Six cleaned packages passed manifest/hash/GLB integrity and stable-ID reimport checks (152 files, 66 GLBs, 20 ore variants).

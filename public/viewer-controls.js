@@ -29,7 +29,7 @@ function variants(host,asset,current,fileURL,onChange){
  for(const v of asset.variants){const option=el('option','',v.name);option.value=v.id;select.append(option);}
  select.value=asset.variants.some(v=>v.id===current)?current:(asset.variants.find(v=>v.primary===asset.primary)||asset.variants[0]).id;
  const count=el('span','asset-variant-count',asset.variants.length+' variations · one package');label.append(select);host.append(label,count);
- const control=picker(select,{imageURL:id=>{const v=asset.variants.find(v=>v.id===id);return fileURL(v.preview||asset.preview);}});select.onchange=()=>onChange(select.value);return control;
+ const control=picker(select,{imageURL:id=>{const v=asset.variants.find(v=>v.id===id);return fileURL(v.preview||asset.preview);}});select.onchange=()=>onChange(select.value);return {...control,setValue(id){select.value=id;control.refresh();}};
 }
 globalThis.VaultViewerUI={picker,scrubber,imageViewer,variants};
 })();

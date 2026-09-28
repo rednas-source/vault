@@ -47,7 +47,7 @@ Kinds: model, texture, material, animation, audio, vfx, source, scene, ui, other
 
 The browser previews self-contained GLBs with embedded textures, and raster previews. Include standalone texture maps for reuse even when embedded in GLB. Blender files are downloadable sources, not browser-rendered models. Keep rigged models and individual animation GLBs connected to the same package. Document scale, axes, origin, triangle count, skeleton/clip names, map color spaces and engine import notes when relevant.
 
-Mark derivatives clearly: "Untextured derivative of the final mesh" or "Editable Blender conversion" if genuine original authoring history is unavailable. Keep provider provenance and the applicable user/license statement without inventing rights. Package inspection evidence and a quality report with unresolved issues; omit retry caches and paid-generation credentials.
+Mark derivatives clearly: "Untextured derivative of the final mesh" or "Editable Blender conversion" if genuine original authoring history is unavailable. Keep provider provenance and the applicable user/license statement without inventing rights. Keep inspection evidence, detailed quality reports and optional engine demos outside the default Vault import folder/ZIP. Summarize unresolved issues in the one import README and asset notes. Include only useful asset files: models, necessary maps/masks, rigs/clips, editable sources, concept/reference art, previews, provenance and the manifest. Do not add Godot projects/scenes/scripts, QA screenshots, empty files or redundant reports unless requested. Omit retry caches and paid-generation credentials.
 
 ## Variant families
 
@@ -60,4 +60,10 @@ Vault also supports one package with a `variants` array (maximum 256). Each entr
 ]
 ```
 
-Set the package's main file and preview to a representative variant. Keep generic family tags on the package and distinguishing material/shape tags on each variant. This lets Show variants search select the appropriate members. Shared textures, ore masks, Blender sources and inspection evidence remain connected once. Reimport merges variants by ID. Gallery selection, favorites, editing, deletion and full-package download apply to the family; the detail's main-file download follows the selected variant.
+Set the package's main file and preview to a representative variant. Keep generic family tags on the package and distinguishing material/shape tags on each variant. This lets Show variants search select the appropriate members. Shared textures, ore masks, Blender sources remain connected once. Reimport merges variants by ID. Gallery selection, favorites, editing, deletion and full-package download apply to the family; the detail's main-file download follows the selected variant.
+
+## Preview presentation and revisions
+
+Render the actual model with transparent background, correct aspect ratio and tight but uncropped framing, so it sits naturally on Vault’s dark gallery/viewer. Preserve approved colour/material response; do not silently replace source PBR maps with generic values. Keep only useful preview images in the import package.
+
+For revised existing packages, use new filenames for changed content: current Vault imports skip same-path/same-size files. Keep sourceAssetId, collection and variant IDs stable. Explain that reimport adds files and merges variants but does not remove older attachments or overwrite a user’s chosen main file/gallery preview. On an existing card, Edit details selects the revised defaults; fresh imports use the manifest defaults.

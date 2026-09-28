@@ -2,9 +2,9 @@ import * as THREE from '/vendor/three/build/three.module.js';
 import {OrbitControls} from '/vendor/three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from '/vendor/three/examples/jsm/loaders/GLTFLoader.js';
 
-export async function createViewer(container,asset,controlsHost,onReady,fileURL=file=>'/api/stream/'+`${asset.rel}/${file}`.split('/').map(encodeURIComponent).join('/')){
+export async function createViewer(container,asset,controlsHost,onReady,fileURL=file=>'/api/stream/'+`${asset.rel}/${file}`.split('/').map(encodeURIComponent).join('/'),onFileChange=()=>{}){
   const shell=container.closest('.asset-viewport-shell'),visual=container.closest('.asset-visual');
-  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0x141c20);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0x111719);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
   container.replaceChildren(renderer.domElement);renderer.domElement.setAttribute('aria-label','Interactive 3D asset preview');renderer.domElement.tabIndex=0;
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(38,1,.01,1000),orbit=new OrbitControls(camera,renderer.domElement);
   orbit.enableDamping=true;orbit.dampingFactor=.08;orbit.minDistance=.2;orbit.maxDistance=50;
@@ -20,9 +20,9 @@ export async function createViewer(container,asset,controlsHost,onReady,fileURL=
   const create=(tag,text,parent=controlsHost)=>{const e=document.createElement(tag);if(text)e.textContent=text;parent.append(e);return e;};
   const glyph=(button,name,label)=>{button.innerHTML='<i class="ph ph-'+name+'" aria-hidden="true"></i>';button.title=label;button.setAttribute('aria-label',label);};
   const tool=(label,icon,parent)=>{const b=create('button','',parent);b.type='button';b.className='asset-studio-tool';glyph(b,icon,label);return b;};
-  const files=create('div','');files.className='asset-studio-files';files.hidden=true;
-  const fileLabel=create('label','Model file',files),modelSelect=create('select','',fileLabel);modelSelect.setAttribute('aria-label','3D model file');
-  const modelFiles=asset.files.filter(f=>f.ext==='glb');for(const f of modelFiles){const o=create('option',f.label||f.path,modelSelect);o.value=f.path;}modelSelect.value=modelFiles.some(f=>f.path===asset.primary)?asset.primary:modelFiles[0].path;
+  const files=create('div','');files.className='asset-studio-files asset-model-choice';
+  const fileLabel=create('label','Model',files),modelSelect=create('select','',fileLabel);modelSelect.setAttribute('aria-label','3D model file');
+  const modelFiles=asset.files.filter(f=>f.ext==='glb');for(const f of modelFiles){const variant=asset.variants?.find(v=>v.primary===f.path);const o=create('option',variant?.name||f.label||f.path,modelSelect);o.value=f.path;}modelSelect.value=modelFiles.some(f=>f.path===asset.primary)?asset.primary:modelFiles[0].path;
   const motion=create('div','');motion.className='asset-motion-controls';motion.hidden=true;
   const motionRow=create('div','',motion);motionRow.className='asset-studio-motion-row';
   const clipLabel=create('label','Clip',motionRow),animationSelect=create('select','',clipLabel);animationSelect.setAttribute('aria-label','Animation clip');
@@ -45,8 +45,7 @@ export async function createViewer(container,asset,controlsHost,onReady,fileURL=
   const surfaceGroup=group('Surface display'),mode={value:'textured'},surfaceButtons=[];
   for(const [value,name,icon] of [['textured','Textured surface','palette'],['solid','Solid surface without textures','sphere'],['wire','Wireframe surface','grid-four']]){const b=tool(name,icon,surfaceGroup);b.setAttribute('aria-pressed',String(value===mode.value));b.onclick=()=>{mode.value=value;for(const entry of surfaceButtons)entry.b.setAttribute('aria-pressed',String(entry.value===value));surface();};surfaceButtons.push({b,value});}
   const bones=tool('Show rig bones','bone',surfaceGroup);bones.checked=false;bones.setAttribute('aria-pressed','false');bones.onclick=()=>{bones.checked=!bones.checked;bones.setAttribute('aria-pressed',String(bones.checked));if(skeleton)skeleton.visible=bones.checked;};
-  const viewGroup=group('View tools'),fileToggle=tool('Choose model file','stack',viewGroup),reset=tool('Reset view','arrows-counter-clockwise',viewGroup),expand=tool('Expand','arrows-out-simple',viewGroup),fullscreen=tool('Fullscreen','corners-out',viewGroup);
-  fileToggle.setAttribute('aria-expanded','false');fileToggle.onclick=()=>{files.hidden=!files.hidden;fileToggle.setAttribute('aria-expanded',String(!files.hidden));if(!files.hidden)files.querySelector('.viewer-picker-trigger')?.focus();};
+  const viewGroup=group('View tools'),reset=tool('Reset view','arrows-counter-clockwise',viewGroup),expand=tool('Expand','arrows-out-simple',viewGroup),fullscreen=tool('Fullscreen','corners-out',viewGroup);
   expand.setAttribute('aria-pressed','false');fullscreen.setAttribute('aria-pressed','false');reset.onclick=fit;
   expand.onclick=()=>{const on=visual.classList.toggle('is-expanded');glyph(expand,on?'arrows-in-simple':'arrows-out-simple',on?'Collapse':'Expand');expand.setAttribute('aria-pressed',String(on));};
   fullscreen.disabled=!shell.requestFullscreen;fullscreen.onclick=async()=>{try{if(document.fullscreenElement===shell)await document.exitFullscreen();else await shell.requestFullscreen();}catch{status.textContent='Fullscreen was unavailable. Use Expand instead.';}};
@@ -74,12 +73,13 @@ export async function createViewer(container,asset,controlsHost,onReady,fileURL=
       model=new THREE.Group();model.add(root);root.position.sub(center);model.scale.setScalar(scale);model.position.y=dimensions.y*scale/2;scene.add(model);model.updateMatrixWorld(true);fit();
       let boneCount=0;root.traverse(o=>{if(o.isMesh)originals.set(o,o.material);if(o.isBone)boneCount++;});bones.disabled=!boneCount;bones.checked=false;bones.setAttribute('aria-pressed','false');bones.title=boneCount?'Show rig bones ('+boneCount+')':'This file has no rig';
       if(boneCount){skeleton=new THREE.SkeletonHelper(root);skeleton.material.depthTest=false;skeleton.material.transparent=true;skeleton.renderOrder=10;skeleton.visible=false;scene.add(skeleton);}surface();
-      clips=gltf.animations;mixer=clips.length?new THREE.AnimationMixer(root):null;animationSelect.replaceChildren();clips.forEach((clip,i)=>{const o=create('option',clip.name||'Clip '+(i+1),animationSelect);o.value=String(i);});animationTab.disabled=!clips.length;animationTab.title=clips.length?'Inspect animations ('+clips.length+' clips)':'This file has no animation clips';play.disabled=!clips.length;setInspection(clips.length?inspection:'mesh');status.textContent='';
-    }catch(e){if(!disposed){status.textContent=e.message;throw e;}}finally{modelSelect.disabled=false;}
+      clips=gltf.animations;mixer=clips.length?new THREE.AnimationMixer(root):null;animationSelect.replaceChildren();clips.forEach((clip,i)=>{const o=create('option',clip.name||'Clip '+(i+1),animationSelect);o.value=String(i);});animationTab.disabled=!clips.length;animationTab.title=clips.length?'Inspect animations ('+clips.length+' clips)':'This file has no animation clips';play.disabled=!clips.length;setInspection(clips.length?inspection:'mesh');status.textContent='';onFileChange(file);
+    }catch(e){if(!disposed&&ticket===loadId){status.textContent=e.message;throw e;}}finally{if(ticket===loadId)modelSelect.disabled=false;}
   }
   modelSelect.onchange=()=>load(modelSelect.value).catch(()=>{});
   let previous=performance.now();function tick(now){if(disposed)return;frame=requestAnimationFrame(tick);const dt=Math.min((now-previous)/1000,.05);previous=now;if(document.hidden)return;if(playing&&action){let next=cursor+dt*Number(speed.value),a=Number(start.value),b=Number(end.value);if(next>b){if(loop.checked)next=a+(next-a)%Math.max(.001,b-a);else{next=b;setPlaying(false);}}seek(next);}orbit.update();renderer.render(scene,camera);}frame=requestAnimationFrame(tick);
   const dispose=()=>{if(disposed)return;disposed=true;controller.abort();cancelAnimationFrame(frame);observer.disconnect();document.removeEventListener('fullscreenchange',fullscreenChange);customControls.forEach(c=>c.dispose());if(document.fullscreenElement===shell)document.exitFullscreen().catch(()=>{});visual.classList.remove('is-expanded');orbit.dispose();disposeModel();renderer.dispose();renderer.forceContextLoss();controlsHost.hidden=true;};
-  onReady?.({dispose});
-  try{await load(modelSelect.value);}catch(e){dispose();throw e;}return {dispose};
+  const setFile=async file=>{if(disposed||!modelFiles.some(f=>f.path===file))return;modelSelect.value=file;customControls[0].refresh();await load(file);};
+  onReady?.({dispose,setFile});
+  try{await load(modelSelect.value);}catch(e){dispose();throw e;}return {dispose,setFile};
 }

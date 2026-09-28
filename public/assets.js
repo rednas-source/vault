@@ -98,7 +98,7 @@ async function assetDownload(rels){try{const d=await assetAPI('/api/files/downlo
 function assetDetail(root){
   assetRequest++;assetVariantPicker?.dispose();assetVariantPicker=null;
   const variant=(root.variants||[]).find(v=>v.id===state.assetVariant);
-  const a=variant?{...root,primary:variant.primary,preview:variant.preview||root.preview,technical:variant.primary===root.primary?root.technical:null}:root;
+  const a=variant?{...root,primary:variant.primary,preview:variant.preview||root.preview,technical:variant.primary===root.primary?root.technical:null}:{...root};
   if(assetViewer){assetViewer.dispose();assetViewer=null;}
   const pane=$('#scroll'),main=a.files.find(f=>f.path===a.primary),tech=a.technical||{},saved=assetSaved().includes(a.id);
   $('#librarySummary').textContent=`${a.fileCount} connected files · ${bytes(a.size)}`;
@@ -111,7 +111,7 @@ function assetDetail(root){
   assetScrollTop();requestAnimationFrame(assetScrollTop);
   $('#assetBack').onclick=()=>assetNavigate();$('#assetGet').onclick=()=>assetDownload([a.rel]);$('#assetSave').onclick=()=>assetToggleSaved(a.id);$('#assetDelete').onclick=()=>assetDeletePrompt(root);$('#assetShare').onclick=()=>askShare({...root,kind:'asset'});$('#assetEdit').onclick=()=>assetEditForm(root);$('#assetAttach').onclick=()=>assetAttach(root);
   pane.querySelectorAll('[data-asset-tag]').forEach(b=>b.onclick=()=>{state.q=b.dataset.assetTag;$('#q').value=state.q;state.assetOffset=0;assetNavigate();});
-  assetVariantPicker=VaultViewerUI.variants($('#assetVariants'),root,state.assetVariant,p=>assetFileURL(root,p),id=>{const inspect=$('#assetViewport').classList.contains('is-inspecting');state.assetVariant=id;assetDetail(root);if(inspect)$('#asset3D')?.click();});
+  assetVariantPicker=VaultViewerUI.variants($('#assetVariants'),root,state.assetVariant,p=>assetFileURL(root,p),id=>{const inspect=$('#assetViewport').classList.contains('is-inspecting');state.assetVariant=id;if(inspect&&assetViewer?.setFile){const v=root.variants.find(v=>v.id===id);a.primary=v.primary;a.preview=v.preview||root.preview;const link=document.querySelector('.asset-direct');if(link)link.href=assetFileURL(a,v.primary,'download');assetViewer.setFile(v.primary).catch(()=>{});return;}assetDetail(root);if(inspect)$('#asset3D')?.click();});
   assetPreviewControls(a);
   if($('#asset3D'))$('#asset3D').onclick=()=>assetOpen3D(a);
 }
@@ -121,7 +121,7 @@ async function assetOpen3D(a){
   const exit=()=>{if(request!==assetRequest)return;assetRequest++;if(assetViewer){assetViewer.dispose();assetViewer=null;}const shell=$('#assetViewport');shell.classList.remove('is-inspecting');shell.querySelector('.asset-inspect-top')?.remove();$('#assetViewerControls').replaceChildren();container.innerHTML=assetImage(a,true);button.hidden=false;button.disabled=false;assetPreviewControls(a);};
   const shell=$('#assetViewport');shell.classList.add('is-inspecting');const top=document.createElement('div');top.className='asset-inspect-top';top.innerHTML='<span>3D inspection</span><button type="button" class="asset-inspect-exit">'+icon('x')+' Exit 3D</button>';shell.append(top);top.querySelector('button').onclick=exit;
   container.innerHTML='<div class="asset-loading" role="status">Loading 3D preview…</div>';
-  try{const {createViewer}=await import('/asset-viewer.js?v=20260928-variants');if(request!==assetRequest)return;const pending=createViewer(container,a,$('#assetViewerControls'),viewer=>{if(request===assetRequest)assetViewer=viewer;else viewer.dispose();});const viewer=await pending;if(request!==assetRequest){viewer.dispose();}else{assetViewer=viewer;button.hidden=true;$('#assetPreviewCaption').textContent='Drag to orbit · scroll to zoom · right-drag to pan';}}
+  try{const {createViewer}=await import('/asset-viewer.js?v=20260928-preview2');if(request!==assetRequest)return;const pending=createViewer(container,a,$('#assetViewerControls'),viewer=>{if(request===assetRequest)assetViewer=viewer;else viewer.dispose();},undefined,file=>{a.primary=file;const v=a.variants?.find(v=>v.primary===file);if(v){a.preview=v.preview||a.preview;state.assetVariant=v.id;assetVariantPicker?.setValue(v.id);}const link=document.querySelector('.asset-direct');if(link)link.href=assetFileURL(a,file,'download');});const viewer=await pending;if(request!==assetRequest){viewer.dispose();}else{assetViewer=viewer;button.hidden=true;$('#assetPreviewCaption').textContent='Drag to orbit · scroll to zoom · right-drag to pan';}}
   catch(e){if(request!==assetRequest)return;button.disabled=false;container.innerHTML=`<div class="asset-empty"><h3>3D preview unavailable</h3><p>${esc(e.message)}</p><p>Use Exit 3D to return to the image preview.</p></div>`;}
 }
 function assetFields(a={}){
