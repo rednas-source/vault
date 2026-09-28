@@ -16,6 +16,7 @@ const { previewDocument } = require('./lib/document-preview');
 const { createZip } = require('./lib/create-zip');
 const { listSharedLinks } = require('./lib/shared-links');
 const { mountAssetRoutes } = require('./lib/assets');
+const { mountAssetShares } = require('./lib/asset-shares');
 const { subtitleModel, cudaFailure, subtitleEstimate } = require('./lib/subtitle-options');
 
 // ---------------------------------------------------------------- config
@@ -32,7 +33,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-assets-drag-20260924';
+const BUILD_ID = 'vault-assets-sharing-20260924';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -3290,6 +3291,7 @@ app.post('/api/meta/clear', auth, adminOnly, async (req, res) => {
 });
 
 const assetLibrary = mountAssetRoutes(app, {root:ROOT,auth,canUse,note});
+const assetShareContext=mountAssetShares(app,{root:ROOT,library:assetLibrary,resolveShare,allowedForOwner:name=>accounts[name]&&!accounts[name].disabled?allowedShelves({name,role:accounts[name].role}):[]});
 
 // ---------------------------------------------------------------- bulk actions
 
@@ -3399,10 +3401,12 @@ app.post('/api/shares', auth, async (req, res) => {
     if (!pathWithin(vaultReal, targetReal)) throw new Error('outside vault');
   } catch { return res.status(404).json({ error: 'Not found' }); }
 
-  const kind = stat.isDirectory() ? 'folder' : 'file';
+  let asset=null;
+  if(req.body.assetId){try{asset=await assetLibrary.get(req.body.assetId);if(asset.rel!==rel||asset.trashedAt||!stat.isDirectory())throw new Error();}catch{return res.status(404).json({error:'Asset not found'});}}
+  const kind = asset ? 'asset' : stat.isDirectory() ? 'folder' : 'file';
   const days = Math.min(Math.max(parseInt(req.body.days, 10) || 0, 0), 365);
   const requestedMaxUses = Math.min(Math.max(parseInt(req.body.maxUses, 10) || 0, 0), 10000);
-  const maxUses = kind === 'folder' ? 0 : requestedMaxUses;
+  const maxUses = kind === 'folder'||kind === 'asset' ? 0 : requestedMaxUses;
 
   const id = crypto.randomBytes(24).toString('base64url');   // 32 chars
   shares[id] = {
@@ -3511,6 +3515,7 @@ app.get('/s/:id', async (req, res) => {
 
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   res.setHeader('Cache-Control', 'no-store');
+  if(share.kind==='asset'){try{await assetShareContext(req.params.id);return res.sendFile(path.join(__dirname,'public','share-asset.html'));}catch{return shareGone(res,'missing');}}
   if (st.isDirectory()) {
     if (share.kind !== 'folder' || share.writable !== true) return shareGone(res, 'missing');
     share.lastUsed = Date.now();
@@ -3772,7 +3777,7 @@ app.delete('/api/share/:id/upload/:uploadId', async (req, res) => {
 app.get('/api/share/:id/media', async (req, res) => {
   const { share, full, error } = resolveShare(req.params.id);
   if (error) return res.status(410).end();
-  if (share.kind === 'folder') return res.status(404).end();
+  if (share.kind === 'folder' || share.kind === 'asset') return res.status(404).end();
   if (!HAS_FFMPEG) return res.status(503).end();
 
   try { await fsp.stat(full); } catch { return res.status(404).end(); }

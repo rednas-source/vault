@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-assets-drag-20260924">
+<meta name="vault-build" content="vault-assets-sharing-20260924">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1314,15 +1314,15 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/assets.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/library.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/watch.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/listen.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/appearance.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/apps.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-drag-20260924">
-<link rel="stylesheet" href="/player.css?v=vault-assets-drag-20260924">
+<link rel="stylesheet" href="/chromatic.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/assets.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/library.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/watch.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/listen.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/appearance.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/apps.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-sharing-20260924">
+<link rel="stylesheet" href="/player.css?v=vault-assets-sharing-20260924">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1555,20 +1555,20 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-assets-drag-20260924"></script>
-<script src="/listen.js?v=vault-assets-drag-20260924"></script>
-<script src="/listen-mobile.js?v=vault-assets-drag-20260924"></script>
-<script src="/watch-model.js?v=vault-assets-drag-20260924"></script>
-<script src="/watch.js?v=vault-assets-drag-20260924"></script>
-<script src="/captions.js?v=vault-assets-drag-20260924"></script>
-<script src="/player.js?v=vault-assets-drag-20260924"></script>
-<script src="/apps.js?v=vault-assets-drag-20260924"></script>
-<script src="/document-reader.js?v=vault-assets-drag-20260924"></script>
-<script src="/library-tools.js?v=vault-assets-drag-20260924"></script>
-<script src="/library-sort.js?v=vault-assets-drag-20260924"></script>
+<script src="/appearance.js?v=vault-assets-sharing-20260924"></script>
+<script src="/listen.js?v=vault-assets-sharing-20260924"></script>
+<script src="/listen-mobile.js?v=vault-assets-sharing-20260924"></script>
+<script src="/watch-model.js?v=vault-assets-sharing-20260924"></script>
+<script src="/watch.js?v=vault-assets-sharing-20260924"></script>
+<script src="/captions.js?v=vault-assets-sharing-20260924"></script>
+<script src="/player.js?v=vault-assets-sharing-20260924"></script>
+<script src="/apps.js?v=vault-assets-sharing-20260924"></script>
+<script src="/document-reader.js?v=vault-assets-sharing-20260924"></script>
+<script src="/library-tools.js?v=vault-assets-sharing-20260924"></script>
+<script src="/library-sort.js?v=vault-assets-sharing-20260924"></script>
 <script type="importmap">{"imports":{"three":"/vendor/three/build/three.module.js"}}</script>
-<script src="/assets.js?v=vault-assets-drag-20260924"></script>
-<script src="/library-actions.js?v=vault-assets-drag-20260924"></script>
+<script src="/assets.js?v=vault-assets-sharing-20260924"></script>
+<script src="/library-actions.js?v=vault-assets-sharing-20260924"></script>
 <script>
 'use strict';
 
@@ -3082,11 +3082,11 @@ function askMove(f){ askMoveItems([f.rel]); }
 
 /* ── share links */
 function askShare(f){
-  const folder = f.kind === 'folder';
-  sheet(`<span class="tag">${folder?'Share collaborative folder':'Share a link'}</span>
+  const folder = f.kind === 'folder',asset=f.kind==='asset';
+  sheet(`<span class="tag">${asset?'Share asset':folder?'Share collaborative folder':'Share a link'}</span>
     <p>${folder
       ? `Anyone with the link can browse, upload, create subfolders, rename, and delete inside <b>${esc(f.name)}</b> without signing in.`
-      : `Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.`}</p>
+      : asset?`Anyone with the link can inspect this model and download <b>${esc(f.name)}</b> with all connected files. This link is read-only.`: `Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.`}</p>
     ${folder?'<div class="rename-hint" style="margin-bottom:14px">This is edit access. Revoking the link stops every operation immediately.</div>':''}
     <div class="rename-field"><input id="shLabel" placeholder="who is it for? (optional)" autocomplete="off"></div>
     <div class="opt-row">
@@ -3097,7 +3097,7 @@ function askShare(f){
             `<button data-v="${v}" class="${i===2?'on':''}">${l}</button>`).join('')}
         </div>
       </div>
-      ${folder?'':`<div>
+      ${folder||asset?'':`<div>
         <div class="opt-tag">Opens</div>
         <div class="opt-pick" id="usePick">
           ${[[0,'Unlimited'],[1,'Once'],[5,'5'],[25,'25']].map(([v,l],i)=>
@@ -3129,7 +3129,7 @@ function askShare(f){
   $('#yes').onclick = async () => {
     const r = await fetch('/api/shares', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ rel:f.rel, label:$('#shLabel').value.trim(), days:days(), maxUses:uses() }),
+      body: JSON.stringify({ rel:f.rel, ...(asset?{assetId:f.id}:{}), label:$('#shLabel').value.trim(), days:days(), maxUses:uses() }),
     });
     const d = await r.json().catch(()=>({}));
     if(!r.ok) return void ($('#shareErr').textContent = d.error || 'Could not create the link.');

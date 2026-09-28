@@ -2,7 +2,7 @@ import * as THREE from '/vendor/three/build/three.module.js';
 import {OrbitControls} from '/vendor/three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from '/vendor/three/examples/jsm/loaders/GLTFLoader.js';
 
-export async function createViewer(container,asset,controlsHost,onReady){
+export async function createViewer(container,asset,controlsHost,onReady,fileURL=file=>'/api/stream/'+`${asset.rel}/${file}`.split('/').map(encodeURIComponent).join('/')){
   const shell=container.closest('.asset-viewport-shell'),visual=container.closest('.asset-visual');
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0x141c20);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
   container.replaceChildren(renderer.domElement);renderer.domElement.setAttribute('aria-label','Interactive 3D asset preview');renderer.domElement.tabIndex=0;
@@ -64,7 +64,7 @@ export async function createViewer(container,asset,controlsHost,onReady){
     const ticket=++loadId;setPlaying(false);play.disabled=true;modelSelect.disabled=true;status.textContent='Loading model…';
     try{
       const f=asset.files.find(f=>f.path===file);if(f.size>256*1024*1024)throw new Error('This model exceeds the 256 MB browser preview limit. Download it to inspect locally.');
-      const response=await fetch('/api/stream/'+`${asset.rel}/${file}`.split('/').map(encodeURIComponent).join('/'),{signal:controller.signal});if(!response.ok)throw new Error('The model file is unavailable.');const raw=await response.arrayBuffer();
+      const response=await fetch(fileURL(file),{signal:controller.signal});if(!response.ok)throw new Error('The model file is unavailable.');const raw=await response.arrayBuffer();
       const view=new DataView(raw);if(raw.byteLength<20||view.getUint32(0,true)!==0x46546c67)throw new Error('Not a supported GLB file.');const size=view.getUint32(12,true);if(size>32*1024*1024||20+size>raw.byteLength)throw new Error('Invalid GLB metadata.');const json=JSON.parse(new TextDecoder().decode(new Uint8Array(raw,20,size)));
       if([...(json.buffers||[]),...(json.images||[])].some(x=>x.uri&&!/^data:/i.test(x.uri)))throw new Error('Preview needs a self-contained GLB with embedded textures. All source files remain downloadable.');
       const manager=new THREE.LoadingManager();manager.setURLModifier(value=>{if(/^(blob:|data:)/i.test(value))return value;throw new Error('External model resources are not loaded by this private viewer.');});
