@@ -24,3 +24,11 @@ Default import packs contain useful model/texture/mask/rig/animation/source/refe
 Revised content uses new filenames to avoid same-size import skips. Existing imports retain old attachments and chosen defaults: select the new main model and preview in Edit details. Fresh imports use the revised manifest defaults.
 
 2026-09-28 verification: real ore GLBs switched in owner and public viewers without replacing the canvas; expanded mode remained active; variant selectors, downloads and exit previews synchronized. Desktop/mobile captures checked layout. Six cleaned packages passed manifest/hash/GLB integrity and stable-ID reimport checks (152 files, 66 GLBs, 20 ore variants).
+
+## Direct ZIP import
+
+Choose ZIP or files accepts a prepared asset or collection ZIP directly. The website reads its manifests and unpacks connected files automatically as they upload, preserving normal stable-ID reimports. Shared upload links accept ZIPs too and place submitted packages in External assets. Plain files/folder import still works. ZIPs selected inside an existing asset folder remain connected archive files rather than recursively expanding.
+
+The reader handles ZIP64, CRC verification and bounded extraction (5,000 entries / 20 GB per selection, 10 GB per file); links retain their existing per-asset/link quotas. It rejects unsafe paths, duplicate paths, file/folder conflicts, symlinks and encrypted archives. Large entries stream through browser temporary storage and are removed after upload or failure. No extracted files are written to the user's Downloads folder.
+
+Verified in Chrome with two-package ZIP imports through owner/shared pages, stable reimport, traversal rejection, and a 129 MiB ZIP64 entry with temporary-storage cleanup.

@@ -1331,6 +1331,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/vendor/zip',express.static(path.join(__dirname,'node_modules/@zip.js/zip.js/dist'),{maxAge:'1d',fallthrough:false}));
+
 app.get('/vendor/hls.min.js', (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.sendFile(HLS_JS_PATH);

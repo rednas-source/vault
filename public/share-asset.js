@@ -1,5 +1,5 @@
-import {mountAssetUpload} from '/asset-upload.js?v=20260928';
-import {createViewer} from '/asset-viewer.js?v=20260928-preview2';
+import {mountAssetUpload} from '/asset-upload.js?v=20260928-zip';
+import {createViewer} from '/asset-viewer.js?v=20260928-zip';
 const $=s=>document.querySelector(s),id=location.pathname.split('/').filter(Boolean).pop(),endpoint='/api/share/'+encodeURIComponent(id)+'/asset',fileURL=file=>endpoint+'/file?path='+encodeURIComponent(file);
 let viewer=null,imageControls=null,ticket=0,variantPicker=null;
 const size=n=>n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFixed(1)+' MB';

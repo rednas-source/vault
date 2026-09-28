@@ -15,7 +15,7 @@ Collection/
     README.md
 ```
 
-Only create directories and manifest entries for files actually delivered. One `asset.json` sits at the top of each asset folder. Select the collection folder in Vault to import all packages as separate cards. Related files appear under one asset. Extract ZIPs before importing.
+Only create directories and manifest entries for files actually delivered. One `asset.json` sits at the top of each asset folder. Select the collection folder in Vault to import all packages as separate cards. Related files appear under one asset. Vault accepts these ZIPs directly through Choose ZIP or files and unpacks them during upload. Folder import remains available.
 
 Example (remove absent entries):
 
