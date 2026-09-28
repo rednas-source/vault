@@ -48,3 +48,16 @@ Kinds: model, texture, material, animation, audio, vfx, source, scene, ui, other
 The browser previews self-contained GLBs with embedded textures, and raster previews. Include standalone texture maps for reuse even when embedded in GLB. Blender files are downloadable sources, not browser-rendered models. Keep rigged models and individual animation GLBs connected to the same package. Document scale, axes, origin, triangle count, skeleton/clip names, map color spaces and engine import notes when relevant.
 
 Mark derivatives clearly: "Untextured derivative of the final mesh" or "Editable Blender conversion" if genuine original authoring history is unavailable. Keep provider provenance and the applicable user/license statement without inventing rights. Package inspection evidence and a quality report with unresolved issues; omit retry caches and paid-generation credentials.
+
+## Variant families
+
+Vault also supports one package with a `variants` array (maximum 256). Each entry needs a unique stable lowercase `id`, readable `name`, a `primary` relative file path, optional raster `preview`, and `tags`. All referenced files must exist and remain in the normal `files` list. Example:
+
+```json
+"variants": [
+  {"id":"spire-gold","name":"Spire · Gold","primary":"models/spire-gold.glb","preview":"previews/spire-gold.png","tags":["spire","gold"]},
+  {"id":"spire-iron","name":"Spire · Iron","primary":"models/spire-iron.glb","preview":"previews/spire-iron.png","tags":["spire","iron"]}
+]
+```
+
+Set the package's main file and preview to a representative variant. Keep generic family tags on the package and distinguishing material/shape tags on each variant. This lets Show variants search select the appropriate members. Shared textures, ore masks, Blender sources and inspection evidence remain connected once. Reimport merges variants by ID. Gallery selection, favorites, editing, deletion and full-package download apply to the family; the detail's main-file download follows the selected variant.

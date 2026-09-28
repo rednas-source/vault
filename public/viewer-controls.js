@@ -23,5 +23,13 @@ function imageViewer(stage,host,asset,fileURL,onCaption=()=>{}){
  const caption=()=>onCaption(images.find(f=>f.path===select.value));select.onchange=()=>{const img=el('img');img.src=fileURL(select.value);img.alt=select.selectedOptions[0]?.textContent||asset.name;img.draggable=false;img.onerror=()=>{stage.textContent='Preview unavailable. Choose another image or download this file.';};stage.replaceChildren(img);caption();};caption();
  const sync=()=>{const expanded=visual.classList.contains('is-expanded'),fullscreen=document.fullscreenElement===shell;expand.setAttribute('aria-pressed',String(expanded));expand.title=expanded?'Collapse preview':'Expand preview';expand.setAttribute('aria-label',expand.title);expand.innerHTML='<i class="ph ph-arrows-'+(expanded?'in':'out')+'-simple" aria-hidden="true"></i>';expand.disabled=fullscreen;full.title=fullscreen?'Exit fullscreen':'Fullscreen preview';full.setAttribute('aria-label',full.title);full.setAttribute('aria-pressed',String(fullscreen));full.innerHTML='<i class="ph ph-corners-'+(fullscreen?'in':'out')+'" aria-hidden="true"></i>';};expand.onclick=()=>{visual.classList.toggle('is-expanded');sync();};full.disabled=!shell.requestFullscreen;full.onclick=async()=>{try{if(document.fullscreenElement===shell)await document.exitFullscreen();else await shell.requestFullscreen();}catch{onCaption({label:'Fullscreen unavailable. Use Expand preview.'});}};document.addEventListener('fullscreenchange',sync);sync();return {dispose(){choice.dispose();document.removeEventListener('fullscreenchange',sync);stage.classList.remove('asset-image-stage');host.replaceChildren();host.hidden=true;}};
 }
-globalThis.VaultViewerUI={picker,scrubber,imageViewer};
+function variants(host,asset,current,fileURL,onChange){
+ host.replaceChildren();if(!asset.variants?.length)return {dispose(){}};
+ host.className='asset-variant-choice';const label=el('label','','Variants'),select=el('select');select.setAttribute('aria-label','Asset variant');
+ for(const v of asset.variants){const option=el('option','',v.name);option.value=v.id;select.append(option);}
+ select.value=asset.variants.some(v=>v.id===current)?current:(asset.variants.find(v=>v.primary===asset.primary)||asset.variants[0]).id;
+ const count=el('span','asset-variant-count',asset.variants.length+' variations · one package');label.append(select);host.append(label,count);
+ const control=picker(select,{imageURL:id=>{const v=asset.variants.find(v=>v.id===id);return fileURL(v.preview||asset.preview);}});select.onchange=()=>onChange(select.value);return control;
+}
+globalThis.VaultViewerUI={picker,scrubber,imageViewer,variants};
 })();

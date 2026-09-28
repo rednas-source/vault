@@ -78,3 +78,22 @@ test('stable asset identity adds files to existing packages despite a changed im
  const other=await library.create({...meta,collection:'Different collection',importIdentity:'different'});assert.notEqual(other.id,a.id);
  await library.bulk({action:'trash',items:[{id:a.id,revision:a.revision}]});await assert.rejects(library.create(meta),e=>e.status===409&&/Trash/.test(e.message));
 });
+
+test('variants stay in one package, expand before pagination and preserve family actions',async t=>{
+ const {root,library}=await fixture(t);const variants=[{id:'gold',name:'Gold shard',primary:'gold.glb',preview:'gold.png',tags:['yellow']},{id:'iron',name:'Iron shard',primary:'iron.glb',preview:'iron.png',tags:['gray']}];
+ let a=await library.create({name:'Ore family',tags:['rock'],variants,primary:'gold.glb'});
+ for(const f of ['gold.glb','iron.glb','gold.png','iron.png'])await fs.writeFile(path.join(root,a.rel,f),'fixture');a=await library.finish(a.id);
+ assert.equal((await library.list()).total,1);assert.equal((await library.list({q:'gray'})).total,1);
+ const expanded=await library.list({variants:'1',limit:1,offset:1});assert.equal(expanded.libraryTotal,1);assert.equal(expanded.total,2);assert.equal(expanded.items[0].variantId,'iron');assert.equal(expanded.items[0].id,a.id);
+ assert.equal((await library.list({variants:'1',q:'gray'})).total,1);assert.equal((await library.list({variants:'1',q:'iron'})).total,1);
+ await library.saveFavorites('tester',{id:a.id,saved:true});assert.equal((await library.list({variants:'1',ids:(await library.favorites('tester')).join(',')})).total,2);
+ a=await library.update(a.id,{revision:a.revision,name:'Ore stones'});assert.equal(a.variants.length,2);assert.equal((await new AssetLibrary(root).get(a.id)).variants[1].primary,'iron.glb');
+ await library.remove(a.id,a.revision);assert.equal((await library.list({variants:'1'})).total,0);
+});
+test('variants reject duplicate IDs, unsafe paths and missing files',async t=>{
+ const {root,library}=await fixture(t);const v={id:'gold',name:'Gold',primary:'gold.glb'};
+ assert.throws(()=>metadata({name:'x',variants:[v,v]}),/unique/);assert.throws(()=>metadata({name:'x',variants:[{...v,primary:'../secret'}]}),/path/);
+ let a=await library.create({name:'Ore',variants:[v]});await fs.writeFile(path.join(root,a.rel,'readme.txt'),'fixture');await assert.rejects(library.finish(a.id),/missing its main file/);
+ await fs.writeFile(path.join(root,a.rel,'gold.glb'),'fixture');a=await library.finish(a.id);
+ await assert.rejects(library.update(a.id,{revision:a.revision,variants:[{...v,preview:'missing.png'}]}),/missing its preview/);
+});
