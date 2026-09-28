@@ -1,0 +1,4 @@
+interface:
+  display_name: "Asset generation"
+  short_description: "Generate, inspect and package Meshy assets for Vault"
+  default_prompt: "Use $asset-generation to create a coherent asset collection from my references and item list."

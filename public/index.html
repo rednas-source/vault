@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-assets-preview-polish-20260928">
+<meta name="vault-build" content="vault-assets-controls-20260928">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1314,15 +1314,15 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
   *{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="/chromatic.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/assets.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/library.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/watch.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/listen.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/appearance.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/apps.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-preview-polish-20260928">
-<link rel="stylesheet" href="/player.css?v=vault-assets-preview-polish-20260928">
+<link rel="stylesheet" href="/chromatic.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/assets.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/library.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/watch.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/listen.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/appearance.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/apps.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-controls-20260928">
+<link rel="stylesheet" href="/player.css?v=vault-assets-controls-20260928">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1555,20 +1555,21 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/listen.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/listen-mobile.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/watch-model.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/watch.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/captions.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/player.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/apps.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/document-reader.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/library-tools.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/library-sort.js?v=vault-assets-preview-polish-20260928"></script>
+<script src="/appearance.js?v=vault-assets-controls-20260928"></script>
+<script src="/listen.js?v=vault-assets-controls-20260928"></script>
+<script src="/listen-mobile.js?v=vault-assets-controls-20260928"></script>
+<script src="/watch-model.js?v=vault-assets-controls-20260928"></script>
+<script src="/watch.js?v=vault-assets-controls-20260928"></script>
+<script src="/captions.js?v=vault-assets-controls-20260928"></script>
+<script src="/player.js?v=vault-assets-controls-20260928"></script>
+<script src="/apps.js?v=vault-assets-controls-20260928"></script>
+<script src="/document-reader.js?v=vault-assets-controls-20260928"></script>
+<script src="/library-tools.js?v=vault-assets-controls-20260928"></script>
+<script src="/library-sort.js?v=vault-assets-controls-20260928"></script>
 <script type="importmap">{"imports":{"three":"/vendor/three/build/three.module.js"}}</script>
-<script src="/assets.js?v=vault-assets-preview-polish-20260928"></script>
-<script src="/library-actions.js?v=vault-assets-preview-polish-20260928"></script>
+<script src="/viewer-controls.js?v=20260928-controls"></script>
+<script src="/assets.js?v=vault-assets-controls-20260928"></script>
+<script src="/library-actions.js?v=vault-assets-controls-20260928"></script>
 <script>
 'use strict';
 
@@ -3088,6 +3089,7 @@ function askShare(f){
       ? `Anyone with the link can browse, upload, create subfolders, rename, and delete inside <b>${esc(f.name)}</b> without signing in.`
       : asset?`Anyone with the link can inspect this model and download <b>${esc(f.name)}</b> with all connected files. This link is read-only.`: `Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.`}</p>
     ${folder?'<div class="rename-hint" style="margin-bottom:14px">This is edit access. Revoking the link stops every operation immediately.</div>':''}
+    ${asset?'<label class="asset-share-upload"><input id="shAssetUpload" type="checkbox"> Allow asset submissions to External assets</label>':''}
     <div class="rename-field"><input id="shLabel" placeholder="who is it for? (optional)" autocomplete="off"></div>
     <div class="opt-row">
       <div>
@@ -3129,7 +3131,7 @@ function askShare(f){
   $('#yes').onclick = async () => {
     const r = await fetch('/api/shares', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ rel:f.rel, ...(asset?{assetId:f.id}:{}), label:$('#shLabel').value.trim(), days:days(), maxUses:uses() }),
+      body: JSON.stringify({ rel:f.rel, ...(asset?{assetId:f.id,allowAssetUpload:$('#shAssetUpload').checked}:{}), label:$('#shLabel').value.trim(), days:days(), maxUses:uses() }),
     });
     const d = await r.json().catch(()=>({}));
     if(!r.ok) return void ($('#shareErr').textContent = d.error || 'Could not create the link.');
@@ -3140,7 +3142,7 @@ function askShare(f){
 function showShareLink(f, id){
   const link = `${location.origin}/s/${id}`;
   sheet(`<span class="tag">Link ready</span>
-    <p>${f.kind==='folder'?'Anyone holding this link can edit':'Send this to whoever needs'} <b>${esc(f.name)}</b>.</p>
+    <p>${f.kind==='asset-upload'?'Anyone holding this link can submit new assets to':f.kind==='folder'?'Anyone holding this link can edit':'Send this to whoever needs'} <b>${esc(f.name)}</b>.</p>
     <div class="token-box mono" id="lkVal">${esc(link)}</div>
     <div class="rename-hint">${f.kind==='folder'?'Uploads, renames, new folders, and deletions are enabled. ':''}Revoke it any time from <b>Shared links</b>.</div>
     <div class="sheet-row">

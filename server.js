@@ -33,7 +33,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-assets-preview-polish-20260928';
+const BUILD_ID = 'vault-assets-controls-intake-20260928';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -3292,6 +3292,8 @@ app.post('/api/meta/clear', auth, adminOnly, async (req, res) => {
 
 const assetLibrary = mountAssetRoutes(app, {root:ROOT,auth,canUse,note});
 const assetShareContext=mountAssetShares(app,{root:ROOT,library:assetLibrary,resolveShare,allowedForOwner:name=>accounts[name]&&!accounts[name].disabled?allowedShelves({name,role:accounts[name].role}):[]});
+const assetIntake= require('./lib/asset-intake').mountAssetIntake(app,{root:ROOT,library:assetLibrary,resolveShare,allowedForOwner:name=>accounts[name]&&!accounts[name].disabled?allowedShelves({name,role:accounts[name].role}):[],saveShares,note});
+app.post('/api/asset-upload-links',auth,(req,res)=>{if(!canUse(req.user,'assets'))return res.sendStatus(404);const id=crypto.randomBytes(24).toString('base64url'),days=Math.min(365,Math.max(1,parseInt(req.body.days,10)||7));shares[id]={kind:'asset-upload',rel:'assets',writable:false,by:req.user.name,label:String(req.body.label||'External asset uploads').slice(0,60),created:Date.now(),expires:Date.now()+days*864e5,maxUses:0,uses:0};saveShares();res.json({id,url:'/s/'+id,kind:'asset-upload'});});
 
 // ---------------------------------------------------------------- bulk actions
 
@@ -3410,7 +3412,7 @@ app.post('/api/shares', auth, async (req, res) => {
 
   const id = crypto.randomBytes(24).toString('base64url');   // 32 chars
   shares[id] = {
-    rel, kind, writable: kind === 'folder', by: req.user.name,
+    rel, kind, allowAssetUpload:kind==='asset'&&req.body.allowAssetUpload===true, writable: kind === 'folder', by: req.user.name,
     label: String(req.body.label || '').slice(0, 60),
     created: Date.now(),
     expires: days ? Date.now() + days * 864e5 : 0,
@@ -3515,6 +3517,7 @@ app.get('/s/:id', async (req, res) => {
 
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   res.setHeader('Cache-Control', 'no-store');
+  if(share.kind==='asset-upload'){try{assetIntake.context(req.params.id);return res.sendFile(path.join(__dirname,'public','share-asset.html'));}catch{return shareGone(res,'missing');}}
   if(share.kind==='asset'){try{await assetShareContext(req.params.id);return res.sendFile(path.join(__dirname,'public','share-asset.html'));}catch{return shareGone(res,'missing');}}
   if (st.isDirectory()) {
     if (share.kind !== 'folder' || share.writable !== true) return shareGone(res, 'missing');
@@ -3777,7 +3780,7 @@ app.delete('/api/share/:id/upload/:uploadId', async (req, res) => {
 app.get('/api/share/:id/media', async (req, res) => {
   const { share, full, error } = resolveShare(req.params.id);
   if (error) return res.status(410).end();
-  if (share.kind === 'folder' || share.kind === 'asset') return res.status(404).end();
+  if (share.kind === 'folder' || share.kind === 'asset' || share.kind === 'asset-upload') return res.status(404).end();
   if (!HAS_FFMPEG) return res.status(503).end();
 
   try { await fsp.stat(full); } catch { return res.status(404).end(); }

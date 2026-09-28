@@ -105,7 +105,7 @@ Extract the source add-on ZIP, choose its folder in Assets > Add assets, and imp
 
 Right-click a card, or use its three-dot Actions button on touch/keyboard, for Open, Edit details, Save to favorites, Get asset and Delete. The menu supports arrow keys, Home/End and Escape. Delete is also in the asset detail action row. It requires a confirmation naming the asset, connected-file count and size, then permanently removes the whole package directory, manifest and related files. Stale revisions are rejected. This differs from the existing recoverable bulk Trash action; deleting cannot be undone.
 
-Image previews use the same compact icon dock as 3D inspection. Choose preview image opens the image selector; Resize preview reveals the themed height slider and pixel readout. Expand/Collapse and Fullscreen remain one click away, alongside a desktop resize handle. Sizing controls are disabled in fullscreen. Choose between the package's preview/reference/texture images. Image preview returns from 3D without leaving the asset. Browser fullscreen depends on platform support.
+Image previews use a custom thumbnail menu and the same compact Expand/Collapse and Fullscreen icons as 3D inspection. Height sliders and resize handles have been removed. Choose between the package's preview/reference/texture images. Image preview returns from 3D without leaving the asset. Browser fullscreen depends on platform support.
 
 The question-circle next to Add assets, in both the gallery and import form, opens an inline guide. Its collection tree and grouped-result diagram explain one asset.json per asset folder, selecting the outer collection folder, ordinary file selection versus prepared imports, tags and source-ID matching. Download example asset.json provides an editable recipe; change its sample paths and remove entries for files you do not have. All listed files must be present. The guide does not generate models or use paid services.
 
@@ -131,3 +131,16 @@ Verification: the asset-share regression test covers package isolation, traversa
 
 
 The image dock keeps its selected image label visible and hides setup controls until requested. Both viewers use themed select arrows, slim range tracks, visible keyboard focus and accessible icon names. Chrome desktop/mobile verification covers image changes, height adjustment, expand/collapse, fullscreen exit, animation seeking and the return from 3D to images in dark/light themes.
+
+
+## Custom viewer controls and external submissions
+
+The image preview has no height slider or resize handle. Its image picker opens an in-view menu with thumbnail options; only Expand and Fullscreen sit at the bottom right. The 3D viewer uses the same custom menus for models, clips and speed, a keyboard/pointer-operated animation scrubber and a themed loop switch. Private and shared viewers load the same control module and styles.
+
+Assets > Upload link creates a seven-day upload-only capability. Alternatively, enable **Allow asset submissions to External assets** when sharing an individual asset. Existing shares remain read-only unless explicitly enabled at creation. Visitors cannot browse the library, overwrite existing assets, or delete anything. Each new submission is placed under `assets/External assets/` and assigned the **External assets** collection, keeping its related models, maps and sources together. Prepared folders with an asset.json per package preserve descriptions, style, category and tags; ordinary file/folder selections form one named package. ZIPs must be extracted first.
+
+Upload links are limited to 20 GB and 200 submissions; each asset allows up to 10 GB / 1,000 connected files. Uploads reserve capacity at initialization. Partial chunks are private under `.asset-incoming`; retry with the same selected files in the same browser tab to resume. A completed submission is idempotent. Every upload operation rechecks the link and owner's shelf access. Expiry/revocation stops further requests. Review received assets before trusting or executing their contents, as with any external upload.
+
+Tests cover upload isolation, unsafe paths, chunk offsets, size limits, duplicate completion, grouping, permission removal and revocation. Chrome verification covers the owner share controls, upload-only page, actual anonymous uploads, private/public animated GLBs, custom menus and keyboard scrubbing at desktop and mobile sizes.
+
+The portable `skills/asset-generation` skill is versioned here and installed in the owner's Codex skills directory. It does not launch paid generations until a concrete batch and budget are supplied.
