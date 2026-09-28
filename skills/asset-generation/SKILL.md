@@ -27,6 +27,14 @@ Establish the spending authorization from the current task and existing session.
 6. Review the actual rig and animated mesh: skeleton placement, joint deformation, foot contact/sliding, clipping, root motion, rest pose, loop seam, scale and orientation. Use a bounded independent agent review of captured evidence when available; consolidate a batch into one review instead of creating an agent per file. Fix the identified cause, then retry rig/animation at most **three total attempts per affected asset/stage**, including the initial attempt, within the credit cap. Preserve the best result, record failed attempts and stop if quality remains inadequate.
 7. Make minor Blender fixes only when they are inexpensive and preserve approved appearance. Work on derived copies. Re-export and recheck geometry, materials, skeleton and clips in a real viewer. Do not call an imported GLB conversion the original sculpt or original pre-texturing source.
 
+## Asset-only review and derived edits
+
+When the user is evaluating a library before starting a game, keep review in background Blender renders or the asset viewer. Do not launch Godot, create engine demo projects, or package engine files unless the user asks for that phase. Record whether animation came from Meshy or local Blender work; a playback tool is not its author.
+
+For customizable characters, require visibly open, separated eyes and usable eyelid/iris geometry in the concept and actual-model review. A closed sculpt or painted eyelid cannot provide recolorable open eyes by changing a texture alone. Reject pasted-on eyeball repairs that fail closeup review; preserve the best original and disclose unfinished eye work.
+
+Before delivering derived humanoids, check every shape-key default and exported morph weight. Neutral facial controls must be zero unless a deliberate preset is requested. Preserve approved geometry and original material graphs; do not silently replace them with a provider's simplified rig mesh or unsupported tint nodes. Recheck transferred weights and unchanged body curves.
+
 ## Package and deliver
 
 Follow the user's requested target structure. For Vault, use [the package contract](references/vault-package.md): one stable manifest per asset, readable names, style/category/tags, preview and actual model plus all connected files. Save downloadable results promptly before provider URLs expire. Do not include secrets, signed download URLs or caches in archives.
