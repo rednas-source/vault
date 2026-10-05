@@ -144,3 +144,8 @@ Upload links are limited to 20 GB and 200 submissions; each asset allows up to 1
 Tests cover upload isolation, unsafe paths, chunk offsets, size limits, duplicate completion, grouping, permission removal and revocation. Chrome verification covers the owner share controls, upload-only page, actual anonymous uploads, private/public animated GLBs, custom menus and keyboard scrubbing at desktop and mobile sizes.
 
 The portable `skills/asset-generation` skill is versioned here and installed in the owner's Codex skills directory. It does not launch paid generations until a concrete batch and budget are supplied.
+
+
+### Upload name collisions
+
+New packages with an existing display name are named `Name (variant)`, `Name (variant 2)`, and so on automatically. Stable source IDs still resume the same package when adding missing files. If a matching package contains a conflicting file size or declared SHA-256, import creates a separate, resumable variant package and preserves its original relative model/texture/preview paths. Existing files are never overwritten. Loose duplicate filenames and same-named ZIP selections are disambiguated automatically. Dragged folder paths are retained. After an interrupted upload, press Import assets again; the current selection and uploaded chunks are retained. Ambiguous duplicate entries inside a single malformed ZIP remain rejected.

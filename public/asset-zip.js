@@ -7,11 +7,26 @@ export function validateEntries(entries){
  }
  const names=new Set(files.map(e=>e.filename.toLowerCase()));for(const e of files){let p=e.filename.toLowerCase();while(p.includes('/')){p=p.slice(0,p.lastIndexOf('/'));if(names.has(p))throw new Error('A ZIP file conflicts with a folder path.');}}return files;
 }
-export async function expandAssetZips(input,progress=()=>{}){
- const output=[];let total=0;
- for(const file of input){if(!/\.zip$/i.test(file.name)||file.webkitRelativePath){output.push(file);continue;}
+// Rename only colliding selections; keep directory paths and lazy ZIP readers intact.
+function variantPath(path, occupied) {
+ const slash=path.lastIndexOf('/'),folder=path.slice(0,slash+1),name=path.slice(slash+1),dot=name.lastIndexOf('.'),stem=dot>0?name.slice(0,dot):name,ext=dot>0?name.slice(dot):'';
+ for(let n=1;;n++){const candidate=folder+stem+(n===1?' (variant)':` (variant ${n})`)+ext;if(!occupied.has(candidate.toLowerCase()))return candidate;}
+}
+function withPath(file,path){
+ return {name:path.split('/').pop(),size:file.size,type:file.type||'',lastModified:file.lastModified||0,webkitRelativePath:path,
+ ...(file.materialize?{materialize:()=>file.materialize()}:{}),
+ text:()=>file.text(),slice:(...args)=>file.slice(...args),arrayBuffer:()=>file.arrayBuffer()};
+}
+export function uniqueSelectedFiles(input,pathOf=file=>file.webkitRelativePath||file.name){
+ const originals=[...new Set(input)],reserved=new Set(originals.map(f=>pathOf(f).toLowerCase())),seen=new Set();
+ return originals.map(file=>{let path=pathOf(file);if(seen.has(path.toLowerCase()))path=variantPath(path,reserved);seen.add(path.toLowerCase());reserved.add(path.toLowerCase());return withPath(file,path);});
+}
+export async function expandAssetZips(input,progress=()=>{},relativePath=file=>file.webkitRelativePath||''){
+ const isArchive=file=>/\.zip$/i.test(file.name)&&!(relativePath(file)||'').includes('/');
+ const output=[];let total=0;input=[...new Set(input)];const roots=new Set(input.filter(f=>!isArchive(f)).map(f=>(relativePath(f)||f.name).split('/')[0].toLowerCase()));
+ for(const file of input){if(!isArchive(file)){output.push(withPath(file,relativePath(file)||file.name));continue;}
  progress('Reading '+file.name+'…');await import('/vendor/zip/zip.js');const zip=globalThis.zip;zip.configure({useWebWorkers:false,wasmURI:'/vendor/zip/zip-module.wasm'});const reader=new zip.ZipReader(new zip.BlobReader(file),{useWebWorkers:false,strictness:'strict'});
- try{const entries=validateEntries(await reader.getEntries());const prefix=file.name.replace(/\.zip$/i,'');
+ try{const entries=validateEntries(await reader.getEntries());let prefix=file.name.replace(/\.zip$/i,'');if(roots.has(prefix.toLowerCase()))prefix=variantPath(prefix,roots);roots.add(prefix.toLowerCase());
  for(const entry of entries){total+=entry.uncompressedSize;if(total>LIMIT||output.length>=COUNT)throw new Error('Choose at most 5,000 files and 20 GB per import.');const name=entry.filename.split('/').pop(),path=prefix+'/'+entry.filename;
  const materialize=async()=>{progress('Unpacking '+name+'…');const check={checkSignature:true,useWebWorkers:false,onprogress:n=>{if(n>entry.uncompressedSize||n>FILE_LIMIT)throw new Error('A ZIP entry exceeds its declared size.');}};
  if(entry.uncompressedSize>128*1024**2){if(!navigator.storage?.getDirectory)throw new Error('This large ZIP needs a browser with temporary file storage. Try Chrome or Edge.');const root=await navigator.storage.getDirectory(),id='vault-zip-'+crypto.randomUUID(),h=await root.getFileHandle(id,{create:true});try{const writable=await h.createWritable();await entry.getData(writable,check);const data=await h.getFile();if(data.size!==entry.uncompressedSize)throw new Error('ZIP file size mismatch.');return {file:data,dispose:()=>root.removeEntry(id)};}catch(e){await root.removeEntry(id).catch(()=>{});throw e;}}
@@ -20,5 +35,5 @@ export async function expandAssetZips(input,progress=()=>{}){
  output.push({name,size:entry.uncompressedSize,lastModified:entry.lastModDate?.getTime()||0,webkitRelativePath:path,materialize,async text(){if(entry.uncompressedSize>2*1024**2)throw new Error('An asset.json is too large.');const data=await materialize();try{return await data.file.text();}finally{await data.dispose();}}});
  }
  }finally{await reader.close();}}
- const seen=new Set();for(const f of output){const p=(f.webkitRelativePath||f.name).toLowerCase();if(seen.has(p))throw new Error('Selected files have duplicate paths.');seen.add(p);}return output;
+ return uniqueSelectedFiles(output);
 }

@@ -97,3 +97,10 @@ test('variants reject duplicate IDs, unsafe paths and missing files',async t=>{
  await fs.writeFile(path.join(root,a.rel,'gold.glb'),'fixture');a=await library.finish(a.id);
  await assert.rejects(library.update(a.id,{revision:a.revision,variants:[{...v,preview:'missing.png'}]}),/missing its preview/);
 });
+
+test('same display names become variants while stable source reimports still resume',async t=>{
+ const {library}=await fixture(t);const create=id=>library.create({name:'Cedar',sourceAssetId:id,collection:'Trees'});
+ const a=await create('one'),b=await create('two'),c=await create('three');assert.deepEqual([a.name,b.name,c.name],['Cedar','Cedar (variant)','Cedar (variant 2)']);assert.equal((await create('two')).id,b.id);assert.equal((await create('two')).name,b.name);
+ const [d,e]=await Promise.all([create('four'),create('five')]);assert.notEqual(d.name,e.name);
+ const long='x'.repeat(140);await library.create({name:long});const variant=await library.create({name:long});assert.equal(variant.name.length,140);assert.match(variant.name,/ \(variant\)$/);
+});
