@@ -33,7 +33,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-assets-variants-20260928';
+const BUILD_ID = 'vault-recipes-20261006';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -3160,6 +3160,8 @@ app.post('/api/metadata/scan',auth,async(req,res)=>{
   }catch{job.status='error';job.error='Could not scan this library. Try again.';}
 });
 
+app.use('/api/recipes',require('./lib/recipe-routes')({root:ROOT,auth,config}));
+
 const appStore=require('./lib/apps').createAppStore(path.join(ROOT,'.apps'));
 app.get('/api/apps',auth,(req,res)=>{try{res.json({apps:appStore.read(req.user.name)});}catch{res.status(500).json({error:'Could not load your apps.'});}});
 app.post('/api/apps',auth,(req,res)=>{try{res.status(201).json(appStore.save(req.user.name,req.body,undefined,`${req.protocol}://${req.get('host')}`));}catch(e){res.status(400).json({error:e.message});}});
@@ -3874,7 +3876,7 @@ app.delete('/api/progress', auth, (req, res) => {
 app.use(express.static(path.join(__dirname, 'public'), {
   index: 'index.html',
   setHeaders: (res, file) => {
-    if (path.basename(file) !== 'index.html') return;
+    if (path.basename(file) !== 'index.html' && !/\.(?:js|css)$/.test(file)) return;
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('CDN-Cache-Control', 'no-store');
     res.setHeader('Cloudflare-CDN-Cache-Control', 'no-store');

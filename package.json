@@ -7,7 +7,7 @@
     "start": "node server.js",
     "check": "node --check server.js && node scripts/check-client.js && node scripts/check-folder-share.js",
     "check:share": "node scripts/check-folder-share.js",
-    "test": "node tests/archive.test.js && node tests/file-operations.test.js && node tests/document-preview.test.js && node tests/library-tools.test.js && node tests/watch-model.test.js && node tests/show-metadata.test.js && node tests/library-sort.test.js && node tests/apps.test.js && node tests/player.test.js && node tests/subtitle-options.test.js && node tests/assets.test.js && node tests/asset-shares.test.js && node tests/asset-intake.test.js && node tests/asset-zip.test.js && node tests/asset-import.test.js"
+    "test": "node tests/archive.test.js && node tests/file-operations.test.js && node tests/document-preview.test.js && node tests/library-tools.test.js && node tests/watch-model.test.js && node tests/show-metadata.test.js && node tests/library-sort.test.js && node tests/apps.test.js && node tests/player.test.js && node tests/subtitle-options.test.js && node tests/assets.test.js && node tests/asset-shares.test.js && node tests/asset-intake.test.js && node tests/asset-zip.test.js && node tests/asset-import.test.js && node --test tests/recipes.test.js"
   },
   "dependencies": {
     "@phosphor-icons/web": "^2.1.2",
@@ -15,6 +15,7 @@
     "archiver": "^7.0.1",
     "express": "^4.19.2",
     "hls.js": "^1.7.1",
+    "htmlparser2": "^12.0.0",
     "mammoth": "^1.12.3",
     "marked": "^15.0.12",
     "multer": "^1.4.5-lts.1",

@@ -5,6 +5,7 @@
   "sessionSecret": "CHANGE-ME",
   "sessionDays": 30,
   "maxFileGB": 64,
+  "usdaApiKey": "",
   "transcodeEncoder": "auto",
   "defaultTranscodeQuality": "1080",
   "remuxStreams": 3,
