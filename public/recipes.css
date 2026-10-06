@@ -1,4 +1,6 @@
 /* A daylight cookbook inside Vault. Large type and generous touch targets are intentional. */
+/* The fifth shared section must fit phones in every Vault space. */
+@media(max-width:600px){#app>header .space-nav{width:100%;gap:4px}#app>header .space-nav button{flex:1;min-width:0;padding-inline:6px}}
 body.recipes-mode #app.on{display:grid;grid-template-rows:68px minmax(0,1fr);height:100dvh}
 body.recipes-mode .library-sidebar,body.recipes-mode .library-toolbar,body.recipes-mode .library-heading,body.recipes-mode #resume,body.recipes-mode .spectrum{display:none!important}
 body.recipes-mode #app>main{display:block;min-height:0}

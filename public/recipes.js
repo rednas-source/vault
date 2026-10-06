@@ -3,7 +3,7 @@ const Recipes=(()=>{
   const M=RecipeModel;
   let owner=null,data=null,loading=false,error='',draft=null,draftFiles={},importNote='',busy=false;
   let tab='recipe',scale=1,meals=1,unitSystem='metric',unitOverrides={},cooked=new Set(),checked=new Set(),cookStep=null,wakeLock=null;
-  let matchIndex=null,foodResults=[],matchFood=null,notice='',undoId=null,query='',renderKey='',uploadTask=null;
+  let matchIndex=null,foodResults=[],matchFood=null,notice='',undoId=null,query='',renderKey='',uploadTask=null,lastRecipeId=null;
   const h=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const $r=s=>document.querySelector('#recipeApp '+s);
   const glyph=name=>`<i class="ph ph-${name}" aria-hidden="true"></i>`;
@@ -23,6 +23,7 @@ const Recipes=(()=>{
   function render(force=false){
     if(owner!==state.user){owner=state.user;data=null;draft=null;loading=false;error='';renderKey='';state.recipeDetail=null;state.recipePage='home';}
     if(!data&&!loading&&!error)void load();
+    if(current()&&lastRecipeId!==current().id){lastRecipeId=current().id;scale=1;meals=current().servings;tab='recipe';cookStep=null;checked.clear();cooked.clear();unitOverrides={};matchIndex=null;}
     const key=JSON.stringify([state.recipeDetail,state.recipePage,state.q]);
     if(!force&&key===renderKey&&document.querySelector('#recipeApp'))return;
     renderKey=key;query=state.q||'';

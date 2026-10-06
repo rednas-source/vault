@@ -399,6 +399,14 @@ components:
 
 # Design System: Vault — Library, Watch, Listen, and Apps
 
+## Recipes — October 2026
+
+Recipes is a separate daylight cookbook beside Watch and Listen. Its scoped surface uses warm paper `#f7f5ef`, dark green ink `#24372c`, muted olive text `#667065`, and green actions `#2f563d`. Serif recipe titles sit above sans-serif ingredients and methods; the cooking method uses 19px body text with 1.85 line height, and focused cooking steps grow to 27px on phones. These colors and sizes belong to Recipes only.
+
+Phone layouts are the primary design target: 46–50px controls, a compact shared header, stacked recipe sections, a sticky Recipe/Nutrition/Video tab bar, and a full-width shopping list. Completed shopping items collapse out of the active list with Undo available. Food artwork comes from the imported source, an uploaded image, or a frame from the user's video; empty states use the existing Phosphor icon family. No generated or third-party demo artwork ships with the feature.
+
+Browser verification covered caption import, editing, saving, persistent shopping completion, nutrition scaling, video upload/playback, automatic cover extraction and 360–1440px layouts. Visual review corrected a conflicting mobile header height and verified readable shopping/cooking screens. Recipe data and media are private per account; incomplete nutrition stays visibly incomplete.
+
 ## Overview
 
 **Creative North Star: "A private archive with familiar streaming rooms"**

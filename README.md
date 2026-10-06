@@ -8,6 +8,7 @@ Runs on your own hardware. No cloud storage, no third party holding your library
 
 ## What it does
 
+- **Recipes.** A separate mobile-first cookbook beside Watch and Listen, with link/caption imports, saved photos and videos, large cooking steps, metric/US measurements, batch scaling, per-meal nutrition, and a persistent shopping checklist.
 - **Reusable game assets.** Assets sits above Entertainment in the Library sidebar. Keep a model, preview, textures, rig, animations, sources and import notes in one searchable package; filter by style/category/collection, inspect self-contained GLBs and embedded animation clips in 3D, and download complete packages. File/folder imports preserve related files and support resumable uploads. See [ASSETS.md](ASSETS.md) for package preparation, permissions and viewer limits.
 - **Asset workbench.** Search tags in the Assets search field, choose small/medium/large grids or a list, and select packages without reloading their previews. Bulk-edit metadata, move packages to reversible Trash, and restore them. Type and Relationship filters find textures, animations and other connected model content; VFX and Source files have explicit types. The 3D panel expands or enters fullscreen and offers textured/solid/wireframe surfaces, bones, clip seeking, speed, loop and temporary preview ranges. Add files to matching assets joins prepared source add-ons to existing cards by source ID and collection. The optional 35-file Amber Road Blender collection contains editable GLB conversions with packed textures and 12 confirmed rigs/animation sets; it does not recover original sculpt history.
 - **Asset actions and import help.** Right-click a card or use its three-dot menu to open, edit, favorite, download or delete its package. Delete also appears in details and confirms the name, connected-file count and size before permanent removal; bulk Trash remains recoverable. Saved assets are private to your account across browsers and devices, with migration of earlier local saves. Image previews offer file selection, height adjustment, expansion and fullscreen, plus a return from 3D. The question-circle beside Add assets opens an inline folder-to-card guide and an editable example `asset.json` download.
@@ -69,7 +70,7 @@ A tunnel means no open ports on your router, your home IP never appears in publi
 
 ## Install
 
-Node.js 18 or newer.
+Node.js 22 or newer is recommended (the production checks use Node 22).
 
 ```bash
 git clone <your-repo> vault
