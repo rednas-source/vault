@@ -33,7 +33,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-recipes-reels-20261013';
+const BUILD_ID = 'vault-recipes-sharing-20261013';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -299,6 +299,7 @@ function resolveShare(id) {
   if (sh.kind !== 'folder' && sh.maxUses && sh.uses >= sh.maxUses) {
     return { error: 'used-up' };
   }
+  if (require('./lib/recipe-shares').isRecipeShare(sh)) return { share: sh };
 
   // Re-check the path every time: the file may have been renamed, moved, or
   // deleted since, and the stored string is not trusted on its own.
@@ -3383,9 +3384,14 @@ app.get('/api/activity', auth, adminOnly, (req, res) => {
 
 // ---------------------------------------------------------------- shares API
 
+const recipeShareContext=require('./lib/recipe-shares').mountRecipeShares(app,{
+  root:ROOT,auth,getShares:()=>shares,saveShares,resolveShare,note,
+  ownerActive:name=>!!accounts[name]&&!accounts[name].disabled,
+});
+
 app.get('/api/shares', auth, async (req, res) => {
   res.setHeader('Cache-Control', 'private, no-store');
-  try { res.json({ shares: await listSharedLinks(ROOT, shares, req.user, shelfIds) }); }
+  try { res.json({ shares: await listSharedLinks(ROOT, shares, req.user, shelfIds, Date.now(), recipeShareContext) }); }
   catch { res.status(500).json({ error: 'Could not load shared links. Please try again.' }); }
 });
 
@@ -3514,6 +3520,14 @@ const bytesHuman = (n) => {
 app.get('/s/:id', async (req, res) => {
   const { share, full, error } = resolveShare(req.params.id);
   if (error) return shareGone(res, error);
+  if (require('./lib/recipe-shares').isRecipeShare(share)) {
+    try {
+      recipeShareContext(req.params.id);
+      share.lastUsed=Date.now();share.uses=(share.uses||0)+1;saveShares();
+      res.set({'X-Robots-Tag':'noindex, nofollow','Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
+      return res.sendFile(path.join(__dirname,'public','share-recipes.html'));
+    } catch { return shareGone(res,'missing'); }
+  }
 
   let st;
   try { st = await fsp.lstat(full); } catch { return shareGone(res, 'missing'); }
@@ -3784,7 +3798,7 @@ app.delete('/api/share/:id/upload/:uploadId', async (req, res) => {
 app.get('/api/share/:id/media', async (req, res) => {
   const { share, full, error } = resolveShare(req.params.id);
   if (error) return res.status(410).end();
-  if (share.kind === 'folder' || share.kind === 'asset' || share.kind === 'asset-upload') return res.status(404).end();
+  if (share.kind && share.kind !== 'file') return res.status(404).end();
   if (!HAS_FFMPEG) return res.status(503).end();
 
   try { await fsp.stat(full); } catch { return res.status(404).end(); }
@@ -3805,6 +3819,7 @@ app.get('/api/share/:id/media', async (req, res) => {
 app.get('/api/share/:id/file', async (req, res) => {
   const { share, full, error } = resolveShare(req.params.id);
   if (error) return res.status(410).end();
+  if (require('./lib/recipe-shares').isRecipeShare(share)) return res.status(404).end();
 
   let st;
   try { st = await fsp.stat(full); } catch { return res.status(404).end(); }

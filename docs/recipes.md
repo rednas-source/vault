@@ -56,4 +56,18 @@ Food illustrations accompany common ingredients. **Alternatives for Norway** sug
 
 ## Verification and deployment
 
-Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, caption comparison blocks, public Instagram media parsing, URL rejection, account isolation, grouped shopping, clear-all/undo across restart, uploads and byte-range playback, plus one-time samples and private photos. Live retrieval of the seven requested reels was also tested in a local authenticated Vault account. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-recipes-reels-20261013`.
+## Sharing
+
+Use **Share cookbook** above the recipe grid to share the whole cookbook, or **Share** on a recipe to share only that dish. Both use Vault’s existing share links with an optional label, expiry (one week by default), copy action and revocation from **Shared links**. These read-only links have unlimited visits until they expire or are revoked, like asset links.
+
+A cookbook link is a live view: it includes future additions and updates. A recipe link includes only its chosen recipe; deleting that recipe makes the link unavailable. Recipients can search a shared cookbook, adjust batch size, portions and units, follow cooking steps, view nutrition and play saved videos. Their changes do not write to the owner’s recipes. Shopping lists, favourites and account details remain private. Shared pages follow the recipient browser’s Vault light/dark preference and offer a theme switch.
+
+Every public recipe and media request rechecks the share and owner’s active account. Links stop serving content on expiry, revocation or account suspension. Photos and videos retain byte-range playback. Cloudflare Access, if configured in front of the site, still applies; Vault links do not bypass it.
+
+## Sharing verification
+
+`tests/recipe-shares.test.js` exercises anonymous reading, authenticated creation, cross-account and cross-recipe isolation, live cookbook additions, media ranges, expiry, deletion, suspension and revocation. The recipient interface is also checked in desktop dark mode and mobile light mode.
+
+## Verification and deployment
+
+Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, caption comparison blocks, public Instagram media parsing, URL rejection, account isolation, grouped shopping, clear-all/undo across restart, uploads and byte-range playback, plus one-time samples and private photos. Live retrieval of the seven requested reels was also tested in a local authenticated Vault account. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-recipes-sharing-20261013`.
