@@ -148,16 +148,20 @@ test('sample photos use authenticated recipe media and are independent between a
   const first=await(await call()).json(),r=first.recipes[0];
   assert.equal(first.recipes.length,3);
   const image=await call('/'+r.id+'/media/image');assert.equal(image.status,200);assert.equal(image.headers.get('content-type'),'image/jpeg');
+  const ai=await call('/'+r.id+'/media/aiImage');assert.equal(ai.status,200);assert.equal(ai.headers.get('content-type'),'image/png');
+  assert.equal((await fetch(base+'/'+r.id+'/media/aiImage')).status,401);assert.equal((await call('/'+r.id+'/media/aiImage','bob')).status,404);
+  assert.equal((await call('/'+r.id+'/ai-photo','bob','POST')).status,404);
   assert.equal((await call('/'+r.id+'/media/image','bob')).status,404);
   const bob=await(await call('','bob')).json();assert.notEqual(bob.recipes[0].id,r.id);
   assert.equal((await call('/'+r.id,'alice','DELETE')).status,200);
   assert.equal((await call('/'+r.id+'/media/image')).status,404);
+  assert.equal((await call('/'+r.id+'/media/aiImage')).status,404);
   assert.equal((await call('/'+bob.recipes[0].id+'/media/image','bob')).status,200);
   assert.equal((await(await call()).json()).recipes.length,2);
 });
 test('authenticated routes support CRUD, caption import, shopping, chunk retry and byte-range media with ownership checks',async t=>{
   const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-recipe-api-'));const app=express();app.use(express.json({limit:'256kb'}));
-  app.use('/api/recipes',routes({root,config:{},auth(req,res,next){if(!req.get('X-Test-User'))return res.status(401).json({error:'Not signed in'});req.user={name:req.get('X-Test-User')};next();}}));
+  app.use('/api/recipes',routes({root,config:{recipeAutoImages:false},auth(req,res,next){if(!req.get('X-Test-User'))return res.status(401).json({error:'Not signed in'});req.user={name:req.get('X-Test-User')};next();}}));
   const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await fs.rm(root,{recursive:true,force:true});});
   const base=`http://127.0.0.1:${server.address().port}/api/recipes`;
   const call=(p='',options={},user='alice')=>fetch(base+p,{...options,headers:{'Content-Type':'application/json','X-Test-User':user,...options.headers}});

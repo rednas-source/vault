@@ -11,6 +11,7 @@ test('recipe links isolate owners and recipes, include live cookbook additions, 
   store.addShopping('alice',first.id,1);
   const dir=path.join(store.directory('alice'),'media');await fs.mkdir(dir,{recursive:true});await fs.writeFile(path.join(dir,'clip.mp4'),'video-fixture');
   store.media('alice',first.id,'video',{file:'clip.mp4',name:'private filename',mime:'video/mp4'});
+  await fs.writeFile(path.join(dir,'ai.png'),'ai-photo-fixture');store.media('alice',first.id,'aiImage',{file:'ai.png',name:'private image name',mime:'image/png'});
   let shares={},enabled=true,saved=0;
   const app=express();app.use(express.json());
   const auth=(req,res,next)=>{if(!req.headers.authorization)return res.sendStatus(401);req.user={name:'alice',role:'member'};next();};
@@ -29,6 +30,9 @@ test('recipe links isolate owners and recipes, include live cookbook additions, 
   const response=await fetch(url),data=await response.json();assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/);
   assert.equal(data.recipes.length,1);assert.equal(data.shopping,undefined);assert.equal(data.recipes[0].favorite,undefined);assert.equal(data.recipes[0].video,true);assert.equal(data.recipes[0].by,undefined);assert.equal(data.recipes[0].ingredients.length,1);
   assert.equal(JSON.stringify(data).includes('clip.mp4'),false);
+  assert.equal(data.recipes[0].aiImage,true);assert.equal(JSON.stringify(data).includes('ai.png'),false);assert.equal(data.recipes[0].aiStatus,undefined);
+  const ai=url+'/'+first.id+'/media/aiImage';assert.equal(await (await fetch(ai)).text(),'ai-photo-fixture');
+  assert.equal((await fetch(url+'/'+foreign.id+'/media/aiImage')).status,410);
   const video=url+'/'+first.id+'/media/video';
   const range=await fetch(video,{headers:{Range:'bytes=0-4'}});assert.equal(range.status,206);assert.equal(await range.text(),'video');assert.match(range.headers.get('cache-control'),/no-store/);
   for(const id of [second.id,foreign.id])assert.equal((await fetch(url+'/'+id+'/media/video')).status,410);
@@ -41,6 +45,7 @@ test('recipe links isolate owners and recipes, include live cookbook additions, 
   const rows=await listSharedLinks(root,shares,{name:'alice',role:'member'},()=>[],Date.now(),context);assert.equal(rows.length,2);assert.ok(rows.every(row=>row.status==='active'&&!row.writable));assert.ok(rows.some(row=>row.kind==='cookbook'));
   enabled=false;assert.equal((await fetch(bookUrl)).status,410);assert.equal((await fetch(video)).status,410);enabled=true;
   shares[single.id].expires=Date.now()-1;assert.equal((await fetch(url)).status,410);assert.equal((await fetch(video)).status,410);shares[single.id].expires=0;
+  enabled=false;assert.equal((await fetch(ai)).status,410);enabled=true;
   store.remove('alice',first.id);assert.equal((await fetch(url)).status,410);assert.equal((await fetch(video)).status,410);assert.equal((await (await fetch(bookUrl)).json()).recipes.length,2);
   delete shares[book.id];assert.equal((await fetch(bookUrl)).status,410);
 });
