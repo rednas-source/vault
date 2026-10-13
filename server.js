@@ -3525,7 +3525,7 @@ app.get('/s/:id', async (req, res) => {
       recipeShareContext(req.params.id);
       share.lastUsed=Date.now();share.uses=(share.uses||0)+1;saveShares();
       res.set({'X-Robots-Tag':'noindex, nofollow','Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
-      return res.sendFile(path.join(__dirname,'public','share-recipes.html'));
+      return res.type('html').send(await require('./lib/recipe-shares').recipeSharePage(req.params.id));
     } catch { return shareGone(res,'missing'); }
   }
 

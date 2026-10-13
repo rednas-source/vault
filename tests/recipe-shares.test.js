@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),express=require('express');
 const {createRecipeStore}=require('../lib/recipes');
-const {mountRecipeShares}=require('../lib/recipe-shares');
+const {mountRecipeShares,recipeSharePage}=require('../lib/recipe-shares');
 const {listSharedLinks}=require('../lib/shared-links');
 
 test('recipe links isolate owners and recipes, include live cookbook additions, and revoke all media',async t=>{
@@ -39,13 +39,39 @@ test('recipe links isolate owners and recipes, include live cookbook additions, 
   assert.equal((await fetch(url+'/'+first.id+'/media/ingredients')).status,410);
   assert.equal((await fetch(url,{method:'POST'})).status,404);
   const book=await (await create({kind:'cookbook',recipeId:foreign.id})).json(),bookUrl=base+'/api/share/'+book.id+'/recipes';
+  // Model Access allowing only /s and /api/share: every reader dependency,
+  // including the CSS's relative icon fonts, must stay inside that exception.
+  for(const link of [single,book]){
+    const html=await recipeSharePage(link.id);
+    assert.equal(html.includes('__RECIPE_ASSETS__'),false);
+    const assets=[...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(match=>match[1]);
+    assert.equal(assets.length,9);
+    for(const asset of assets){
+      assert.ok(asset.startsWith('/api/share/'+link.id+'/recipes/assets/'),asset);
+      const response=await fetch(base+asset);
+      assert.equal(response.status,200,asset);
+      assert.match(response.headers.get('cache-control'),/no-store/);
+      assert.match(response.headers.get('content-type'),asset.includes('.css')?/text\/css/:/javascript/);
+      const text=await response.text();
+      for(const font of text.matchAll(/url\("(\.\/Phosphor\.[^"]+)"\)/g)){
+        const url=new URL(font[1],base+asset);
+        assert.ok(url.pathname.startsWith('/api/share/'+link.id+'/recipes/assets/'));
+        assert.equal((await fetch(url)).status,200,url.href);
+      }
+    }
+    for(const name of ['server.js','index.html','config.json','__proto__','..%2Fserver.js']){
+      assert.equal((await fetch(base+'/api/share/'+link.id+'/recipes/assets/'+name)).status,404);
+    }
+  }
+  const readerAsset=url+'/assets/recipe-model.js';
+  assert.equal((await fetch(base+'/api/share/invalid/recipes/assets/recipe-model.js')).status,410);
   assert.equal((await (await fetch(bookUrl)).json()).recipes.length,2);
   store.save('alice',{...input,title:'New addition'});assert.equal((await (await fetch(bookUrl)).json()).recipes.length,3);
   store.save('alice',{...input,title:'Updated burrito'},first.id);assert.equal((await (await fetch(url)).json()).recipes[0].title,'Updated burrito');
   const rows=await listSharedLinks(root,shares,{name:'alice',role:'member'},()=>[],Date.now(),context);assert.equal(rows.length,2);assert.ok(rows.every(row=>row.status==='active'&&!row.writable));assert.ok(rows.some(row=>row.kind==='cookbook'));
-  enabled=false;assert.equal((await fetch(bookUrl)).status,410);assert.equal((await fetch(video)).status,410);enabled=true;
-  shares[single.id].expires=Date.now()-1;assert.equal((await fetch(url)).status,410);assert.equal((await fetch(video)).status,410);shares[single.id].expires=0;
+  enabled=false;assert.equal((await fetch(bookUrl)).status,410);assert.equal((await fetch(video)).status,410);assert.equal((await fetch(readerAsset)).status,410);enabled=true;
+  shares[single.id].expires=Date.now()-1;assert.equal((await fetch(url)).status,410);assert.equal((await fetch(video)).status,410);assert.equal((await fetch(readerAsset)).status,410);shares[single.id].expires=0;
   enabled=false;assert.equal((await fetch(ai)).status,410);enabled=true;
   store.remove('alice',first.id);assert.equal((await fetch(url)).status,410);assert.equal((await fetch(video)).status,410);assert.equal((await (await fetch(bookUrl)).json()).recipes.length,2);
-  delete shares[book.id];assert.equal((await fetch(bookUrl)).status,410);
+  delete shares[book.id];assert.equal((await fetch(bookUrl)).status,410);assert.equal((await fetch(bookUrl+'/assets/recipes.css')).status,410);
 });

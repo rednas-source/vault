@@ -76,7 +76,7 @@ Use **Share cookbook** above the recipe grid to share the whole cookbook, or **S
 
 A cookbook link is a live view: it includes future additions and updates. A recipe link includes only its chosen recipe; deleting that recipe makes the link unavailable. Recipients can search a shared cookbook, adjust batch size, portions and units, follow cooking steps, view nutrition and play saved videos. Their changes do not write to the owner’s recipes. Shopping lists, favourites and account details remain private. Shared pages follow the recipient browser’s Vault light/dark preference and offer a theme switch.
 
-Every public recipe and media request rechecks the share and owner’s active account. Links stop serving content on expiry, revocation or account suspension. Photos and videos retain byte-range playback. Cloudflare Access, if configured in front of the site, still applies; Vault links do not bypass it.
+Every public recipe, reader asset and media request rechecks the share and owner’s active account. Links stop serving content on expiry, revocation or account suspension. Photos and videos retain byte-range playback. The reader’s scripts, styles and icon fonts are served from an explicit allowlist under `/api/share/:id/recipes/assets/`, so cookbook and single-recipe links work with the existing Cloudflare Access exceptions for `/s` and `/api/share`. No exception for the main application’s static files is needed. Cloudflare Access still applies unless those share-route exceptions are configured.
 
 ## Sharing verification
 

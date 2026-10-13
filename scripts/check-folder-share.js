@@ -136,7 +136,27 @@ async function main() {
   });
   assert(afterRevoke.status === 410, `Revoked link still accepted an upload (${afterRevoke.status})`);
 
-  console.log('Collaborative folder share integration OK.');
+  const recipe = await json(await authed('/api/recipes', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({title:'Share test burrito',servings:2,ingredients:['200 g chicken'],instructions:['Cook chicken.']}),
+  }));
+  for (const kind of ['recipe','cookbook']) {
+    const link = await json(await authed('/api/shares', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({kind,recipeId:recipe.id}),
+    }));
+    const page = await fetch(base+link.url);
+    assert(page.ok, `${kind} share page failed`);
+    const html = await page.text();
+    assert(!html.includes('__RECIPE_ASSETS__'), 'Share asset URLs were not resolved');
+    for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+      assert(match[1].startsWith(`/api/share/${link.id}/recipes/assets/`), 'Reader depends on a protected URL');
+      assert((await fetch(base+match[1])).ok, `Missing recipe reader asset: ${match[1]}`);
+    }
+    const shared = await json(await fetch(`${base}/api/share/${link.id}/recipes`));
+    assert(shared.recipes.some(item=>item.title==='Share test burrito'), 'Shared recipe is missing');
+  }
+  console.log('Collaborative folder and recipe share integration OK.');
 }
 
 main().catch((error) => {

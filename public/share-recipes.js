@@ -1,7 +1,7 @@
 /* A read-only reader: every request is scoped to the share capability. */
 (()=>{
   const M=RecipeModel,X=RecipeExtras,L=RecipeLanguage,root=document.getElementById('sharedRecipes');
-  const id=location.pathname.split('/').pop(),base='/api/share/'+encodeURIComponent(id)+'/recipes';
+  const id=location.pathname.split('/').filter(Boolean).pop(),base='/api/share/'+encodeURIComponent(id)+'/recipes';
   const h=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const icon=name=>`<i class="ph ph-${name}" aria-hidden="true"></i>`;
   const button=(action,label,style='',extra='')=>`<button type="button" class="rc-button ${style}" data-action="${action}" ${extra}>${label}</button>`;
