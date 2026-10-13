@@ -17,6 +17,7 @@ progress.json
 node_modules/
 storage/
 .artcraft/
+.app-file-uploads/
 .recipes/
 *.log
 scripts/__pycache__/

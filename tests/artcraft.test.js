@@ -45,3 +45,13 @@ test('opaque-origin module worker shim imports only its own bundle and leaves ot
  new context.window.Worker('https://other.test/worker.js',{type:'module'});assert.equal(calls[1].url,'https://other.test/worker.js');
  new context.window.Worker('classic.js',{});assert.equal(calls[2].url,'classic.js');
 });
+
+test('a release update refreshes downloads, installs v2, and preserves an already-open v1 session',async t=>{
+ const dir=await temp(t),archives={v1:await zip({'web/index.html':'v1','web/app.wasm':'first'}),v2:await zip({'web/index.html':'v2','web/app.wasm':'second'})};let version='v1';
+ const asset=v=>({name:`photocraft-web-${v}.zip`,url:`https://github.com/storytold/photocraft/releases/download/${v}/photocraft-web-${v}.zip`,size:archives[v].length,digest:'sha256:'+crypto.createHash('sha256').update(archives[v]).digest('hex')});
+ await fs.writeFile(path.join(dir,'releases.json'),JSON.stringify({records:{photocraft:{release:{tag:'v1',assets:[asset('v1')]}}}}));
+ const store=createArtcraft(dir,{fetcher:async url=>{if(url.includes('api.github.com')){await new Promise(r=>setTimeout(r,2));return new Response(JSON.stringify({tag_name:version,assets:[{...asset(version),browser_download_url:asset(version).url},{name:'photocraft-windows.msi',size:100,browser_download_url:`https://github.com/storytold/photocraft/releases/download/${version}/photocraft-windows.msi`}]}));}return new Response(archives[url.includes('/v2/')?'v2':'v1']);}});
+ await store.install('photocraft');const old=store.ticket((await store.launch('photocraft')).split('/')[4]);version='v2';
+ const checks=await Promise.all([store.check(),store.check()]);for(const c of checks){assert.equal(c.apps[0].release.tag,'v2');assert.equal(c.apps[0].updateAvailable,true);assert.ok(c.apps[0].release.assets[1].url.includes('/v2/'));}
+ await store.install('photocraft');const current=store.ticket((await store.launch('photocraft')).split('/')[4]);assert.equal(current.tag,'v2');assert.notEqual(old.folder,current.folder);assert.equal(await fs.readFile(path.join(dir,old.folder,old.entry,'index.html'),'utf8'),'v1');assert.equal(await fs.readFile(path.join(dir,current.folder,current.entry,'index.html'),'utf8'),'v2');assert.equal((await createArtcraft(dir).list()).apps[0].installed,'v2');
+});

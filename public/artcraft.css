@@ -3,3 +3,7 @@ html[data-theme=light] .craft-identity h3{color:var(--light)}
 @media(max-width:1250px){.craft-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.craft-copy{padding:18px}.craft-identity{gap:10px}.craft-identity h3{font-size:20px}}
 @media(max-width:950px){.craft-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.craft-heading{align-items:flex-start}}
 @media(max-width:600px){.craft-grid{grid-template-columns:1fr}.craft-heading{flex-direction:column;gap:16px}.craft-copy{padding:22px}.craft-heading h2{font-size:29px}.craft-preview{aspect-ratio:16/8}.craft-downloads[open]>div{left:0;right:auto}.apps-heading{flex-wrap:wrap}}
+
+.craft-file-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.craft-file-open{min-width:160px;max-width:320px;flex:1}.craft-file-open select{width:100%;min-height:38px;border:1px solid var(--line);border-radius:6px;background:var(--night-raised);color:var(--light);font:12px var(--sans);padding:8px}.craft-file-tools p{flex-basis:100%;margin:0;color:var(--muted);font:12px/1.5 var(--sans);overflow-wrap:anywhere}.craft-file-tools p[data-error=true]{color:var(--accent)}.craft-file-tools [hidden]{display:none}.craft-file-tools button:focus-visible,.craft-file-tools select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}@media(max-width:600px){.craft-file-open select{font-size:16px}.craft-file-open{min-width:150px}.craft-file-tools{gap:8px}}
+
+body.apps-mode.app-open #scroll{max-height:min(45vh,320px)}

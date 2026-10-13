@@ -1,8 +1,15 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T12:37:43Z",
+  "generatedAt": "2026-10-13T13:40:00Z",
   "title": "Design System: Vault \u2014 Library, Watch, Listen, and Apps",
   "extensions": {
+    "appFiles": {
+      "sources": ["public/artcraft-files.js", "public/artcraft-frame.js", "public/artcraft.css", "public/apps.js", "lib/app-files.js"],
+      "scope": "Narrow extension of the existing Operate workspace; no global palette or type changes.",
+      "layout": "Compact Save to Vault and Open saved file controls above the editor, with wrapping status beneath. Mobile controls wrap; the select uses 16px text. Header height is bounded to preserve editor space.",
+      "states": "Idle autosave, connecting, pending, saving and confirmed Saved with path/time. Newer edits remain pending during uploads. Failure offers Retry save; conflicting changes offer Save a copy. Closing warns before discarding unconfirmed work. FigCraft discloses unavailable browser saving; LightCraft uses explicit export/backup guidance.",
+      "evidence": [".impeccable/review/app-files-desktop.png", ".impeccable/review/app-files-mobile.png"]
+    },
     "artcraftAndRecipeSharing": {
       "updatedAt": "2026-10-13",
       "authority": "Precise user-requested extension of Vault's established Operate surface. Official screenshots and icons are intentional. Preserve current typography, themes and navigation; no new visual world or approved composition is claimed.",
@@ -21,7 +28,7 @@
         "content": "13 official screenshot/icon cards precede Your other apps. Purpose, latest and installed versions, browser action, desktop downloads and Source & licences remain visible.",
         "layout": "Apps max-width 1600px. Four grid columns; three at <=1250px, two at <=950px, one at <=600px. One-pixel shared dividers; raised theme surfaces. Screenshots 16:10, 16:8 on phones. Icons 52px with 12px corners. Copy padding 22px, 18px at <=1250px, returning to 22px at <=600px.",
         "typography": "Existing sans family; card title 22px or 20px at <=1250px, description 14px/1.65, category/actions 12px, tabular versions 11px. Dark-theme titles use app identity colors; light-theme titles use existing primary text. No global token change.",
-        "states": "Admin Install browser app, Preparing, Check for updates and Update browser; installed tools offer Open in Vault to all accounts. Installation hints and inline errors remain explicit. Managed workspace reminds users to save/export because recovery storage is session-only.",
+        "states": "Admin Install browser app, Preparing, Check for updates and Update browser; installed tools offer Open in Vault to all accounts. Installation hints and inline errors remain explicit. Managed workspaces expose App files saving and reopening with application-specific capability guidance; browser recovery storage remains session-only.",
         "downloads": "Bounded disclosure lists official desktop package links with platform/architecture and size, plus Release notes & checksums. Web/CLI bundles and update metadata such as .zsync are excluded. Menu aligns left on phones. Existing accent focus outline remains visible."
       },
       "sharing": "Shared links moved from the sidebar to the header immediately before Activity. Existing Library management view remains. Allow guests to add recipes is an unchecked opt-in in share creation. Enabled recipients can add/import new recipes and attach photos/videos to the owner's cookbook; they cannot edit/delete existing recipes. Contribution forms reuse recipe theme/type and show inline status and Cancel. Single-recipe shares also show contributions from that link. Default reader stays read-only; shopping stays private.",

@@ -1,0 +1,21 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const express=require('express'),{mountAppFiles}=require('../lib/app-files');
+test('app saves are atomic, scoped, collision-safe, and detect concurrent edits',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-app-files-'));await fs.mkdir(path.join(root,'app-files'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ const app=express();app.use(express.json());mountAppFiles(app,{root,auth:(req,res,next)=>{const user=req.get('Authorization');if(!user)return res.sendStatus(401);req.user={name:user};next();},canUse:u=>u.name!=='blocked'});
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>server.close(r)));const base='http://127.0.0.1:'+server.address().port+'/api/artcraft/';
+ const call=(route,method='GET',body,user='alice')=>fetch(base+route,{method,headers:{Authorization:user,'Content-Type':Buffer.isBuffer(body)?'application/octet-stream':'application/json'},body:body==null?undefined:Buffer.isBuffer(body)?body:JSON.stringify(body)});
+ const init=async(name,bytes,revision)=>{const r=await call('gridcraft/saves','POST',{name,size:bytes.length,revision});assert.equal(r.status,201);return(await r.json()).id;};
+ const save=async(name,bytes,revision)=>{const id=await init(name,bytes,revision);assert.equal((await call('gridcraft/saves/'+id+'/chunk?offset=0','POST',Buffer.from(bytes))).status,200);return call('gridcraft/saves/'+id+'/finish','POST');};
+ assert.equal((await call('gridcraft/files','GET',null,'blocked')).status,403);
+ for(const name of ['../private','/absolute','CON.xlsx','x\\y','trailing.'])assert.equal((await call('gridcraft/saves','POST',{name,size:1})).status,400);
+ const id=await init('Book.xlsx','first');assert.equal((await call('gridcraft/saves/'+id+'/chunk?offset=0','POST',Buffer.from('first'),'bob')).status,404);assert.equal((await call('wordcraft/saves/'+id+'/chunk?offset=0','POST',Buffer.from('first'))).status,404);
+ assert.equal((await call('gridcraft/saves/'+id+'/finish','POST')).status,409);assert.equal((await call('gridcraft/saves/'+id+'/chunk?offset=1','POST',Buffer.from('first'))).status,409);
+ await call('gridcraft/saves/'+id+'/chunk?offset=0','POST',Buffer.from('first'));const first=await(await call('gridcraft/saves/'+id+'/finish','POST')).json();assert.equal(await fs.readFile(path.join(root,first.rel),'utf8'),'first');
+ const second=await(await save('Book.xlsx','second',first.revision)).json();assert.equal(second.name,'Book.xlsx');assert.equal(await fs.readFile(path.join(root,second.rel),'utf8'),'second');
+ assert.equal((await save('Book.xlsx','stale',first.revision)).status,409);assert.equal(await fs.readFile(path.join(root,second.rel),'utf8'),'second');
+ const copy=await(await save('Book.xlsx','copy')).json();assert.equal(copy.name,'Book (2).xlsx');assert.equal((await(await call('gridcraft/files')).json()).files.length,2);
+ const read=await call('gridcraft/file?name=Book.xlsx');assert.equal(await read.text(),'second');assert.equal(read.headers.get('x-vault-revision'),second.revision);assert.equal((await call('wordcraft/file?name=Book.xlsx')).status,404);
+ const [a,b]=await Promise.all([save('Book.xlsx','one',second.revision),save('Book.xlsx','two',second.revision)]);assert.deepEqual([a.status,b.status].sort(),[200,409]);
+});

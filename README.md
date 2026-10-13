@@ -516,6 +516,6 @@ On phones and tablets up to 900px wide, Listen provides Home/Search/Your Library
 
 ### ArtCraft apps and cookbook collaboration
 
-Apps includes all 13 ArtCraft tools, official desktop downloads and verified browser-build installation/update controls. An admin installs each browser app once; all Vault accounts can then open it. See [ArtCraft setup and limitations](docs/artcraft.md). Recipe share links can optionally allow guests to add recipes; [cookbook documentation](docs/recipes.md) describes that permission.
+Apps includes all 13 ArtCraft tools, official desktop downloads and verified browser-build installation/update controls. An admin installs each browser app once; all Vault accounts can then open it. Supported browser saves and exports go directly to **App files → app name → filename**, with idle autosave, reopening and conflict protection. Upstream exceptions (including FigCraft and LightCraft) and update verification are documented in [ArtCraft setup and limitations](docs/artcraft.md). Recipe share links can optionally allow guests to add recipes; [cookbook documentation](docs/recipes.md) describes that permission.
 
 Before distributing a self-hosted installation, read the [focused security review](docs/security-review-2026-10-13.md). Share the repository, not runtime configuration, accounts, share links or storage. The review records the remaining upstream dependency advisory and its scope.

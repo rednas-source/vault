@@ -33,7 +33,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-artcraft-sharing-20261013';
+const BUILD_ID = 'vault-app-files-20261013';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -3167,6 +3167,7 @@ app.post('/api/metadata/scan',auth,async(req,res)=>{
 
 app.use('/api/recipes',require('./lib/recipe-routes')({root:ROOT,auth,config}));
 require('./lib/artcraft').mountArtcraft(app,{root:ROOT,auth,adminOnly});
+require('./lib/app-files').mountAppFiles(app,{root:ROOT,auth,canUse,note});
 
 const appStore=require('./lib/apps').createAppStore(path.join(ROOT,'.apps'));
 app.get('/api/apps',auth,(req,res)=>{try{res.json({apps:appStore.read(req.user.name)});}catch{res.status(500).json({error:'Could not load your apps.'});}});
@@ -3910,6 +3911,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 (async () => {
   loadShelves();
   if (!shelfById('assets')) { shelves.push({id:'assets',label:'Assets',exts:[]}); saveShelves(); }
+  if (!shelfById('app-files')) { shelves.push({id:'app-files',label:'App files',exts:[]}); saveShelves(); }
   loadAccounts();
   loadLog();
   loadShares();
