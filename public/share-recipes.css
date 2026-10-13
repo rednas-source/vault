@@ -13,5 +13,6 @@ body.rc-shared{margin:0;min-height:100dvh;background:var(--rc-paper);color:var(-
 .rc-shared .rc-nutrient-table{margin-top:24px}
 .rc-shared footer{border-top:1px solid var(--rc-line);margin-top:48px;padding-top:24px;color:var(--rc-muted);font-size:13px}
 .rc-shared .rc-search-empty{padding:36px 0}
+.rc-contribute-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}.rc-contribute{max-width:820px;margin:32px auto}.rc-contribute h1{font:32px var(--rc-serif)}.rc-contribute form{margin:28px 0}.rc-contribute label{display:block;margin:14px 0;font-size:14px}.rc-contribute input,.rc-contribute textarea{display:block;width:100%;margin-top:8px;padding:12px;border:1px solid var(--rc-line);border-radius:6px;background:var(--rc-white);color:var(--rc-ink);font:inherit}.rc-contribute [role=status]{margin:16px 0}
 .rc-shared input:focus-visible,.rc-shared select:focus-visible{outline:3px solid var(--rc-focus);outline-offset:3px}
 @media(max-width:600px){.rc-shared .rc-top{gap:16px}.rc-shared .rc-top-actions .rc-button{padding-inline:12px}.rc-shared .rc-top-actions .rc-button span{display:inline}.rc-shared .rc-home-head{padding-block:30px 24px}.rc-shared .rc-detail-nav{flex-wrap:wrap;gap:8px}}

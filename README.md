@@ -512,3 +512,10 @@ Subtitle appearance: the player defaults to plain white captions. The Subtitles 
 On phones and tablets up to 900px wide, Listen provides Home/Search/Your Library bottom navigation, an active-track mini player, horizontal album browsing, and touch-sized song actions. Tap the mini-player artwork or title for full-screen Now playing, with seeking, transport, likes, shuffle/repeat, volume, and queue. Close, swipe down on its header, or use browser Back to return without stopping playback. Vault tools in the compact header retains upload and authorized management actions. Desktop Listen keeps its panels and transport.
 
 - **Integrated asset inspection.** Mesh/Animate modes and a bottom icon dock keep motion controls out of mesh inspection. Exit 3D returns directly to the image. Reimporting a matching folder automatically adds missing files to the existing card. The complete Amber Road collection also includes untextured GLB derivatives and editable Blender conversions.
+
+
+### ArtCraft apps and cookbook collaboration
+
+Apps includes all 13 ArtCraft tools, official desktop downloads and verified browser-build installation/update controls. An admin installs each browser app once; all Vault accounts can then open it. See [ArtCraft setup and limitations](docs/artcraft.md). Recipe share links can optionally allow guests to add recipes; [cookbook documentation](docs/recipes.md) describes that permission.
+
+Before distributing a self-hosted installation, read the [focused security review](docs/security-review-2026-10-13.md). Share the repository, not runtime configuration, accounts, share links or storage. The review records the remaining upstream dependency advisory and its scope.

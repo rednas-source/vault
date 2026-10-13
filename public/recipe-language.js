@@ -2,6 +2,12 @@
 const RecipeLanguage=(()=>{
  let language='en';try{language=localStorage.getItem('vault-recipe-language')==='nb'?'nb':'en';}catch{}
  const pairs={
+ 'Add a recipe':'Legg til en oppskrift',
+ "Your recipe will be added to the owner's cookbook.":'Oppskriften legges til i eierens kokebok.',
+ 'Review the recipe before saving.':'Se gjennom oppskriften før du lagrer.',
+ 'Importing recipe…':'Importerer oppskrift…',
+ 'Saving recipe…':'Lagrer oppskrift…',
+
  'Edit title':'Endre tittel','Recipe title':'Oppskriftstittel','Save title':'Lagre tittel','Title saved.':'Tittelen er lagret.','Shopping list view':'Visning av handlelisten','Combined':'Samlet','By recipe':'Per oppskrift','Includes:':'Inkluderer:','Similar ingredients are added together, including different tortilla and Greek yogurt varieties.':'Like ingredienser summeres, også ulike varianter av tortillaer og gresk yoghurt.','Each recipe has its own ingredient list.':'Hver oppskrift har sin egen ingrediensliste.','tortillas':'tortillaer','Greek yogurt':'gresk yoghurt','mozzarella':'mozzarella','cheddar':'cheddar','cottage cheese':'cottage cheese',
  'Recipes':'Oppskrifter','YOUR PERSONAL COOKBOOK':'DIN PERSONLIGE KOKEBOK','SHARED FROM VAULT':'DELT FRA VAULT','A SHARED COOKBOOK':'EN DELT KOKEBOK','FROM A SHARED COOKBOOK':'FRA EN DELT KOKEBOK','FROM YOUR COOKBOOK':'FRA KOKEBOKEN DIN',
  'Share cookbook':'Del kokebok','Share whole cookbook':'Del hele kokeboken','Shopping':'Handleliste','Shopping list':'Handleliste','Add recipe':'Legg til oppskrift','Cookbook':'Kokebok','Your cookbook':'Kokeboken din','The cookbook':'Kokeboken','Share':'Del','Edit':'Rediger','Favorite':'Favoritt','Unfavorite':'Fjern favoritt','Search':'Søk','Search results':'Søkeresultater','Search your cookbook':'Søk i kokeboken','Search recipes or ingredients':'Søk etter oppskrifter eller ingredienser',

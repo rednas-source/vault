@@ -45,7 +45,7 @@ test('recipe links isolate owners and recipes, include live cookbook additions, 
     const html=await recipeSharePage(link.id);
     assert.equal(html.includes('__RECIPE_ASSETS__'),false);
     const assets=[...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(match=>match[1]);
-    assert.equal(assets.length,9);
+    assert.equal(assets.length,10);
     for(const asset of assets){
       assert.ok(asset.startsWith('/api/share/'+link.id+'/recipes/assets/'),asset);
       const response=await fetch(base+asset);
@@ -74,4 +74,24 @@ test('recipe links isolate owners and recipes, include live cookbook additions, 
   enabled=false;assert.equal((await fetch(ai)).status,410);enabled=true;
   store.remove('alice',first.id);assert.equal((await fetch(url)).status,410);assert.equal((await fetch(video)).status,410);assert.equal((await (await fetch(bookUrl)).json()).recipes.length,2);
   delete shares[book.id];assert.equal((await fetch(bookUrl)).status,410);assert.equal((await fetch(bookUrl+'/assets/recipes.css')).status,410);
+});
+
+test('guest contribution is opt-in, add-only, share-scoped and revoked with the link',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-recipe-contribute-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ const store=createRecipeStore(path.join(root,'.recipes')),input={title:'Owner recipe',servings:2,ingredients:['200 g chicken'],instructions:['Cook.']},original=store.save('alice',input);
+ const shares={readonly:{kind:'cookbook',by:'alice'},guest:{kind:'recipe',recipeId:original.id,by:'alice',allowAddRecipes:true},other:{kind:'cookbook',by:'alice',allowAddRecipes:true}};
+ const app=express();app.use(express.json());mountRecipeShares(app,{root,auth:(req,res,next)=>next(),config:{recipeAutoImages:false},getShares:()=>shares,saveShares:()=>{},resolveShare:id=>shares[id]?{share:shares[id]}:{error:'gone'},ownerActive:()=>true});
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>server.close(r)));const base='http://127.0.0.1:'+server.address().port;
+ const post=(token,route,body,headers={})=>fetch(base+'/api/share/'+token+'/recipes/contribute'+route,{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(body)});
+ assert.equal((await post('readonly','',input)).status,410);
+ assert.equal((await post('guest','',input,{Origin:'https://foreign.example'})).status,403);
+ assert.equal((await post('guest','/'+original.id+'/upload',{kind:'image'})).status,403);
+ assert.equal((await post('guest','/shopping/add',{recipeId:original.id})).status,403);
+ const added=await post('guest','',{...input,title:'Guest burrito'});assert.equal(added.status,201);const recipe=await added.json();assert.ok(shares.guest.contributions.includes(recipe.id));assert.equal(store.get('alice',original.id).title,'Owner recipe');
+ const shared=await (await fetch(base+'/api/share/guest/recipes')).json();assert.equal(shared.allowAddRecipes,true);assert.equal(shared.recipes.length,2);assert.equal(shared.recipes[1].title,'Guest burrito');
+ assert.equal((await post('other','/'+recipe.id+'/upload',{kind:'image'})).status,403);
+ const upload=await (await post('guest','/'+recipe.id+'/upload',{name:'photo.png',kind:'image',size:8})).json();assert.ok(upload.id);
+ assert.equal((await post('other','/uploads/'+upload.id+'/finish',{})).status,404);
+ const replace=await fetch(base+'/api/share/guest/recipes/contribute/'+original.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});assert.equal(replace.status,403);
+ delete shares.guest;assert.equal((await post('guest','/uploads/'+upload.id+'/finish',{})).status,410);assert.equal((await post('guest','',input)).status,410);
 });

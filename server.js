@@ -33,7 +33,7 @@ try {
 const PORT = process.env.PORT || config.port || 8420;
 // A deliberately visible deployment fingerprint. It is returned by both the
 // session and health endpoints so an operator can prove which process is live.
-const BUILD_ID = 'vault-recipes-shopping-20261013';
+const BUILD_ID = 'vault-artcraft-sharing-20261013';
 const ROOT = path.resolve(config.storagePath || path.join(__dirname, 'storage'));
 const SECRET = config.sessionSecret;
 const MAX_DAYS = config.sessionDays || 30;
@@ -1318,6 +1318,10 @@ app.use(express.urlencoded({ extended: false }));
 app.disable('x-powered-by');
 
 app.use((req, res, next) => {
+  if(!['GET','HEAD','OPTIONS'].includes(req.method)){
+    if(req.get('Sec-Fetch-Site')==='cross-site')return res.status(403).json({error:'Open Vault to make this change.'});
+    try{if(req.get('Origin')&&new URL(req.get('Origin')).host!==req.get('host'))return res.status(403).json({error:'Origin not allowed.'});}catch{return res.status(403).json({error:'Origin not allowed.'});}
+  }
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
   // These responses describe the process currently serving the request. A
@@ -3162,6 +3166,7 @@ app.post('/api/metadata/scan',auth,async(req,res)=>{
 });
 
 app.use('/api/recipes',require('./lib/recipe-routes')({root:ROOT,auth,config}));
+require('./lib/artcraft').mountArtcraft(app,{root:ROOT,auth,adminOnly});
 
 const appStore=require('./lib/apps').createAppStore(path.join(ROOT,'.apps'));
 app.get('/api/apps',auth,(req,res)=>{try{res.json({apps:appStore.read(req.user.name)});}catch{res.status(500).json({error:'Could not load your apps.'});}});
@@ -3385,7 +3390,7 @@ app.get('/api/activity', auth, adminOnly, (req, res) => {
 // ---------------------------------------------------------------- shares API
 
 const recipeShareContext=require('./lib/recipe-shares').mountRecipeShares(app,{
-  root:ROOT,auth,getShares:()=>shares,saveShares,resolveShare,note,
+  root:ROOT,auth,config,getShares:()=>shares,saveShares,resolveShare,note,
   ownerActive:name=>!!accounts[name]&&!accounts[name].disabled,
 });
 

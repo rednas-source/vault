@@ -1,4 +1,4 @@
-/* A read-only reader: every request is scoped to the share capability. */
+/* Every request is scoped to the share capability; additions require opt-in. */
 (()=>{
   const M=RecipeModel,X=RecipeExtras,L=RecipeLanguage,root=document.getElementById('sharedRecipes');
   const id=location.pathname.split('/').filter(Boolean).pop(),base='/api/share/'+encodeURIComponent(id)+'/recipes';
@@ -7,7 +7,7 @@
   const button=(action,label,style='',extra='')=>`<button type="button" class="rc-button ${style}" data-action="${action}" ${extra}>${label}</button>`;
   const media=(r,kind)=>base+'/'+encodeURIComponent(r.id)+'/media/'+kind+'?v='+encodeURIComponent(r.updated);
   const art=r=>(r.image||r.aiImage)?`<img src="${h(media(r,X.photoKind(r)))}" alt="${h(r.title)}" loading="lazy">`:`<div class="rc-art-empty" aria-label="No recipe photo">${icon('bowl-food')}</div>`;
-  let data,active=null,scale=1,meals=1,units='metric',section='recipe',source='ingredients',query='',step=null;
+  let data,active=null,scale=1,meals=1,units='metric',section='recipe',source='ingredients',query='',step=null,adding=false;
   const checked=new Set();
   function header(){return `<header class="rc-top"><div class="rc-wordmark">${icon('fork-knife')}<span>Recipes<small>SHARED FROM VAULT</small></span></div><div class="rc-top-actions">${L.control()}${button('theme',`${icon('sun')}<span>${document.documentElement.dataset.theme==='light'?'Dark':'Light'} mode</span>`)}</div></header>`;}
   function home(){
@@ -23,22 +23,25 @@
   function nutrients(r){const n=nutrition(r);return `<div class="rc-nutrition-sources">${r.sourceNutrition?button('source','Creator’s values',source==='publisher'?'selected':'','data-source="publisher"'):''}${button('source','Ingredient estimate',source==='ingredients'?'selected':'','data-source="ingredients"')}</div><h2>Nutrition per portion</h2><p class="rc-nutrition-note">${source==='publisher'?'Creator’s original serving values, adjusted to your batch.':`${n.matched} of ${n.total} ingredients matched and weighed. ${n.matched<n.total?'Totals are partial. ':''}Automatic matches are estimates.`} Values can vary with ingredients and preparation. Missing nutrients appear as —.</p><div class="rc-macros">${M.nutrients.slice(0,4).map(([key,label,unit])=>`<div><span>${label}</span><strong>${n.values[key]==null?'—':M.format(n.values[key])}<small>${unit}</small></strong></div>`).join('')}</div><section class="rc-nutrient-table"><h3>Vitamins, minerals & more</h3>${M.nutrients.slice(4).map(([key,label,unit])=>`<div><span>${label}${source==='ingredients'&&n.coverage[key]>0&&n.coverage[key]<n.total?' · partial':''}</span><b>${n.values[key]==null?'—':M.format(n.values[key])+' '+unit}</b></div>`).join('')}</section><p class="rc-muted">Ingredient data: <a href="https://www.matvaretabellen.no/en/" target="_blank" rel="noopener noreferrer">Matvaretabellen</a> and <a href="https://fdc.nal.usda.gov/" target="_blank" rel="noopener noreferrer">USDA FoodData Central</a>.</p>`;}
   function cooking(r){return `<section class="rc-cook"><div class="rc-section-heading">${button('close-cook',`${icon('arrow-left')} Recipe`,'quiet')}<span>${step+1} / ${r.instructions.length}</span></div><p class="rc-eyebrow">${h(r.title)}</p><span class="rc-cook-number">STEP ${step+1}</span><h1 tabindex="-1">${h(X.stepText(r,step,scale))}</h1>${X.stepAside(r,step,scale,units)}<details><summary>Ingredients at a glance</summary><ul>${r.ingredients.map(i=>`<li>${h(X.amount(i,scale,units))} ${h(L.text(i.name))}</li>`).join('')}</ul></details><div class="rc-cook-actions">${button('previous','Previous','',step===0?'disabled':'')}${button('next',step===r.instructions.length-1?'Finished':'Next step','primary')}</div></section>`;}
   function render(focus){
-    root.innerHTML=header()+(active?(step===null?detail(active):cooking(active)):home())+'<footer>Shared from a private Vault. Changes to portions and checkmarks stay on this page.</footer>';
+    root.innerHTML=header()+(data.allowAddRecipes?`<div class="rc-contribute-actions">${button('add','Add recipe','primary')}${data.kind==='recipe'&&data.recipes.length>1?button('home','Cookbook','quiet'):''}</div>`:'')+(adding?'<div id="contributeForm"></div>':active?(step===null?detail(active):cooking(active)):home())+'<footer>Shared from a private Vault. Changes to portions and checkmarks stay on this page.</footer>';
+    if(adding)RecipeContribute.mount(root.querySelector('#contributeForm'),base,async key=>{const res=await fetch(base,{cache:'no-store'});if(!res.ok)throw Error('Could not refresh the cookbook. Reload this page.');data=await res.json();adding=false;if(location.hash==='#'+key)navigate();else location.hash=key;},()=>{adding=false;render();});
     document.title=(active?.title||'Shared cookbook')+' · Vault';
     root.querySelectorAll('img').forEach(img=>img.onerror=()=>{img.outerHTML=`<div class="rc-art-empty">${icon('bowl-food')}<span>Photo unavailable</span></div>`;});
     L.apply(root);
     if(focus)root.querySelector(focus)?.focus({preventScroll:true});
   }
   function navigate(){
-    const recipeId=location.hash.slice(1);active=data.kind==='recipe'?data.recipes[0]:data.recipes.find(r=>r.id===recipeId)||null;
+    const recipeId=location.hash.slice(1);active=data.kind==='recipe'&&data.recipes.length===1?data.recipes[0]:data.recipes.find(r=>r.id===recipeId)||null;adding=false;
     scale=1;meals=active?.servings||1;section='recipe';source=active?.sourceNutrition?'publisher':'ingredients';step=null;checked.clear();render(active?'h1':undefined);window.scrollTo(0,0);
   }
   root.onclick=e=>{
+    if(e.target.closest('.rc-contribute'))return;
     const photo=e.target.closest('[data-photo]');if(photo){active.cover=photo.dataset.photo;render();return;}
     const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action;
+    if(action==='add'){if(!adding){adding=true;render();}return;}
     if(action==='theme'){const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;try{localStorage.setItem('vault-theme',theme);}catch{}b.innerHTML=icon('sun')+`<span>${theme==='light'?'Dark':'Light'} mode</span>`;L.apply(b);return;}
     if(action==='open'){location.hash=b.dataset.id;return;}
-    if(action==='home'){location.hash='';return;}
+    if(action==='home'){adding=false;active=null;if(location.hash)location.hash='';else render();return;}
     if(action==='section')section=b.dataset.section;
     if(action==='source')source=b.dataset.source;
     if(action==='cook')step=0;
@@ -49,8 +52,9 @@
     if(['cook','close-cook','previous','next'].includes(action))window.scrollTo(0,0);
   };
   root.onchange=e=>{
+    if(e.target.closest('.rc-contribute'))return;
     if(e.target.dataset.check){e.target.checked?checked.add(e.target.dataset.check):checked.delete(e.target.dataset.check);return;}
-    if(e.target.matches('[data-recipe-language]')){L.set(e.target.value);render();return;}
+    if(e.target.matches('[data-recipe-language]')){L.set(e.target.value);if(adding)L.apply(root);else render();return;}
     if(['shareScale','shareCustom','shareMake'].includes(e.target.id)){const next=e.target.id==='shareMake'?RecipeDetails.scaleFor(active,e.target.value):Number(e.target.value);if(next>0&&next<=1000&&next*active.servings<=1000){scale=next;meals=active.servings*scale;}render();return;}
     if(e.target.id==='shareUnits')units=e.target.value;
     if(e.target.id==='shareMeals'){const value=Number(e.target.value);if(!Number.isFinite(value)||value<=0||value>1000){e.target.value=meals;return;}meals=value;}

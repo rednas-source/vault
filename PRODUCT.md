@@ -80,7 +80,7 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 
 ## Apps and metadata scanning — September 2026
 
-- Apps is the fourth top-level section, after Listen. It extends the quiet Library visual language with a compact personal tool directory and a full-width embedded workspace. FlowForge’s existing hosted browser app is the initial entry.
+- Apps follows Recipes in the top-level navigation. It extends the quiet Library visual language with a personal tool directory, the ArtCraft collection and a full-width embedded workspace. FlowForge’s existing hosted browser app remains a personal entry.
 - Each account can add, edit and remove web apps, choose embedded or new-tab opening, and save installed Office document launch links. Browser applications and native desktop applications remain distinct; native Excel cannot run inside an iframe.
 - Watch’s local navigation exposes Scan metadata beside Search. Scans run in the background for Movies, TV Shows or both on Home, retry cached misses, and report progress and unmatched titles. Movie metadata requires a TMDB API key; administrators can configure it from the scan panel. TVmaze remains available for shows without setup.
 
@@ -141,3 +141,10 @@ Tapping the mini-player identity opens a full-screen Now playing surface with tr
 - The question-circle beside Add assets in the gallery and import form opens an inline preparation guide. A folder tree and grouped-card example explain one manifest per asset, related files, tags, outer-folder selection and source-ID matching; Download example asset.json supplies a recipe whose paths must be adapted to real files.
 
 Inspection/import follow-up: compact bottom icon tools preserve the approved dark viewing surface; Exit 3D returns to images even during loading or fullscreen. Mesh hides motion tools; Animate reveals them for animated files. Repeat prepared and ordinary folder imports automatically add missing paths to stable matching packages and preserve existing metadata. Conflicts and ambiguous matches stop without overwriting. The complete Amber Road export adds derived untextured GLBs and editable Blender conversions, preserving original media and recording honest provenance.
+
+## ArtCraft and recipe sharing — October 2026
+
+- Apps includes all 13 ArtCraft tools with official screenshots, icons, descriptions, release versions and source/licence links. Administrators install or update verified official browser builds; all accounts can open installed tools in an isolated workspace. Desktop downloads identify platform and architecture and link directly to official release packages; update metadata such as `.zsync` files is excluded. Browser storage is session-only, so users must save or export before closing. See [ArtCraft operations](docs/artcraft.md).
+- Shared links opens from the top header immediately before Activity, retaining the existing Library management view.
+- Recipe shares are read-only by default. The optional Allow guests to add recipes checkbox permits new recipes, link/text imports and photo/video attachments in the owner's cookbook. Guests cannot edit or delete existing recipes. Single-recipe links also show contributions made through that link; shopping lists remain private. Expiry, revocation and account suspension stop access and contributions.
+- Shopping keeps Combined / By recipe views and recoverable completion/removal. Norway alternatives start collapsed beside their ingredient, with expanded details below on phones. The one-time Import the 7 requested reels control is removed while imported recipes and normal import tools remain available. See [Recipes operations](docs/recipes.md).

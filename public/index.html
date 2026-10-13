@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-recipes-shopping-20261013">
+<meta name="vault-build" content="vault-artcraft-sharing-20261013">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1321,9 +1321,10 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <link rel="stylesheet" href="/listen.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/appearance.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/apps.css?v=vault-assets-variants-20261005">
+<link rel="stylesheet" href="/artcraft.css?v=artcraft-1">
 <link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/player.css?v=vault-assets-variants-20261005">
-<link rel="stylesheet" href="/recipes.css?v=vault-recipes-shopping-20261013">
+<link rel="stylesheet" href="/recipes.css?v=vault-artcraft-sharing-20261013">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1368,6 +1369,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <kbd>/</kbd>
     </label>
     <div class="head-right header-actions">
+      <button class="ghost header-icon" id="sharedLinksNav" aria-label="Shared links" title="Shared links"><i class="ph ph-link" aria-hidden="true"></i></button>
       <button class="ghost header-icon" id="btnActivity" aria-label="Activity" title="Activity" hidden><i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i></button>
       <button class="ghost header-icon" id="btnUsers" aria-label="Manage Vault" title="Manage Vault" hidden><i class="ph ph-gear-six" aria-hidden="true"></i></button>
       <button class="ghost header-icon" id="btnUpload" aria-label="Add to Vault" title="Add to Vault"><i class="ph ph-upload-simple" aria-hidden="true"></i></button>
@@ -1380,7 +1382,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <aside class="library-sidebar">
       <div class="tag">Shelves</div>
       <div class="shelves" id="shelves"></div>
-      <div class="library-utilities"><button class="shelf" id="sharedLinksNav"><i class="ph ph-link" aria-hidden="true"></i><b>Shared links</b></button></div>
+
       <div class="assets-section" id="assetsSection" hidden><button class="shelf" id="assetsNav"><i class="ph ph-cube" aria-hidden="true"></i><b>Assets</b></button></div>
       <div class="ent-side-label tag">Entertainment</div>
       <div class="entertainment-side" id="entertainment"></div>
@@ -1557,13 +1559,14 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-recipes-shopping-20261013"></script>
+<script src="/appearance.js?v=vault-artcraft-sharing-20261013"></script>
 <script src="/listen.js?v=vault-assets-variants-20261005"></script>
 <script src="/listen-mobile.js?v=vault-assets-variants-20261005"></script>
 <script src="/watch-model.js?v=vault-assets-variants-20261005"></script>
 <script src="/watch.js?v=vault-assets-variants-20261005"></script>
 <script src="/captions.js?v=vault-assets-variants-20261005"></script>
 <script src="/player.js?v=vault-assets-variants-20261005"></script>
+<script src="/artcraft.js?v=artcraft-1"></script>
 <script src="/apps.js?v=vault-assets-variants-20261005"></script>
 <script src="/document-reader.js?v=vault-assets-variants-20261005"></script>
 <script src="/library-tools.js?v=vault-assets-variants-20261005"></script>
@@ -1572,13 +1575,13 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <script src="/viewer-controls.js?v=20261005-variants"></script>
 <script src="/assets.js?v=vault-assets-variants-20261005"></script>
 <script src="/library-actions.js?v=vault-recipes-20261006"></script>
-<script src="/recipe-model.js?v=vault-recipes-shopping-20261013"></script>
-<script src="/recipe-norwegian.js?v=recipe-shopping-1"></script>
-<script src="/recipe-language.js?v=recipe-shopping-1"></script>
-<script src="/recipe-details.js?v=recipe-shopping-1"></script>
-<script src="/recipe-extras.js?v=recipe-shopping-1"></script>
+<script src="/recipe-model.js?v=vault-artcraft-sharing-20261013"></script>
+<script src="/recipe-norwegian.js?v=recipe-sharing-2"></script>
+<script src="/recipe-language.js?v=recipe-sharing-2"></script>
+<script src="/recipe-details.js?v=recipe-sharing-2"></script>
+<script src="/recipe-extras.js?v=recipe-sharing-2"></script>
 <script src="/recipe-groceries.js?v=20261013"></script>
-<script src="/recipes.js?v=vault-recipes-shopping-20261013"></script>
+<script src="/recipes.js?v=vault-artcraft-sharing-20261013"></script>
 <script>
 'use strict';
 
@@ -3105,6 +3108,7 @@ function askShare(f){
       ? `Anyone with the link can browse, upload, create subfolders, rename, and delete inside <b>${esc(f.name)}</b> without signing in.`
       : recipe?`Anyone with the link can read ${f.kind==='cookbook'?'your whole cookbook, including recipes you add later':`<b>${esc(f.name)}</b>`}, scale ingredients, and watch saved videos without signing in. They cannot change your recipes. Your shopping list stays private.`: asset?`Anyone with the link can inspect this model and download <b>${esc(f.name)}</b> with all connected files. This link is read-only.`: `Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.`}</p>
     ${folder?'<div class="rename-hint" style="margin-bottom:14px">This is edit access. Revoking the link stops every operation immediately.</div>':''}
+    ${recipe?'<label class="asset-share-upload"><input id="shRecipeAdd" type="checkbox"> Allow guests to add recipes</label><p class="rename-hint">Guests can import or write new recipes in your cookbook. Existing recipes stay read-only. Anyone holding this link has this permission.</p>':''}
     ${asset?'<label class="asset-share-upload"><input id="shAssetUpload" type="checkbox"> Allow asset submissions to External assets</label>':''}
     <div class="rename-field"><input id="shLabel" aria-label="Who is this link for? (optional)" placeholder="who is it for? (optional)" autocomplete="off"></div>
     <div class="opt-row">
@@ -3149,7 +3153,7 @@ function askShare(f){
     try {
     const r = await fetch('/api/shares', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ rel:f.rel, ...(recipe?{kind:f.kind,recipeId:f.id}:{}), ...(asset?{assetId:f.id,allowAssetUpload:$('#shAssetUpload').checked}:{}), label:$('#shLabel').value.trim(), days:days(), maxUses:uses() }),
+      body: JSON.stringify({ rel:f.rel, ...(recipe?{kind:f.kind,recipeId:f.id,allowAddRecipes:$('#shRecipeAdd').checked}:{}), ...(asset?{assetId:f.id,allowAssetUpload:$('#shAssetUpload').checked}:{}), label:$('#shLabel').value.trim(), days:days(), maxUses:uses() }),
     });
     const d = await r.json().catch(()=>({}));
     if(!r.ok) throw Error(d.error || 'Could not create the link.');

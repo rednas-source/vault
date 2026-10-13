@@ -20,7 +20,7 @@ Existing nonempty cookbooks and shopping lists are preserved. A persistent `samp
 
 ### Requested reel collection
 
-**Import the 7 requested reels** imports the collection from the October 13 request into the current account, sequentially, with visible progress. Tracking-query variants are deduplicated. Repeating the action preserves existing recipes and retries missing media. It does not populate other accounts or silently restore deleted recipes. Keep the page open during import; saved recipes survive an interruption.
+The one-time **Import the 7 requested reels** button has been removed now that this collection is imported. Existing recipes and media are preserved; normal URL and caption imports remain available.
 
 The seven recipes include title, servings, ingredients, creator-reported macros and paraphrased steps verified against the captions, local speech transcription and on-screen temperatures. The repeated chicken fajita link appears once. Media is downloaded at import time into private storage, not committed to Git. These seven verified methods are included in `lib/recipe-reel-collection.js`; arbitrary future reels still need manual step review when their captions omit the method. There is no automatic video understanding service configured on the production server. Missing steps may be saved as a draft so the attached video can be watched and the method added in Edit.
 
@@ -72,11 +72,13 @@ Food illustrations accompany common ingredients. **Alternatives for Norway** sug
 
 ## Sharing
 
-Use **Share cookbook** above the recipe grid to share the whole cookbook, or **Share** on a recipe to share only that dish. Both use Vault’s existing share links with an optional label, expiry (one week by default), copy action and revocation from **Shared links**. These read-only links have unlimited visits until they expire or are revoked, like asset links.
+Use **Share cookbook** above the recipe grid to share the whole cookbook, or **Share** on a recipe to share only that dish. Both use Vault’s existing share links with an optional label, expiry (one week by default), copy action and revocation from **Shared links**. These links have unlimited visits until they expire or are revoked, like asset links.
 
-A cookbook link is a live view: it includes future additions and updates. A recipe link includes only its chosen recipe; deleting that recipe makes the link unavailable. Recipients can search a shared cookbook, adjust batch size, portions and units, follow cooking steps, view nutrition and play saved videos. Their changes do not write to the owner’s recipes. Shopping lists, favourites and account details remain private. Shared pages follow the recipient browser’s Vault light/dark preference and offer a theme switch.
+A cookbook link is a live view: it includes future additions and updates. A recipe link initially includes only its chosen recipe; deleting that recipe makes the link unavailable. Recipients can search a shared cookbook, adjust batch size, portions and units, follow cooking steps, view nutrition and play saved videos. Their changes do not write to the owner’s recipes. Shopping lists, favourites and account details remain private. Shared pages follow the recipient browser’s Vault light/dark preference and offer a theme switch.
 
 Every public recipe, reader asset and media request rechecks the share and owner’s active account. Links stop serving content on expiry, revocation or account suspension. Photos and videos retain byte-range playback. The reader’s scripts, styles and icon fonts are served from an explicit allowlist under `/api/share/:id/recipes/assets/`, so cookbook and single-recipe links work with the existing Cloudflare Access exceptions for `/s` and `/api/share`. No exception for the main application’s static files is needed. Cloudflare Access still applies unless those share-route exceptions are configured.
+
+The optional **Allow guests to add recipes** checkbox enables the same link to accept new recipes, text/link imports and photo/video attachments. Additions enter the owner's cookbook; a single-recipe link also shows recipes contributed through that link. Guests cannot edit or delete existing recipes or access other private recipes. This permission is off by default. Expiry, revocation and account suspension stop both reading and additions; per-owner contribution limits constrain import and generation costs. Shared links are managed from the top header, immediately before Activity.
 
 ## Sharing verification
 
@@ -84,4 +86,4 @@ Every public recipe, reader asset and media request rechecks the share and owner
 
 ## Verification and deployment
 
-Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, caption comparison blocks, public Instagram media parsing, URL rejection, account isolation, grouped shopping, clear-all/undo across restart, uploads and byte-range playback, plus one-time samples and private photos. Live retrieval of the seven requested reels was also tested in a local authenticated Vault account. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-recipes-shopping-20261013`.
+Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, caption comparison blocks, public Instagram media parsing, URL rejection, account isolation, grouped shopping, clear-all/undo across restart, uploads and byte-range playback, plus one-time samples and private photos. Live retrieval of the seven requested reels was also tested in a local authenticated Vault account. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-artcraft-sharing-20261013`.

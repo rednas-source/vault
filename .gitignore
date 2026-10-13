@@ -1,13 +1,28 @@
 # Secrets — never commit these
 config.json
 users.json
+shares.json
+shelves.json
+progress.json
+*.json.tmp
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
 
 # Runtime
 node_modules/
 storage/
+.artcraft/
+.recipes/
 *.log
 scripts/__pycache__/
 .venv/
+.tmp-*/
+__pycache__/
 
 # Local library verification fixtures and screenshots
 .qa/

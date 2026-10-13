@@ -57,6 +57,11 @@ async function main() {
   }
   assert(Date.now() < deadline, `Test server did not start:\n${logs.join('')}`);
 
+  for(const origin of ['https://foreign.example','null']){
+    const blocked=await fetch(`${base}/api/login`,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:'{}'});
+    assert(blocked.status===403,'Cross-origin browser mutation was accepted');
+  }
+
   const login = await fetch(`${base}/api/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: 'tester', pass: 'correct-horse-battery-staple' }),

@@ -1,8 +1,43 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-24T14:26:24.904860Z",
+  "generatedAt": "2026-10-13T12:37:43Z",
   "title": "Design System: Vault \u2014 Library, Watch, Listen, and Apps",
   "extensions": {
+    "artcraftAndRecipeSharing": {
+      "updatedAt": "2026-10-13",
+      "authority": "Precise user-requested extension of Vault's established Operate surface. Official screenshots and icons are intentional. Preserve current typography, themes and navigation; no new visual world or approved composition is claimed.",
+      "sources": [
+        "public/artcraft.js",
+        "public/artcraft.css",
+        "public/apps.js",
+        "public/index.html",
+        "public/recipes.css",
+        "public/recipe-contribute.js",
+        "public/share-recipes.js",
+        "docs/artcraft.md",
+        "docs/recipes.md"
+      ],
+      "artcraft": {
+        "content": "13 official screenshot/icon cards precede Your other apps. Purpose, latest and installed versions, browser action, desktop downloads and Source & licences remain visible.",
+        "layout": "Apps max-width 1600px. Four grid columns; three at <=1250px, two at <=950px, one at <=600px. One-pixel shared dividers; raised theme surfaces. Screenshots 16:10, 16:8 on phones. Icons 52px with 12px corners. Copy padding 22px, 18px at <=1250px, returning to 22px at <=600px.",
+        "typography": "Existing sans family; card title 22px or 20px at <=1250px, description 14px/1.65, category/actions 12px, tabular versions 11px. Dark-theme titles use app identity colors; light-theme titles use existing primary text. No global token change.",
+        "states": "Admin Install browser app, Preparing, Check for updates and Update browser; installed tools offer Open in Vault to all accounts. Installation hints and inline errors remain explicit. Managed workspace reminds users to save/export because recovery storage is session-only.",
+        "downloads": "Bounded disclosure lists official desktop package links with platform/architecture and size, plus Release notes & checksums. Web/CLI bundles and update metadata such as .zsync are excluded. Menu aligns left on phones. Existing accent focus outline remains visible."
+      },
+      "sharing": "Shared links moved from the sidebar to the header immediately before Activity. Existing Library management view remains. Allow guests to add recipes is an unchecked opt-in in share creation. Enabled recipients can add/import new recipes and attach photos/videos to the owner's cookbook; they cannot edit/delete existing recipes. Contribution forms reuse recipe theme/type and show inline status and Cancel. Single-recipe shares also show contributions from that link. Default reader stays read-only; shopping stays private.",
+      "shopping": "Alternatives for Norway start collapsed at the right of consistently sized ingredient rows. Rows without alternatives use the full width. At <=600px, expanded details span the row below the ingredient. Combined / By recipe behavior and original ingredients remain unchanged. The one-time Import the 7 requested reels action is removed; normal imports remain.",
+      "evidence": [
+        ".impeccable/review/desktop.png",
+        ".impeccable/review/mobile.png",
+        ".impeccable/review/shopping-desktop.png",
+        ".impeccable/review/shopping-mobile.png",
+        ".impeccable/review/guest-recipe.png"
+      ],
+      "review": {
+        "disposition": "SHIP",
+        "scope": "Final file-and-capture review of the two scored fixes: usable desktop downloads exclude updater metadata, including .zsync, and PRODUCT/DESIGN persistence is corrected. Reviewer confirmed valid desktop/mobile captures and observed no regressions from these fixes. This limited verdict is not an independent functional test, physical-device validation or review of unrelated surfaces."
+      }
+    },
     "assets": {
       "scope": "Library asset packages; preserves the incumbent Vault world and global tokens.",
       "surfaceBrief": ".impeccable/assets-surface.md",
