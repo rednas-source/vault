@@ -39,6 +39,53 @@ test('USDA mapping uses nutrient IDs, energy fallback, and leaves unreported vit
   const f=Model.fromUSDA({fdcId:1,description:'Example',foodNutrients:[{nutrientId:2048,value:120},{nutrientId:1003,value:12},{nutrientId:1106,value:30}]});
   assert.equal(f.nutrients.calories,120);assert.equal(f.nutrients.protein,12);assert.equal(f.nutrients.vitaminA,30);assert.equal(f.nutrients.vitaminD,undefined);
 });
+
+test('shopping combines compatible units while preserving variants, unknown quantities and recipe provenance',()=>{
+  const item=(id,name,quantity,unit,done=false)=>({id,name,quantity,unit,done,recipeTitle:id});
+  const list=[item('a','milk',2,'dl'),item('b','Milk',400,'ml'),item('c','skimmed milk',1,'dl'),item('d','milk',100,'g'),item('e','milk',1,'dl',true),item('f','salt to taste',null,''),item('g','salt to taste',null,'')];
+  const groups=Model.shoppingGroups(list);assert.equal(groups.length,5);assert.equal(groups[4].quantity,null);assert.deepEqual(groups[4].ids,['f','g']);
+  assert.equal(groups[0].quantity,6);assert.deepEqual(groups[0].ids,['a','b']);assert.deepEqual(groups[0].recipes,['a','b']);
+  assert.equal(Model.parseIngredient('375g (3 cups) all-purpose flour').name,'all-purpose flour');
+});
+
+test('creator totals remain available when ingredient estimates are partial',()=>{
+  const r={servings:2,sourceNutrition:{protein:40},ingredients:[{name:'chicken',quantity:100,unit:'g',food:{nutrients:{protein:20}}},{name:'tortilla',quantity:2,unit:'piece'}]};
+  assert.equal(Model.nutrition(r,1,2).values.protein,40);
+  assert.equal(Model.nutrition(r,1,2,'ingredients').values.protein,10);
+  assert.equal(Model.nutrition(r,2,4,'publisher').values.protein,40);
+});
+
+test('caption macro extraction stops before unrelated food comparisons and handles Unicode line breaks',()=>{
+  const draft=parseText('Mini Steak Burritos\u2028Per burrito (Makes 16)\u2028230 cals\u202825g Protein\u20285g Carbs\u202812g Fat\u2028Protein bar comparison\u2028200 cals\u202820g Protein\u2028Ingredients:\u2028900g (32oz) steak\u2028Instructions:\u20281. Sear the steak.');
+  assert.equal(draft.title,'Mini Steak Burritos');assert.equal(draft.servings,16);assert.equal(draft.sourceNutrition.protein,25);assert.equal(draft.sourceNutrition.calories,230);assert.equal(draft.ingredients.length,1);assert.deepEqual(draft.instructions,['Sear the steak.']);
+});
+
+test('Instagram parser selects the requested public media and canonicalizes duplicate links',()=>{
+  const {shortcode,parseMedia}=require('../lib/recipe-instagram');
+  assert.equal(shortcode('https://www.instagram.com/reel/DMGVunyJSpv/?srtk=abc'),'DMGVunyJSpv');
+  for(const url of ['https://instagram.com.evil.test/reel/DMGVunyJSpv/','http://instagram.com/reel/DMGVunyJSpv/','https://user@instagram.com/reel/DMGVunyJSpv/'])assert.equal(shortcode(url),null);
+  const media={code:'DMGVunyJSpv',video_versions:[{url:'https://cdn.example/video.mp4'}],caption:{text:'Chicken'},image_versions2:{candidates:[{url:'https://cdn.example/cover.jpg'}]}};
+  const result=parseMedia('<script type="application/json">'+JSON.stringify({data:{if_not_gated_logged_out:media}})+'</script>','DMGVunyJSpv');
+  assert.equal(result.caption,'Chicken');assert.throws(()=>parseMedia('<html>Login</html>','DMGVunyJSpv'),/publicly/);
+  const collection=require('../lib/recipe-reel-collection');assert.equal(collection.length,7);assert.equal(new Set(collection.map(r=>r.code)).size,7);assert(collection.every(r=>r.ingredients.length>8&&r.instructions.length>=6));
+});
+
+test('Norwegian nutrition mapping preserves missing values and avoids cooked/raw and brand substitutions',()=>{
+  const N=require('../lib/recipe-nutrition');const food=N.fromNorway({foodId:'x',foodName:'Example',calories:{quantity:50},constituents:[{nutrientId:'Protein',quantity:0},{nutrientId:'Vit C'},{nutrientId:'Folat',quantity:20}]});
+  assert.equal(food.nutrients.protein,0);assert.equal(food.nutrients.vitaminC,undefined);assert.equal(food.nutrients.folate,undefined);
+  const foods=require('../lib/recipe-foods.json').foods;assert.equal(N.findAutomatic({name:'chicken breast'},foods).id,'03.205');assert.equal(N.findAutomatic({name:'fried chicken breast'},foods),null);assert.equal(N.findAutomatic({name:'fat-free cheddar'},foods),null);
+  const combined=[...foods,...require('../lib/recipe-foods-usda.json').foods];assert.equal(N.findAutomatic({name:'fat-free cheddar'},combined).id,'171295');assert.equal(N.findAutomatic({name:'fat-free Greek yogurt'},combined).id,'330137');assert.equal(N.findAutomatic({name:'2% cottage cheese'},combined).id,'328841');assert.equal(N.findAutomatic({name:'Brand X nonfat yogurt'},combined),null);
+});
+
+test('group check and clear-all undo are atomic, account-isolated and persist across restart',async t=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-shopping-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const store=createRecipeStore(root);
+  const r=store.save('alice',recipe());const items=store.addShopping('alice',r.id,1);store.addShopping('alice',r.id,1);const group=Model.shoppingGroups(store.read('alice').shopping)[0];
+  assert.throws(()=>store.checkShoppingGroup('alice',[group.ids[0],'missing'],true),/changed/);assert(store.read('alice').shopping.every(i=>!i.done));
+  store.checkShoppingGroup('alice',group.ids,true);assert.equal(store.read('alice').shopping.filter(i=>i.done).length,2);
+  store.clearShopping('alice',true);assert.equal(store.read('alice').shopping.length,0);assert.equal(store.restoreShopping('bob').length,0);
+  const restarted=createRecipeStore(root);assert.equal(restarted.restoreShopping('alice').length,4);assert.equal(restarted.restoreShopping('alice').length,4);
+  restarted.clearShopping('alice');assert.equal(restarted.read('alice').shopping.length,2);assert.equal(restarted.restoreShopping('alice').length,4);
+});
 test('imports nested Recipe JSON-LD and numbered captions without executing page content',()=>{
   const html=`<script type="application/ld+json">${JSON.stringify({'@graph':[{'@type':'Recipe',name:'Fish & rice',recipeYield:'7 servings',image:[{url:'/cover.jpg'}],recipeIngredient:['700 g fish','2 cups rice'],recipeInstructions:[{'@type':'HowToSection',name:'Prep',itemListElement:[{'@type':'HowToStep',text:'<b>Rinse</b> rice.'}]},{text:'Bake fish.'}],nutrition:{calories:'300 calories',proteinContent:'20 g'}}]})}</script>`;
   const result=parseHTML(html,'https://example.org/recipe');assert.equal(result.draft.servings,7);assert.deepEqual(result.draft.instructions,['Rinse rice.','Bake fish.']);assert.equal(result.draft.imageUrl,'https://example.org/cover.jpg');assert.equal(result.draft.sourceNutrition.calories,300);

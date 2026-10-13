@@ -8,6 +8,7 @@
   function number(text){return String(text).trim().split(/\s+/).reduce((sum,part)=>{const bits=part.split('/').map(Number);return sum+(bits.length===2?bits[0]/bits[1]:bits[0]);},0);}
   function parseIngredient(raw){
     let text=String(raw||'').trim().replace(/^[•*\-]\s*/,'');
+    const juice=text.match(/^juice of (\d+) (limes?|lemons?)$/i);if(juice)return {name:juice[2].toLowerCase().replace(/s$/,'')+' (juice)',quantity:Number(juice[1]),unit:'piece',original:String(raw)};
     text=text.replace(/(\d)([½¼¾⅓⅔⅛⅜⅝⅞])/g,'$1 $2').replace(/[½¼¾⅓⅔⅛⅜⅝⅞]/g,m=>fractions[m]);
     const match=text.match(/^(\d+(?:[.,]\d+)?(?:\s+\d+\/\d+|\/\d+)?)\s*/);
     if(!match)return {name:text,quantity:null,unit:'',original:String(raw||'')};
@@ -18,7 +19,7 @@
     const candidate=found?found[1].toLowerCase().replace(/\./g,'').replace(/\s+/g,' '):'';
     const unit=aliases[candidate]||candidate;
     if(found&&(units[unit]||unit==='piece'))rest=rest.slice(found[0].length);else return {name:rest,quantity,unit:'piece',original:String(raw||'')};
-    return {name:rest.replace(/^of\s+/i,''),quantity,unit,original:String(raw||'')};
+    return {name:rest.replace(/^\([^)]*\)\s*/,'').replace(/^of\s+/i,''),quantity,unit,original:String(raw||'')};
   }
   function convert(value,from,to,density){
     if(from===to)return value;if(!units[from]||!units[to]||!Number.isFinite(value))return null;
@@ -38,7 +39,7 @@
     return `${format(q*scale)}${u&&u!=='piece'?' '+u:''}`;
   }
   function grams(i){if(i.grams!=null&&Number.isFinite(i.grams)&&i.grams>=0)return i.grams;if(i.quantity==null)return null;return convert(i.quantity,i.unit,'g',i.density);}
-  function nutrition(recipe,scale=1,portions=1){
+  function nutrition(recipe,scale=1,portions=1,preference='auto'){
     const ingredients=recipe.ingredients||[],matched=ingredients.filter(i=>i.food&&grams(i)!==null);
     const values={},coverage={};
     for(const [key] of nutrients){
@@ -46,7 +47,7 @@
       values[key]=known.length?known.reduce((n,i)=>n+i.food.nutrients[key]*grams(i)/100,0)*scale/portions:null;
     }
     let source='ingredients';
-    if(!matched.length&&recipe.sourceNutrition){source='publisher';for(const [key] of nutrients){const n=recipe.sourceNutrition[key];values[key]=Number.isFinite(n)?n*(recipe.servings||1)*scale/portions:null;}}
+    if(preference!=='ingredients'&&recipe.sourceNutrition&&(preference==='publisher'||matched.length<ingredients.length||!matched.length)){source='publisher';for(const [key] of nutrients){const n=recipe.sourceNutrition[key];values[key]=Number.isFinite(n)?n*(recipe.servings||1)*scale/portions:null;}}
     return {values,coverage,matched:matched.length,total:ingredients.length,source};
   }
   function fromUSDA(food){
@@ -54,5 +55,18 @@
     if(values.calories==null){for(const id of [2048,2047]){const n=(food.foodNutrients||[]).find(n=>(n.nutrient?.id||n.nutrientId)===id);if(Number.isFinite(n?.amount??n?.value)){values.calories=n.amount??n.value;break;}}}
     return {id:String(food.fdcId),name:food.description,source:'USDA FoodData Central',nutrients:values};
   }
-  return {units,nutrients,parseIngredient,convert,format,amount,grams,nutrition,fromUSDA};
+  function shoppingKey(i){
+    const names={milk:'milk',melk:'milk','bell peppers':'bell pepper',onions:'onion',eggs:'egg',tortillas:'tortilla'};
+    const name=String(i.name).normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' ');
+    // Keep fat content, preparation and optional modifiers; only exact aliases merge.
+    const dimension=i.quantity==null?'unknown':units[i.unit]?.[0]||i.unit||'piece';
+    return [names[name]||name,dimension,!!i.done].join('|');
+  }
+  function shoppingGroups(items){
+    const groups=new Map();
+    for(const i of items){const key=shoppingKey(i),group=groups.get(key);if(!group){groups.set(key,{...i,ids:[i.id],recipes:[i.recipeTitle]});continue;}
+      const value=i.quantity==null?0:convert(i.quantity,i.unit,group.unit);if(value===null){groups.set(key+'|'+i.id,{...i,ids:[i.id],recipes:[i.recipeTitle]});continue;}if(group.quantity!==null)group.quantity+=value;group.ids.push(i.id);if(!group.recipes.includes(i.recipeTitle))group.recipes.push(i.recipeTitle);
+    }return [...groups.values()];
+  }
+  return {units,nutrients,parseIngredient,convert,format,amount,grams,nutrition,fromUSDA,shoppingGroups};
 });

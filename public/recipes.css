@@ -78,3 +78,20 @@ body.recipes-mode #scroll{flex:1;overflow:auto;padding:0;scroll-behavior:smooth;
 .rc-app{caret-color:var(--rc-green);accent-color:var(--rc-green)}
 .rc-app ::selection{background:var(--rc-green);color:var(--rc-on-green)}
 .rc-cookbook-search:focus-within{outline:2px solid var(--rc-focus);outline-offset:3px}
+/* Recipe summaries and combined shopping rows share the cookbook palette. */
+.rc-macro-summary{margin:20px 0;padding:16px 0;border-block:1px solid var(--rc-line)}
+.rc-macro-summary>small{display:block;font-size:10px;letter-spacing:.06em;color:var(--rc-muted);margin-bottom:12px}
+.rc-macro-summary>div{display:flex;gap:32px}.rc-macro-summary span{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--rc-muted)}
+.rc-macro-summary b{font-size:23px;color:var(--rc-ink);font-weight:600;font-variant-numeric:tabular-nums}
+.rc-nutrition-sources{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.rc-nutrition-sources .selected{background:var(--rc-green);color:var(--rc-on-green);border-color:var(--rc-green)}
+.rc-grocery-row{border-bottom:1px solid var(--rc-line);padding:16px 0}
+.rc-grocery-row>button{display:flex;align-items:center;gap:18px;text-align:left;width:100%;border:0;background:transparent;color:var(--rc-ink);padding:6px 0;cursor:pointer;min-height:64px}
+.rc-grocery-image{width:56px;height:56px;object-fit:contain;flex:0 0 56px;background:#f8f5e9;border-radius:8px;padding:5px}
+.rc-grocery-fallback{display:grid;place-items:center;color:#354b2d;font-size:28px}
+.rc-grocery-copy{min-width:0}.rc-grocery-copy strong{display:block;font-size:19px;line-height:1.4;font-weight:500;overflow-wrap:anywhere}
+.rc-grocery-copy small{display:block;color:var(--rc-muted);font-size:12px;line-height:1.6;margin-top:4px}
+.rc-alternative{margin:6px 0 4px 112px;font-size:13px;color:var(--rc-muted);line-height:1.6}
+.rc-alternative summary{cursor:pointer;color:var(--rc-green);padding:8px 0;min-height:38px}.rc-alternative p{margin:4px 0 8px}.rc-alternative small{display:block;font-size:11px}
+.rc-quick-import>.rc-button{margin-top:16px}
+@media(max-width:600px){.rc-grocery-row>button{gap:10px}.rc-grocery-image{width:48px;height:48px;flex-basis:48px}.rc-grocery-copy strong{font-size:16px}.rc-grocery-copy small{font-size:11px}.rc-alternative{margin-left:0;padding-left:0}.rc-shopping .rc-detail-nav{flex-wrap:wrap;gap:8px}.rc-macro-summary>div{gap:28px}}
