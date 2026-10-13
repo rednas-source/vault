@@ -10,7 +10,7 @@ The [ArtCraft Launcher](https://github.com/storytold/craft-launcher) maintains n
 
 ## Browser isolation and limitations
 
-Downloaded web builds run inside an opaque-origin sandbox. They cannot access Vault's DOM, cookies, local storage, or private API responses. The file-serving response enforces the sandbox even in another tab. Launch URLs grant access only to an installed public application bundle, expire after 24 hours, and disappear on server restart. They contain no user files.
+Downloaded web builds run inside an opaque-origin sandbox. They cannot access Vault's DOM, cookies, local storage, or private API responses. The file-serving response enforces the sandbox even in another tab. Launch URLs grant access only to an installed public application bundle, expire after 24 hours, and disappear on server restart. They contain no user files. Bundle requests use `/api/share/artcraft/:token/` so they work with the existing `/api/share` Cloudflare Access exception; account-only catalog, installation and launch controls remain under `/api/artcraft`. No broader Cloudflare exception is needed.
 
 Vault disables upstream service-worker startup and provides a small module-worker entry shim so EffectCraft can start inside the sandbox. Verified release files remain unchanged on disk; the shim is inserted when HTML is served. The content policy limits script and network requests to that launch's bundle.
 

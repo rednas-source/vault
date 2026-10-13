@@ -30,13 +30,13 @@ test('ArtCraft endpoints require an account and admin writes reject cross-site r
  assert.equal((await fetch(base+'/api/artcraft')).status,401);
  assert.equal((await fetch(base+'/api/artcraft/photocraft/install',{method:'POST',headers:{Authorization:'member'}})).status,403);
  assert.equal((await fetch(base+'/api/artcraft/check',{method:'POST',headers:{Authorization:'admin',Origin:'null'}})).status,403);
- assert.equal((await fetch(base+'/api/artcraft/run/invalid/index.html')).status,410);
+ assert.equal((await fetch(base+'/api/share/artcraft/invalid/index.html')).status,410);
  const launch=await(await fetch(base+'/api/artcraft/photocraft/launch',{method:'POST',headers:{Authorization:'member'}})).json();
  const page=await fetch(base+launch.url),csp=page.headers.get('content-security-policy');assert.equal(page.status,200);assert.ok(csp.includes('sandbox allow-scripts allow-downloads allow-modals'));assert.ok(!csp.includes('allow-same-origin'));assert.ok(csp.includes('connect-src '+base+launch.url.split('?')[0]));assert.equal(page.headers.get('access-control-allow-origin'),'*');assert.match(await page.text(),/NativeWorker/);
 });
 
 test('opaque-origin module worker shim imports only its own bundle and leaves other workers to native policy',()=>{
- const vm=require('node:vm'),{browserBootstrap}=require('../lib/artcraft');const calls=[],blobs=[],base='https://vault.test/api/artcraft/run/token/';
+ const vm=require('node:vm'),{browserBootstrap}=require('../lib/artcraft');const calls=[],blobs=[],base='https://vault.test/api/share/artcraft/token/';
  class NativeWorker{constructor(url,options){calls.push({url,options});}addEventListener(){}}
  class FakeURL extends URL{static createObjectURL(blob){blobs.push(blob);return 'blob:worker';}static revokeObjectURL(){}}
  const context={window:{Worker:NativeWorker},URL:FakeURL,Blob:class{constructor(parts){this.parts=parts;}},location:{href:base+'?nosw=1'},setTimeout(){}};
