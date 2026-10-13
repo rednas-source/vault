@@ -2,6 +2,14 @@
 
 Open **Recipes** in the top navigation. Each Vault account has its own cookbook and shopping list. Data is stored in `<storagePath>/.recipes`, including locally saved photos and videos; include this directory in backups.
 
+## Appearance and sample recipes
+
+Recipes follows Vault's **Appearance → Light / Dark** setting immediately, including the cookbook, ingredients, nutrition, editor, cooking view and shopping list. The cream-and-green light palette is preserved; dark mode uses warm charcoal and sage. The preference remains Vault's browser-wide `vault-theme` setting, with no separate recipe toggle.
+
+On the first cookbook load after this update, an empty cookbook receives three editable test recipes: tomato & basil pasta, blueberry & almond porridge, and fluffy weekend pancakes. Each includes a bundled local cover photo, ingredients, servings and cooking steps. Nutrition is left unreported. The descriptions identify these as samples and their photos as serving suggestions.
+
+Existing nonempty cookbooks and shopping lists are preserved. A persistent `samplesInitialized` flag in the account's `recipes.json` prevents duplicates and prevents deleted samples from returning after refresh or restart. Delete any sample through **Edit → Delete recipe**. Photos are copied into the account's normal media directory and use the same authenticated media and deletion routes as user uploads. No external network request is needed to initialize or display the samples.
+
 ## Import and cook
 
 1. Paste a recipe URL into **Found something good?**, or choose **Add recipe**.
@@ -32,4 +40,4 @@ The built-in USDA demonstration key allows initial testing but has low limits: 3
 
 ## Verification and deployment
 
-Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, structured/caption imports, local-network URL rejection, per-account persistence, shopping undo, authenticated uploads and byte-range playback. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-recipes-20261006`.
+Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, structured/caption imports, local-network URL rejection, per-account persistence, shopping undo, authenticated uploads and byte-range playback, plus one-time samples, deletion across restarts and private sample photos. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-recipes-theme-20261013`.

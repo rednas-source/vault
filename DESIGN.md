@@ -729,3 +729,5 @@ Watch enriches show artwork and metadata automatically, with a TVmaze source lin
 
 
 Asset inspection controls (2026-09-28): preserve the dark model surface and compact icon tools; image view has only its thumbnail picker and bottom-right expand/fullscreen. No height controls, native select chrome or visible native range chrome. Custom menus, loop switch and accessible scrubber are shared by private and public viewers. External submission pages use the same Vault type, spacing and buttons, with clear grouped-package intake and status.
+
+Recipe themes (2026-10-13): Recipes follows the existing html data-theme immediately. Scoped --rc-* tokens preserve the cream/forest light palette and supply dark charcoal (#171c18), raised green-charcoal (#202721, #242e23), ivory text (#edf0e5), muted sage (#b0baa9) and sage accents (#aacb99). Cards, forms, nutrition, cooking, shopping, notices, selection, focus and scrollbars use these tokens. Header appearance, typography and layouts remain the incumbent design. Empty cookbooks receive three clearly described, editable sample recipes once, with bundled local photos; deleted samples stay deleted.

@@ -58,6 +58,56 @@ test('private persistence preserves recipe IDs, isolates users and retains compl
   assert.throws(()=>store.save('bob',recipe(),saved.id),/not found/);assert.throws(()=>normalize({...recipe(),servings:0}),/Servings/);
   assert.equal(normalize({...recipe(),sourceUrl:'javascript:alert(1)',imageUrl:'data:text/html,test'}).imageUrl,'');
 });
+
+test('sample cookbooks initialize once, preserve existing data, and stay deleted after restart',async t=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-recipe-samples-'));
+  t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  const store=createRecipeStore(root),first=store.initializeSamples('alice');
+  assert.equal(first.recipes.length,3);
+  assert.deepEqual(store.initializeSamples('alice'),first);
+  for(const recipe of first.recipes){
+    assert(recipe.ingredients.length>=8);assert(recipe.instructions.length>=4);
+    assert.equal(recipe.sourceNutrition,null);
+    const photo=await fs.readFile(path.join(store.directory('alice'),'media',recipe.image.file));
+    assert.equal(photo.readUInt16BE(0),0xffd8);
+  }
+  const saved=store.save('bob',recipe());
+  const shopping=store.addShopping('bob',saved.id,2);
+  const existing=store.initializeSamples('bob');
+  assert.deepEqual(existing.recipes,[saved]);assert.deepEqual(existing.shopping,shopping);
+  store.save('alice',{...first.recipes[0],title:'My edited recipe'},first.recipes[0].id);
+  assert.equal(store.initializeSamples('alice').recipes[0].title,'My edited recipe');
+  for(const r of first.recipes)store.remove('alice',r.id);
+  store.remove('bob',saved.id);
+  const restarted=createRecipeStore(root);
+  assert.deepEqual(restarted.initializeSamples('alice').recipes,[]);
+  assert.deepEqual(restarted.initializeSamples('bob').recipes,[]);
+  assert.deepEqual(restarted.read('bob').shopping,shopping);
+  assert.equal(restarted.initializeSamples('carol').recipes.length,3);
+});
+
+test('sample photos use authenticated recipe media and are independent between accounts',async t=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-samples-api-'));
+  const app=express();app.use(express.json());
+  app.use('/api/recipes',routes({root,config:{},auth(req,res,next){
+    if(!req.get('X-Test-User'))return res.sendStatus(401);
+    req.user={name:req.get('X-Test-User')};next();
+  }}));
+  const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
+  t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await fs.rm(root,{recursive:true,force:true});});
+  const base=`http://127.0.0.1:${server.address().port}/api/recipes`;
+  assert.equal((await fetch(base)).status,401);
+  const call=(p='',user='alice',method='GET')=>fetch(base+p,{method,headers:{'X-Test-User':user}});
+  const first=await(await call()).json(),r=first.recipes[0];
+  assert.equal(first.recipes.length,3);
+  const image=await call('/'+r.id+'/media/image');assert.equal(image.status,200);assert.equal(image.headers.get('content-type'),'image/jpeg');
+  assert.equal((await call('/'+r.id+'/media/image','bob')).status,404);
+  const bob=await(await call('','bob')).json();assert.notEqual(bob.recipes[0].id,r.id);
+  assert.equal((await call('/'+r.id,'alice','DELETE')).status,200);
+  assert.equal((await call('/'+r.id+'/media/image')).status,404);
+  assert.equal((await call('/'+bob.recipes[0].id+'/media/image','bob')).status,200);
+  assert.equal((await(await call()).json()).recipes.length,2);
+});
 test('authenticated routes support CRUD, caption import, shopping, chunk retry and byte-range media with ownership checks',async t=>{
   const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-recipe-api-'));const app=express();app.use(express.json({limit:'256kb'}));
   app.use('/api/recipes',routes({root,config:{},auth(req,res,next){if(!req.get('X-Test-User'))return res.status(401).json({error:'Not signed in'});req.user={name:req.get('X-Test-User')};next();}}));
