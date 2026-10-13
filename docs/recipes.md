@@ -60,7 +60,11 @@ The built-in USDA demonstration key allows initial testing but has low limits: 3
 
 ## Shopping
 
-**Add to shopping** copies the currently scaled batch ingredients. Matching names and compatible units combine in the display: 2 dl milk plus 400 ml milk becomes 6 dl milk. Underlying recipe and batch records remain traceable. Fat-content variants, different preparations and incompatible mass/volume measurements stay separate; no density is guessed. Repeated unmeasured items are grouped without inventing a quantity.
+**Add to shopping** copies the currently scaled batch ingredients. The **Combined / By recipe** switch remembers the selected view in this browser. Combined sums compatible quantities across recipes, including tortilla variants (16 burrito-size + 12 low-carb = 28 tortillas), plain Greek yoghurt with different fat percentages (250 g + 0.2 kg = 450 g), and recognised mozzarella, cheddar and cottage-cheese variants. Contributing recipes and original variants remain visible. Other ingredients use exact names and known aliases; unrelated foods such as tortilla chips and flavoured yoghurt are kept separate. Mass and volume are not combined without a reliable conversion. Repeated unmeasured items are grouped without inventing a quantity.
+
+**By recipe** shows each recipe heading followed by its original ingredient variants. Repeated batches of the same recipe add together. Switching views does not change saved items, checkmarks, recipe ingredients or nutrition. Checking a combined row checks all its contributing items; undo and clear-all work across both views.
+
+Use **Edit title** immediately below a recipe heading to rename it without opening the full editor. It starts with the currently displayed title; the saved custom name is used in the cookbook, shared recipe and shopping headings. The full **Edit** form also retains its recipe-name field. Bundled Norwegian titles use readable phrases such as “Fajita-burritoer med kylling og ost”.
 
 Tap a grouped item to move all its contributing entries into the basket. **Undo** restores that group. **Clear completed items** removes only checked entries. **Remove all items** clears the entire list after an inline confirmation; **Undo removal** restores the last removed set, including after a refresh or restart. Restoring never duplicates entries added since the clear.
 
@@ -80,4 +84,4 @@ Every public recipe and media request rechecks the share and owner’s active ac
 
 ## Verification and deployment
 
-Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, caption comparison blocks, public Instagram media parsing, URL rejection, account isolation, grouped shopping, clear-all/undo across restart, uploads and byte-range playback, plus one-time samples and private photos. Live retrieval of the seven requested reels was also tested in a local authenticated Vault account. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-recipes-details-20261013`.
+Run `npm ci`, `npm run check`, and `npm test`. Recipe tests cover conversions, portion arithmetic, missing nutrient data, caption comparison blocks, public Instagram media parsing, URL rejection, account isolation, grouped shopping, clear-all/undo across restart, uploads and byte-range playback, plus one-time samples and private photos. Live retrieval of the seven requested reels was also tested in a local authenticated Vault account. Deploy through the existing verified production pipeline. The health/frontend fingerprint is `vault-recipes-shopping-20261013`.

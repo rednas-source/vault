@@ -55,17 +55,29 @@
     if(values.calories==null){for(const id of [2048,2047]){const n=(food.foodNutrients||[]).find(n=>(n.nutrient?.id||n.nutrientId)===id);if(Number.isFinite(n?.amount??n?.value)){values.calories=n.amount??n.value;break;}}}
     return {id:String(food.fdcId),name:food.description,source:'USDA FoodData Central',nutrients:values};
   }
-  function shoppingKey(i){
+  function shoppingName(value,combineVariants=false){
     const names={milk:'milk',melk:'milk','bell peppers':'bell pepper',onions:'onion',eggs:'egg',tortillas:'tortilla'};
-    const name=String(i.name).normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' ');
-    // Keep fat content, preparation and optional modifiers; only exact aliases merge.
-    const dimension=i.quantity==null?'unknown':units[i.unit]?.[0]||i.unit||'piece';
-    return [names[name]||name,dimension,!!i.done].join('|');
+    const name=String(value).normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' ');
+    if(combineVariants){
+      // Shopping families only: recipes and their nutrition retain the actual variants.
+      if(/\b(tortillas?|tortillaer|proteintortillaer|lavkarbotortillaer)\b/.test(name)&&!(/chips|crisps|strips|suppe|soup/.test(name)))return 'tortillas';
+      if(/\b(greek|gresk) yogh?urt\b/.test(name)&&!(/vanilla|vanilje|strawberry|jordbær|flavou?r|smak|dip|sauce/.test(name)))return 'Greek yogurt';
+      if(/^(?:(?:reduced[- ]fat|fat[- ]free|low[- ]fat|lett|fettfri|grated|revet)\s*[- ]?)*mozzarella(?:, (?:optional topping|valgfri topping))?$/.test(name))return 'mozzarella';
+      if(/^(?:(?:reduced[- ]fat|fat[- ]free|low[- ]fat|sharp|mature|lett|fettfri|lagret|grated|revet)\s*[- ]?)*cheddar$/.test(name))return 'cheddar';
+      if(/^(?:\d+(?:[.,]\d+)?%\s+)?cottage cheese(?: med \d+(?:[.,]\d+)? % fett)?$/.test(name))return 'cottage cheese';
+    }
+    return names[name]||(combineVariants?String(value):name);
   }
-  function shoppingGroups(items){
+  function shoppingKey(i,options={}){
+    const name=shoppingName(i.name,options.combineVariants).normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' ');
+    const dimension=i.quantity==null?'unknown':units[i.unit]?.[0]||i.unit||'piece';
+    return JSON.stringify([options.perRecipe?(i.recipeId||i.recipeTitle):'',name,dimension,!!i.done]);
+  }
+  function shoppingGroups(items,options={}){
     const groups=new Map();
-    for(const i of items){const key=shoppingKey(i),group=groups.get(key);if(!group){groups.set(key,{...i,ids:[i.id],recipes:[i.recipeTitle]});continue;}
-      const value=i.quantity==null?0:convert(i.quantity,i.unit,group.unit);if(value===null){groups.set(key+'|'+i.id,{...i,ids:[i.id],recipes:[i.recipeTitle]});continue;}if(group.quantity!==null)group.quantity+=value;group.ids.push(i.id);if(!group.recipes.includes(i.recipeTitle))group.recipes.push(i.recipeTitle);
+    const make=i=>({...i,name:options.combineVariants?shoppingName(i.name,true):i.name,ids:[i.id],recipes:[i.recipeTitle],variants:[i.name]});
+    for(const i of items){const key=shoppingKey(i,options),group=groups.get(key);if(!group){groups.set(key,make(i));continue;}
+      const value=i.quantity==null?0:convert(i.quantity,i.unit,group.unit);if(value===null){groups.set(key+'|'+i.id,make(i));continue;}if(group.quantity!==null)group.quantity+=value;group.ids.push(i.id);if(!group.recipes.includes(i.recipeTitle))group.recipes.push(i.recipeTitle);if(!group.variants.includes(i.name))group.variants.push(i.name);
     }return [...groups.values()];
   }
   return {units,nutrients,parseIngredient,convert,format,amount,grams,nutrition,fromUSDA,shoppingGroups};

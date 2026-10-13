@@ -55,6 +55,34 @@ test('creator totals remain available when ingredient estimates are partial',()=
   assert.equal(Model.nutrition(r,2,4,'publisher').values.protein,40);
 });
 
+test('combined shopping sums tortilla and Greek yogurt variants; per-recipe view keeps originals',()=>{
+  const item=(id,recipeId,name,quantity,unit='piece',done=false)=>({id,recipeId,recipeTitle:recipeId,name,quantity,unit,done});
+  const list=[item('a','chili','burrito-size tortillas',16),item('b','chicken','low-carb high-protein burrito tortillas',12),item('c','chili','0% Greek yogurt',250,'g'),item('d','chicken','fat-free Greek yogurt',.2,'kg')];
+  const snapshot=JSON.stringify(list),combined=Model.shoppingGroups(list,{combineVariants:true});
+  assert.equal(combined.length,2);assert.equal(combined[0].name,'tortillas');assert.equal(combined[0].quantity,28);assert.deepEqual(combined[0].ids,['a','b']);assert.equal(combined[0].variants.length,2);
+  assert.equal(combined[1].name,'Greek yogurt');assert.equal(combined[1].quantity,450);assert.equal(combined[1].unit,'g');
+  assert.equal(Model.shoppingGroups([item('x','a','high-carb tortillas',10),item('y','b','low-carb tortillas',12)],{combineVariants:true})[0].quantity,22);
+  const separate=Model.shoppingGroups(list,{perRecipe:true});assert.equal(separate.length,4);assert.equal(separate[0].name,list[0].name);assert.equal(JSON.stringify(list),snapshot);
+  assert.equal(Model.shoppingGroups([item('x','a','tortillas',2),item('y','b','tortillas',3)],{perRecipe:true}).length,2);
+  assert.equal(Model.shoppingGroups([item('x','a','Greek yoghurt',200,'ml'),item('y','b','Greek yogurt',250,'g')],{combineVariants:true}).length,2);
+  assert.equal(Model.shoppingGroups([item('x','a','tortilla chips',200,'g'),item('y','b','tortillas',100,'g')],{combineVariants:true}).length,2);
+  assert.equal(Model.shoppingGroups([item('x','a','vanilla Greek yogurt',200,'g'),item('y','b','Greek yogurt',100,'g')],{combineVariants:true}).length,2);
+});
+
+test('checking a combined group survives view changes and clear-all undo restores its members',async t=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-shopping-view-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const store=createRecipeStore(root);
+  for(const [title,name,n]of [['Chili','burrito-size tortillas',16],['Chicken','low-carb tortillas',12]]){const r=store.save('alice',{title,servings:n,ingredients:[`${n} ${name}`],instructions:[]});store.addShopping('alice',r.id,1);}
+  const group=Model.shoppingGroups(store.read('alice').shopping,{combineVariants:true})[0];store.checkShoppingGroup('alice',group.ids,true);
+  assert(Model.shoppingGroups(store.read('alice').shopping,{perRecipe:true}).every(i=>i.done));store.clearShopping('alice',true);store.restoreShopping('alice');
+  assert.equal(Model.shoppingGroups(store.read('alice').shopping,{combineVariants:true})[0].quantity,28);assert(store.read('alice').shopping.every(i=>i.done));
+});
+
+test('renaming only changes the title and updates shopping provenance, including cleared items',async t=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-recipe-rename-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const store=createRecipeStore(root),r=store.save('alice',recipe());store.addShopping('alice',r.id,1);store.clearShopping('alice',true);
+  const named=store.rename('alice',r.id,'Min burrito med kylling');assert.equal(named.title,'Min burrito med kylling');assert.deepEqual(named.ingredients,r.ingredients);assert.deepEqual(named.instructions,r.instructions);
+  assert.equal(store.restoreShopping('alice')[0].recipeTitle,named.title);assert.throws(()=>store.rename('bob',r.id,'Wrong owner'),/not found/);assert.throws(()=>store.rename('alice',r.id,'  '),/name/);
+});
+
 test('caption macro extraction stops before unrelated food comparisons and handles Unicode line breaks',()=>{
   const draft=parseText('Mini Steak Burritos\u2028Per burrito (Makes 16)\u2028230 cals\u202825g Protein\u20285g Carbs\u202812g Fat\u2028Protein bar comparison\u2028200 cals\u202820g Protein\u2028Ingredients:\u2028900g (32oz) steak\u2028Instructions:\u20281. Sear the steak.');
   assert.equal(draft.title,'Mini Steak Burritos');assert.equal(draft.servings,16);assert.equal(draft.sourceNutrition.protein,25);assert.equal(draft.sourceNutrition.calories,230);assert.equal(draft.ingredients.length,1);assert.deepEqual(draft.instructions,['Sear the steak.']);
@@ -168,6 +196,9 @@ test('authenticated routes support CRUD, caption import, shopping, chunk retry a
   assert.equal((await fetch(base)).status,401);
   assert.equal((await call('',{method:'POST',headers:{'Sec-Fetch-Site':'cross-site'},body:JSON.stringify(recipe())})).status,403);
   const r=await (await call('',{method:'POST',body:JSON.stringify(recipe())})).json();assert(r.id);
+  assert.equal((await call('/'+r.id+'/title',{method:'PATCH',body:'{"title":"Wrong owner"}'},'bob')).status,404);
+  assert.equal((await call('/'+r.id+'/title',{method:'PATCH',headers:{'Sec-Fetch-Site':'cross-site'},body:'{"title":"Blocked"}'})).status,403);
+  const named=await (await call('/'+r.id+'/title',{method:'PATCH',body:'{"title":"My renamed recipe"}'})).json();assert.equal(named.title,'My renamed recipe');assert.deepEqual(named.ingredients,r.ingredients);
   const imported=await (await call('/import',{method:'POST',body:JSON.stringify({text:'Porridge\nIngredients:\n100 g oats\nInstructions:\nCook in water.'})})).json();assert.equal(imported.draft.ingredients.length,1);
   const blocked=await call('/import',{method:'POST',body:JSON.stringify({url:'http://127.0.0.1/secret'})});assert.equal(blocked.status,400);
   assert.equal((await call('/'+r.id,{method:'PUT',body:JSON.stringify(recipe())},'bob')).status,400);
