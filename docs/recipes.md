@@ -54,8 +54,6 @@ Tap a grouped item to move all its contributing entries into the basket. **Undo*
 
 Food illustrations accompany common ingredients. **Alternatives for Norway** suggests practical substitutions, such as drained salsa or homemade pico de gallo, without silently replacing ingredients or their nutrition. Unknown ingredients use a basket illustration. Local illustrations are unmodified [OpenMoji](https://openmoji.org/) 16.0.0 assets, licensed CC BY-SA 4.0; attribution and license are included under `public/recipe-ingredients`.
 
-## Verification and deployment
-
 ## Sharing
 
 Use **Share cookbook** above the recipe grid to share the whole cookbook, or **Share** on a recipe to share only that dish. Both use Vault’s existing share links with an optional label, expiry (one week by default), copy action and revocation from **Shared links**. These read-only links have unlimited visits until they expire or are revoked, like asset links.
