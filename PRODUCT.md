@@ -33,6 +33,7 @@ Vault is a personal archive with a conventional streaming-service layer. The use
 
 ## Core capabilities
 
+- Follow stock and crypto prices in Economy, create private paper-trading experiments, record four-role agent discussions, and compare simulated results with buy-and-hold. Provider setup lives inside Economy; real broker trading is not connected. See [Economy operations](docs/economy.md).
 - Keep a private Recipes cookbook with reviewed website/caption imports, local photo/video attachments, readable cooking steps, serving-aware nutrition estimates and a persistent mobile shopping checklist.
 - Browse, search, sort, upload, move, rename, delete, download, and share files and folders.
 - Create and manage shelves with server-enforced account access.

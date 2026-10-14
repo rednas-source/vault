@@ -19,6 +19,7 @@ storage/
 .artcraft/
 .app-file-uploads/
 .recipes/
+.economy/
 *.log
 scripts/__pycache__/
 .venv/

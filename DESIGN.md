@@ -73,6 +73,10 @@ colors:
   player-control: "#eee"
   player-muted: "#c9c9c9"
   player-cue-ground: "transparent"
+  economy-positive-dark: "#75cfa5"
+  economy-negative-dark: "#ff9b91"
+  economy-positive-light: "#18734b"
+  economy-negative-light: "#ac3530"
 typography:
   player-title:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
@@ -461,6 +465,8 @@ Listen uses its shell, ground, raised, panel, and hover neutrals with cool-white
 
 **The Local Contrast Rule.** Secondary text is tinted from its surrounding ground and remains legible; neutral gray is not dropped indiscriminately onto colored media.
 
+Economy inherits Vault's dark/light ground, text, dividers, selection and Appearance accent. Its scoped Positive and Negative dark/light tokens add gain/loss text; negative also marks inline errors. Signed percentages accompany financial color, missing readings use an em dash, and USDT remains an explicit currency suffix. These tokens do not change other surfaces.
+
 ## Typography
 
 **Display Font:** Vault Sans (self-hosted Geist, with a platform sans fallback)
@@ -530,6 +536,12 @@ Player menus sit above the bottom controls, 32px from the right and 100px from t
 Assets inherits Library's shared header, compact sans typography, shelf navigation, theme and selected Appearance accent. Its sidebar entry sits immediately above Entertainment. Its dedicated search field, Search, View and Add assets lead the workspace; the shared header search is hidden here. Type, Relationship, Category, Art style and Collection follow, then secondary filters, Saved, Trash, Refresh and sorting. Selection and result count occupy a restrained wrapping row before the images. The catalog uses 24px side gutters. Small, medium and large grids use minimum columns of 145px, 205px and 310px respectively; medium/large retain 24px by 20px gaps, while small uses 22px by 16px. List view pairs a 100px square preview with metadata and flat row dividers. Changing view and selecting cards keep their existing preview nodes mounted.
 
 Asset detail pairs a contained model/reference image with a metadata column in a 1.65:1 split, followed by connected files and import notes. The preview stage is 440px high, increasing to 530px on wide desktops. At 1100px and below, detail becomes one column with a 420px stage. At 700px and below, Assets hides the Library shelf rail and uses 16px gutters; small/medium/large grids show three/two/one columns. Search remains prominent, with View and Add assets sharing the next row. Filters and More filters & sorting collapse; bulk actions wrap and inactive actions are hidden. Detail actions wrap, the stage becomes 330px high, and edit/import/bulk fields become one column. Expanded inspection spans the content width with a 65vh stage (minimum 400px), or 55vh (minimum 280px) on phones. Fullscreen keeps controls inside the viewport with their own scrollable area, at most 45vh. These rules are scoped to Assets.
+
+### Economy workspace
+
+Economy extends the incumbent Operate surface with the pinned Nordnet-like table and portfolio pattern. It reserves the shared 68px / 112px / 150px header rows and scrolls beneath them, with a 1580px maximum content width, 36px top padding, clamp(20px, 3vw, 52px) side gutters and 72px bottom padding. Markets pairs table and detail in a 1.25:1 split with a 36px gap; Sandbox pairs a flexible portfolio with a 340px decision column and 38px gap. Flat dividers and balance bands provide hierarchy without new shadows, artwork or decorative motion.
+
+At 1100px and below Markets stacks its detail; selecting an instrument reveals the detail and focuses its heading. Sandbox narrows the decision column to 300px, then stacks at 700px. At 700px and below page padding is 24px 18px 60px; forms stack, experiment selection fills the width, actions and balances wrap, and tables scroll within their container with a 390px minimum width. Local navigation scrolls with 44px minimum targets. At 600px the shared six-section navigation scrolls within its own row.
 
 ## Elevation & Depth
 
@@ -710,6 +722,16 @@ Image controls now share the dark inspection panel: image selection, Expand/Coll
 
 The subsequent asset-actions review returned **SHIP** after correcting stale Saved documentation. Its eleven supplied captures cover desktop/mobile gallery, actions, detail, deletion, light/dark import help and expanded/fullscreen image inspection. Evidence paths remain in the surface record and sidecar; this documentation pass adds no independent interaction or device-test claim.
 
+### Economy Markets, Sandbox and Decision Journal
+
+Economy retains Vault Sans: 30px page heading (28px on phones), 20px section headings, 16px subheadings, 14px/1.6 body, 13px tables/actions, 11px table headers and 12px notes. Quotes use 34px/500; balances use 23px, reducing to 22px at 700px. Numeric columns, quotes and balances use tabular figures. Phone body and fields use 16px; only the API reference uses mono.
+
+Markets / Sandbox / Decision journal / Setup use a quiet local navigation row with a 2px Appearance-accent underline for the current view. The paper-only badge remains beside the heading. Buttons have a 40px minimum height, inputs/selects 42px, and both use 6px corners. Primary buttons invert theme text/ground; secondary actions use transparent ground and shared hover fill. Fields use the raised theme ground. Buttons, fields, links and disclosures retain a 2px accent focus outline with 3px offset; disabled actions use half opacity. Selected rows use the shared soft accent ground and watchlist stars expose pressed state.
+
+Quote detail keeps currency, provider, market-open state, timestamp and delay visible. Its unfilled accent-line chart reads “Daily price history · up to 90 sessions” and explicitly states that the latest session may still be open and its price is provisional. Portfolio charts identify recorded observations; insufficient history shows an explanation instead of invented points. Sandbox identifies experiment, currency and demo status before balances; four numbered roles form the decision workspace, with manual orders and journal reasoning in disclosures. Setup remains reachable without providers; missing connections, stale prices, paused experiments, synthetic demo data and paper-only execution stay explicit.
+
+The supplied final Economy review disposition is **SHIP**. Both findings are resolved: stacked Markets selection reveals/focuses detail, and daily history discloses its provisional latest session. Evidence is recorded in the sidecar from the four supplied desktop/mobile captures. This documentation merge adds no independent device-test claim.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -751,3 +773,5 @@ Recipe title and shopping refinements (2026-10-13): use natural Norwegian phrase
 Shopping disclosure refinement (2026-10-13): Norway alternatives start collapsed in a right-hand column. Ingredient rows keep a consistent minimum height without reserving expanded explanatory text; rows without alternatives use the full width. At 600px and below, expanded alternatives move below the ingredient and span the row. The one-time Import the 7 requested reels action is removed from the cookbook; ordinary imports remain.
 
 ArtCraft/sharing evidence (2026-10-13): the scoped record in `.impeccable/design.json` identifies the implementation sources and five supplied browser captures. This is a precise extension of the established Operate surface, with no new visual world or approved composition claimed. Final reviewer disposition is **SHIP** for the two scored fixes: usable desktop downloads exclude updater metadata, and PRODUCT/DESIGN persistence is corrected. File-and-capture review found valid desktop/mobile captures and no regressions from these fixes; this is not an independent functional test or a review of unrelated surfaces.
+
+Economy (2026-10-14) extends the established Operate shell with Markets, Sandbox, Decision journal and Setup views. Keep the existing type, surfaces, accent and light/dark behavior. Markets uses a line-divided watchlist beside price/history detail; Sandbox pairs the portfolio and holdings with the four-role decision workspace. On phones these columns stack, table overflow stays contained, and the six-section navigation remains reachable. Provider setup uses standard labelled password/model fields, explicit configuration states and connection tests. Synthetic demo prices and paper-only execution remain explicit. Financial gains/losses use scoped green/red text with numeric signs, never color alone. The detailed contract is `.impeccable/economy-surface.md`.

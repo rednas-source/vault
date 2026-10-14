@@ -3,6 +3,29 @@
   "generatedAt": "2026-10-14T00:00:00Z",
   "title": "Design System: Vault \u2014 Library, Watch, Listen, and Apps",
   "extensions": {
+    "economy": {
+      "updatedAt": "2026-10-14",
+      "scope": "Narrow merge of shipped Economy semantics; preserve the incumbent Vault world and unrelated records.",
+      "surfaceBrief": ".impeccable/economy-surface.md",
+      "sources": ["public/economy.js", "public/economy.css"],
+      "authority": "Pinned Operate surface: Nordnet-like table and portfolio pattern inside the existing Vault shell.",
+      "tokenRefs": ["colors.economy-positive-dark", "colors.economy-negative-dark", "colors.economy-positive-light", "colors.economy-negative-light"],
+      "colors": "Inherit dark/light theme and Appearance accent. Scoped positive/negative text accompanies signed percentages; negative also marks inline errors. Missing values use an em dash; USDT keeps its currency suffix.",
+      "layout": "1580px maximum, 36px top and 72px bottom padding, clamp(20px,3vw,52px) side gutters. Markets 1.25:1 with 36px gap; Sandbox flexible portfolio plus 340px decisions with 38px gap. Flat dividers, unfilled accent charts, no new shadows or imagery.",
+      "responsive": [
+        {"maxWidth": "1100px", "behavior": "112px header. Markets stacks; instrument selection scrolls detail into view and focuses its heading. Sandbox decision column narrows to 300px with 20px gap."},
+        {"maxWidth": "700px", "behavior": "24px 18px 60px page padding; 16px body/fields, 28px heading, 22px balances. Sandbox/forms stack; full-width experiment selector, wrapping actions/balances. Contained table scrolling at 390px minimum. Local tabs scroll with 44px minimum targets."},
+        {"maxWidth": "600px", "behavior": "150px shared header; six-section navigation scrolls within its own row."}
+      ],
+      "controls": "40px minimum buttons, 42px fields, 6px corners. Primary actions invert theme text/ground; secondary hover uses the shared fill. Current tab: 2px accent underline. Focus: 2px accent outline, 3px offset. Disabled: 0.5 opacity. Selection uses soft accent; watchlist stars expose pressed state.",
+      "dataSemantics": "Quote source, market-open state, timestamp, delay and currency remain visible. Daily history covers up to 90 sessions with a provisional latest-session note. Portfolio charts identify recorded observations; missing history has an explanatory empty state. Demo, stale marks, missing providers and paper-only execution remain explicit.",
+      "review": {
+        "disposition": "SHIP",
+        "resolvedFindings": ["Stacked Markets selection reveals detail and focuses its heading.", "Daily price history identifies the potentially open latest session as provisional."],
+        "scope": "Supplied final reviewer disposition and four valid captures; documentation only, with no independent interaction or device-test claim."
+      },
+      "evidence": [".impeccable/review/economy-desktop.png", ".impeccable/review/economy-markets-desktop.png", ".impeccable/review/economy-mobile.png", ".impeccable/review/economy-mobile-markets.png"]
+    },
     "cookbookAccess": {
       "updatedAt": "2026-10-14",
       "sources": ["public/index.html", "public/library-tools.js", "lib/recipe-shares.js"],

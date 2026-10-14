@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-cookbook-access-20261014">
+<meta name="vault-build" content="vault-economy-20261014">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1322,6 +1322,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <link rel="stylesheet" href="/appearance.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/apps.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/artcraft.css?v=artcraft-1">
+<link rel="stylesheet" href="/economy.css?v=economy-1">
 <link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/player.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/recipes.css?v=vault-cookbook-access-20261014">
@@ -1362,6 +1363,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <button data-space="listen" aria-label="Listen" title="Listen"><i class="ph ph-headphones" aria-hidden="true"></i><span>Listen</span></button>
       <button data-space="recipes" aria-label="Recipes" title="Recipes"><i class="ph ph-fork-knife" aria-hidden="true"></i><span>Recipes</span></button>
       <button data-space="apps" aria-label="Apps" title="Apps"><i class="ph ph-squares-four" aria-hidden="true"></i><span>Apps</span></button>
+      <button data-space="economy" aria-label="Economy" title="Economy"><i class="ph ph-chart-line" aria-hidden="true"></i><span>Economy</span></button>
     </nav>
     <label class="search global-search">
       <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
@@ -1559,7 +1561,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-cookbook-access-20261014"></script>
+<script src="/appearance.js?v=vault-economy-20261014"></script>
 <script src="/listen.js?v=vault-assets-variants-20261005"></script>
 <script src="/listen-mobile.js?v=vault-assets-variants-20261005"></script>
 <script src="/watch-model.js?v=vault-assets-variants-20261005"></script>
@@ -1569,6 +1571,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <script src="/artcraft.js?v=artcraft-1"></script>
 <script src="/artcraft-files.js?v=app-files-1"></script>
 <script src="/apps.js?v=vault-assets-variants-20261005"></script>
+<script src="/economy.js?v=economy-1"></script>
 <script src="/document-reader.js?v=vault-assets-variants-20261005"></script>
 <script src="/library-tools.js?v=cookbook-access-20261014-vault-assets-variants-20261005"></script>
 <script src="/library-sort.js?v=vault-assets-variants-20261005"></script>
@@ -1636,6 +1639,8 @@ document.querySelectorAll('[data-space]').forEach((button) => {
       state.mode='recipes';state.recipePage='home';state.recipeDetail=null;state.shelf='all';
     }else if(space === 'apps'){
       state.mode='apps';
+    }else if(space === 'economy'){
+      state.mode='economy';state.shelf='all';
     }else if(space === 'listen'){
       state.mode = 'entertainment'; state.shelf = 'music';state.listenPage='home';state.listenDetail=null;
     }else{
@@ -2184,6 +2189,8 @@ function render(){
   syncAssetsSurface();
   closeFileMenu();
   syncAppsSurface();
+  Economy.sync();
+  $('#q').disabled=state.mode==='economy';
   Recipes.sync();
   $('#sort').value=state.sort;
   document.body.classList.toggle('watch-mode',watchActive());
@@ -2205,10 +2212,10 @@ function render(){
   }
 
   document.querySelectorAll('[data-space]').forEach((button)=>{
-    const active=button.dataset.space==='recipes'?state.mode==='recipes':button.dataset.space==='apps'?state.mode==='apps':button.dataset.space==='library'?!['recipes','apps','entertainment'].includes(state.mode):button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
+    const active=button.dataset.space==='economy'?state.mode==='economy':button.dataset.space==='recipes'?state.mode==='recipes':button.dataset.space==='apps'?state.mode==='apps':button.dataset.space==='library'?!['recipes','apps','economy','entertainment'].includes(state.mode):button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
     button.classList.toggle('on',active);button.toggleAttribute('aria-current',active);
   });
-  $('#q').placeholder=state.mode==='recipes'?'Search recipes or ingredients':state.mode==='apps'?'Search apps':state.mode==='shares'?'Search shared links':state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
+  $('#q').placeholder=state.mode==='economy'?'Search stocks in Markets below':state.mode==='recipes'?'Search recipes or ingredients':state.mode==='apps'?'Search apps':state.mode==='shares'?'Search shared links':state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
   const libraryFiles=state.files.filter(f=>f.shelf!=='assets'&&!MEDIA_SHELVES.has(f.shelf));
   const summaryFiles=state.shelf!=='all'?state.files.filter(f=>f.shelf===state.shelf):libraryFiles;
   $('.library-heading h2').textContent=MEDIA_SHELVES.has(state.shelf)&&state.mode==='files'?`${SHELF_LABEL[state.shelf]} files`:'Library';
@@ -2277,6 +2284,10 @@ function render(){
   if(state.mode==='apps'){
     clearTimeout(featureTimer);document.body.classList.remove('media-mode');
     wireFileInteractions([]);updateBulkBar();renderApps();return;
+  }
+  if(state.mode==='economy'){
+    clearTimeout(featureTimer);document.body.classList.remove('media-mode');
+    wireFileInteractions([]);updateBulkBar();Economy.render();return;
   }
   if(state.mode==='shares'){
     clearTimeout(featureTimer);document.body.classList.remove('media-mode');
@@ -3958,7 +3969,7 @@ const cursorFile = () => {
 };
 
 document.addEventListener('keydown', (e) => {
-  if(state.mode==='recipes')return;
+  if(['recipes','economy'].includes(state.mode))return;
   const typing = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
   const dialogOpen = $('#modal').classList.contains('on') || $('#viewer').classList.contains('on');
 
