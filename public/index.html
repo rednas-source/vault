@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <title>VAULT</title>
-<meta name="vault-build" content="vault-app-files-20261013">
+<meta name="vault-build" content="vault-cookbook-access-20261014">
 <link rel="icon" href="/favicon.ico?v=vault-lock-key-20260825" sizes="any">
 <link rel="icon" type="image/png" href="/vault-lock-key.png?v=vault-lock-key-20260825">
 <link rel="apple-touch-icon" href="/vault-lock-key.png?v=vault-lock-key-20260825">
@@ -1324,7 +1324,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <link rel="stylesheet" href="/artcraft.css?v=artcraft-1">
 <link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/player.css?v=vault-assets-variants-20261005">
-<link rel="stylesheet" href="/recipes.css?v=vault-app-files-20261013">
+<link rel="stylesheet" href="/recipes.css?v=vault-cookbook-access-20261014">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1559,7 +1559,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <input type="file" id="folderPicker" webkitdirectory directory multiple hidden>
 
 <script src="/vendor/hls.min.js?v=1.7.1"></script>
-<script src="/appearance.js?v=vault-app-files-20261013"></script>
+<script src="/appearance.js?v=vault-cookbook-access-20261014"></script>
 <script src="/listen.js?v=vault-assets-variants-20261005"></script>
 <script src="/listen-mobile.js?v=vault-assets-variants-20261005"></script>
 <script src="/watch-model.js?v=vault-assets-variants-20261005"></script>
@@ -1570,19 +1570,19 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <script src="/artcraft-files.js?v=app-files-1"></script>
 <script src="/apps.js?v=vault-assets-variants-20261005"></script>
 <script src="/document-reader.js?v=vault-assets-variants-20261005"></script>
-<script src="/library-tools.js?v=vault-assets-variants-20261005"></script>
+<script src="/library-tools.js?v=cookbook-access-20261014-vault-assets-variants-20261005"></script>
 <script src="/library-sort.js?v=vault-assets-variants-20261005"></script>
 <script type="importmap">{"imports":{"three":"/vendor/three/build/three.module.js"}}</script>
 <script src="/viewer-controls.js?v=20261005-variants"></script>
 <script src="/assets.js?v=vault-assets-variants-20261005"></script>
 <script src="/library-actions.js?v=vault-recipes-20261006"></script>
-<script src="/recipe-model.js?v=vault-app-files-20261013"></script>
+<script src="/recipe-model.js?v=vault-cookbook-access-20261014"></script>
 <script src="/recipe-norwegian.js?v=recipe-sharing-2"></script>
 <script src="/recipe-language.js?v=recipe-sharing-2"></script>
 <script src="/recipe-details.js?v=recipe-sharing-2"></script>
 <script src="/recipe-extras.js?v=recipe-sharing-2"></script>
 <script src="/recipe-groceries.js?v=20261013"></script>
-<script src="/recipes.js?v=vault-app-files-20261013"></script>
+<script src="/recipes.js?v=vault-cookbook-access-20261014"></script>
 <script>
 'use strict';
 
@@ -3109,7 +3109,7 @@ function askShare(f){
       ? `Anyone with the link can browse, upload, create subfolders, rename, and delete inside <b>${esc(f.name)}</b> without signing in.`
       : recipe?`Anyone with the link can read ${f.kind==='cookbook'?'your whole cookbook, including recipes you add later':`<b>${esc(f.name)}</b>`}, scale ingredients, and watch saved videos without signing in. They cannot change your recipes. Your shopping list stays private.`: asset?`Anyone with the link can inspect this model and download <b>${esc(f.name)}</b> with all connected files. This link is read-only.`: `Anyone with the link can watch or download <b>${esc(f.name)}</b> without signing in.`}</p>
     ${folder?'<div class="rename-hint" style="margin-bottom:14px">This is edit access. Revoking the link stops every operation immediately.</div>':''}
-    ${recipe?'<label class="asset-share-upload"><input id="shRecipeAdd" type="checkbox"> Allow guests to add recipes</label><p class="rename-hint">Guests can import or write new recipes in your cookbook. Existing recipes stay read-only. Anyone holding this link has this permission.</p>':''}
+    ${recipe?`<label class="asset-share-upload"><input id="shRecipeAdd" type="checkbox" ${f.kind==='cookbook'?'checked':''}> Allow guests to add recipes</label><p class="rename-hint">Guests can import or write new recipes in your cookbook. Existing recipes stay read-only. Anyone holding this link has this permission.</p>`:''}
     ${asset?'<label class="asset-share-upload"><input id="shAssetUpload" type="checkbox"> Allow asset submissions to External assets</label>':''}
     <div class="rename-field"><input id="shLabel" aria-label="Who is this link for? (optional)" placeholder="who is it for? (optional)" autocomplete="off"></div>
     <div class="opt-row">
@@ -3158,7 +3158,7 @@ function askShare(f){
     });
     const d = await r.json().catch(()=>({}));
     if(!r.ok) throw Error(d.error || 'Could not create the link.');
-    if(submit.isConnected)showShareLink(f, d.id);
+    if(submit.isConnected)showShareLink({...f,allowAddRecipes:d.allowAddRecipes}, d.id);
     } catch(e) { if(error.isConnected)error.textContent=e.message||'Could not create the link. Try again.'; }
     finally { if(submit.isConnected)submit.disabled=false; }
   };
@@ -3169,7 +3169,7 @@ function showShareLink(f, id){
   sheet(`<span class="tag">Link ready</span>
     <p>${f.kind==='asset-upload'?'Anyone holding this link can submit new assets to':f.kind==='folder'?'Anyone holding this link can edit':'Send this to whoever needs'} <b>${esc(f.name)}</b>.</p>
     <div class="token-box mono" id="lkVal">${esc(link)}</div>
-    <div class="rename-hint">${f.kind==='folder'?'Uploads, renames, new folders, and deletions are enabled. ':''}Revoke it any time from <b>Shared links</b>.</div>
+    <div class="rename-hint">${['recipe','cookbook'].includes(f.kind)?(f.allowAddRecipes?'Guests can add and import recipes. Existing recipes stay read-only. ':'This link is read-only. Enable adding recipes from Shared links → Change access. '):f.kind==='folder'?'Uploads, renames, new folders, and deletions are enabled. ':''}Revoke it any time from <b>Shared links</b>.</div>
     <div class="sheet-row">
       <button class="ghost" id="manage">Shared links</button>
       <span style="flex:1"></span>

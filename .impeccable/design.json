@@ -1,8 +1,21 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T13:40:00Z",
+  "generatedAt": "2026-10-14T00:00:00Z",
   "title": "Design System: Vault \u2014 Library, Watch, Listen, and Apps",
   "extensions": {
+    "cookbookAccess": {
+      "updatedAt": "2026-10-14",
+      "sources": ["public/index.html", "public/library-tools.js", "lib/recipe-shares.js"],
+      "thesis": "Make existing cookbook sharing permission discoverable and editable.",
+      "authority": "Narrow repair of the established Operate Vault surface; preserve existing sheet, type and theme tokens. No redesign, new composition or concept roll applies.",
+      "story": "Shared links -> Change access -> Allow guests to add recipes -> Save access -> recipient reload -> Add recipe.",
+      "firstViewport": "The access sheet names the link, explains that its URL stays the same, and makes the current permission and protection of existing recipes explicit.",
+      "form": "Reuse the existing compact sheet and checkbox treatment, ghost Cancel and accent Save access. Disable submission while saving; show inline errors with retry. Access actions are disabled for inactive links.",
+      "behavior": "Whole-cookbook creation preselects additions; single-recipe creation remains opt-in. Existing links retain their permission until an owner or administrator changes it. Additions enter the owner's cookbook; guests cannot edit or delete existing recipes. The URL stays the same and recipients reload to update available actions.",
+      "evidence": [".impeccable/review/cookbook-access-desktop.png", ".impeccable/review/cookbook-access-mobile.png"],
+      "verification": "Local browser recipient addition succeeded. Automated coverage includes enabling/disabling the same URL and owner/administrator boundaries. The supplied detector result was empty. Live deployment is not verified.",
+      "notCanonized": "The inherited share-creation and link-ready tag headings are not promoted into a reusable kicker or eyebrow rule; this repair introduces no new visual primitive."
+    },
     "appFiles": {
       "sources": ["public/artcraft-files.js", "public/artcraft-frame.js", "public/artcraft.css", "public/apps.js", "lib/app-files.js"],
       "scope": "Narrow extension of the existing Operate workspace; no global palette or type changes.",
@@ -31,7 +44,7 @@
         "states": "Admin Install browser app, Preparing, Check for updates and Update browser; installed tools offer Open in Vault to all accounts. Installation hints and inline errors remain explicit. Managed workspaces expose App files saving and reopening with application-specific capability guidance; browser recovery storage remains session-only.",
         "downloads": "Bounded disclosure lists official desktop package links with platform/architecture and size, plus Release notes & checksums. Web/CLI bundles and update metadata such as .zsync are excluded. Menu aligns left on phones. Existing accent focus outline remains visible."
       },
-      "sharing": "Shared links moved from the sidebar to the header immediately before Activity. Existing Library management view remains. Allow guests to add recipes is an unchecked opt-in in share creation. Enabled recipients can add/import new recipes and attach photos/videos to the owner's cookbook; they cannot edit/delete existing recipes. Contribution forms reuse recipe theme/type and show inline status and Cancel. Single-recipe shares also show contributions from that link. Default reader stays read-only; shopping stays private.",
+      "sharing": "Shared links moved from the sidebar to the header immediately before Activity. Existing Library management view remains. As updated on 2026-10-14, Allow guests to add recipes is preselected for new whole-cookbook links and remains opt-in for single-recipe links. Existing links retain their saved permission; owner/admin Change access updates active links without changing their URL. Recipients reload that URL. Enabled recipients can add/import new recipes and attach photos/videos to the owner's cookbook; they cannot edit/delete existing recipes. Contribution forms reuse recipe theme/type and show inline status and Cancel. Single-recipe shares also show contributions from that link. Shopping stays private.",
       "shopping": "Alternatives for Norway start collapsed at the right of consistently sized ingredient rows. Rows without alternatives use the full width. At <=600px, expanded details span the row below the ingredient. Combined / By recipe behavior and original ingredients remain unchanged. The one-time Import the 7 requested reels action is removed; normal imports remain.",
       "evidence": [
         ".impeccable/review/desktop.png",

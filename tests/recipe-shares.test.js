@@ -95,3 +95,21 @@ test('guest contribution is opt-in, add-only, share-scoped and revoked with the 
  const replace=await fetch(base+'/api/share/guest/recipes/contribute/'+original.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});assert.equal(replace.status,403);
  delete shares.guest;assert.equal((await post('guest','/uploads/'+upload.id+'/finish',{})).status,410);assert.equal((await post('guest','',input)).status,410);
 });
+
+test('owners can enable contributions on an existing whole-cookbook URL and turn them off again',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-cookbook-access-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ const store=createRecipeStore(path.join(root,'.recipes'));let saved=0,active=true;
+ const shares={legacy:{kind:'cookbook',by:'alice',rel:'Whole cookbook',label:'Family',expires:0}};
+ const app=express();app.use(express.json());
+ const auth=(req,res,next)=>{const name=req.get('Authorization');if(!name)return res.sendStatus(401);req.user={name,role:name==='admin'?'admin':'member'};next();};
+ mountRecipeShares(app,{root,auth,config:{recipeAutoImages:false},getShares:()=>shares,saveShares:()=>saved++,resolveShare:id=>shares[id]&&active?{share:shares[id]}:{error:'gone'},ownerActive:()=>true});
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>server.close(r)));const base='http://127.0.0.1:'+server.address().port;
+ const change=(body,user='alice')=>fetch(base+'/api/shares/legacy/recipe-access',{method:'PATCH',headers:{'Content-Type':'application/json',...(user?{Authorization:user}:{})},body:JSON.stringify(body)});
+ const add=()=>fetch(base+'/api/share/legacy/recipes/contribute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Guest cookbook recipe',servings:2,ingredients:['2 tortillas'],instructions:['Warm the tortillas.']})});
+ assert.equal((await add()).status,410);assert.equal((await change({allowAddRecipes:true},null)).status,401);assert.equal((await change({allowAddRecipes:true},'bob')).status,403);assert.equal((await change({allowAddRecipes:'yes'})).status,400);assert.equal(saved,0);
+ assert.equal((await change({allowAddRecipes:true})).status,200);assert.equal(saved,1);assert.equal(shares.legacy.label,'Family');
+ const added=await add();assert.equal(added.status,201);const recipe=await added.json();assert.equal(store.get('alice',recipe.id).title,'Guest cookbook recipe');
+ const book=await(await fetch(base+'/api/share/legacy/recipes')).json();assert.equal(book.allowAddRecipes,true);assert.equal(book.recipes[0].id,recipe.id);
+ assert.equal((await change({allowAddRecipes:false})).status,200);assert.equal((await add()).status,410);assert.equal((await(await fetch(base+'/api/share/legacy/recipes')).json()).allowAddRecipes,false);
+ assert.equal((await change({allowAddRecipes:true},'admin')).status,200);active=false;assert.equal((await change({allowAddRecipes:true})).status,410);
+});
