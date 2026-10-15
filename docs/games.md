@@ -2,21 +2,39 @@
 
 The Games space and public `/games/` page share the same directory and player.
 
-- **Daily’s:** Wordle, Globle, Globle Capitals, LoLdle, Krillion and Pokédle.
-- **Games:** WoW browser project, PokéRogue and PokéLike.
+- **Daily’s (7):** Wordle, Globle, Globle Capitals, LoLdle, Krillion, Pokédle · .com and Pokédle · .net.
+- **Games (13):** WoW browser project, PokéRogue, PokéLike, Black Ops Zombies · fan project, Contemporary Conflict, Taipei Rush, Redcoats, Salty Seas, Park Baron, SandStorm, Seedbed, Surfd and Tweetcraft.
+- **Find a game:** searches titles and descriptions within the selected category and shows an explicit no-results message. The grouped player select retains all 20 entries.
 - **Theater mode:** fills the available workspace, keeping Vault's header in the private space. On the public page it fills the browser viewport.
 - **Fullscreen:** expands the complete player, including the grouped game switcher and exit controls. Browsers without fullscreen support can still use theater mode.
 - **Switch game:** choosing a game immediately switches the player. Switching unloads the previous frame, so save progress in the game first. Category changes and display-mode changes preserve the loaded frame.
 - **Compact controls:** theater/fullscreen use one 44px toolbar row on desktop, with the game starting 56px from the top. Phones use two rows and 44px touch targets. More contains Open in window, Open website, Reload game and help instead of permanent explanatory rows.
 - **Close game:** removes the embedded game and restores the matching directory category and keyboard focus.
 
-Wordle, Krillion and PokéLike block cross-site embedding; LoLdle shows an explicit refusal inside a cross-site frame. Selecting these games requests a dedicated browser window immediately, keeping Vault open. The player also shows the reason, an Open game window retry and a normal new-tab link if popup handling prevents the launch. Browsers may use a tab rather than a window. Launches use `noopener,noreferrer`; because `window.open` may return null even on success with these protections, the status says the window was requested rather than claiming it opened. External launches leave fullscreen so another window can be seen.
+Wordle, Krillion and PokéLike block cross-site embedding; LoLdle and pokedle.net show explicit cross-site-frame refusals. The table below records the added games' supported entry paths. Selecting a separate-window game requests a dedicated browser window immediately, keeping Vault open. The player also shows the reason, an Open game window retry and a normal new-tab link if popup handling prevents the launch. Browsers may use a tab rather than a window. Launches use `noopener,noreferrer`; because `window.open` may return null even on success with these protections, the status says the window was requested rather than claiming it opened. External launches leave fullscreen so another window can be seen.
+
+| Added game | Entry and observed limit |
+| --- | --- |
+| Black Ops Zombies · fan project (`vel.gg/bo1z`) | Embedded game setup observed; this is not a verified complete gameplay session. |
+| Contemporary Conflict | Separate window; publisher returned `X-Frame-Options: DENY`. |
+| Taipei Rush | Separate window; publisher returned `X-Frame-Options: SAMEORIGIN`. |
+| Redcoats | Embedded loading page observed; full gameplay was not established. |
+| Salty Seas | Separate window; embedding unverified because local network access was blocked. |
+| Park Baron | Separate window; publisher returned `X-Frame-Options: DENY`. |
+| SandStorm | Separate window; embedding unverified because local network access was blocked. |
+| Seedbed | Embedded menu observed; full gameplay was not established. |
+| Surfd | Embedded menu observed; full gameplay was not established. |
+| Tweetcraft | Separate window; multiplayer world embeds are restricted to its own site and X. |
+
+Pokédle · .net is a separate daily entry from Pokédle · .com and uses the publisher-window flow after its explicit iframe refusal. The Games category also includes a separate Black Ops II / Open Fastfile project disclosure linking to source/setup. Open Fastfile requires a separate server and assets from games the user owns; it is not a ready-to-play hosted BO2 entry and is not counted among the 20 games. No remote-browser service or game installation is included. This directory is not a verified top-ten, popularity or AI-authorship ranking.
 
 Globle Capitals has a direct embedded entry, so it can be opened through Vault's switcher. The sandbox also permits publisher links to open separate tabs; browser popup policies still apply. Frames may run scripts, forms and pointer lock and use their own origin storage. They do not receive top-navigation permission. Vault does not proxy game code, strip publisher security headers, share Vault credentials with games or guarantee publisher sign-in/storage behavior.
 
 Publisher availability was checked on 2026-10-15. Krillion and PokéLike returned `X-Frame-Options: SAMEORIGIN` and a CSP containing `frame-ancestors 'self'`. LoLdle's embedded page displayed “you're trying to play from a non-official website”; its experimental embed was removed after that check. PokéLike's standalone page loaded. Globle and Globle Capitals loaded in the local player. These observations may change as publishers update their sites. There is no general iframe option that overrides the publishers' restrictions. An isolated remote-browser service would be a separate deployment with its own resource and session-security requirements; it is not included here.
 
 Entries live in `public/games/games.js`. Keep the category and embed/website-only behavior explicit when adding games. External URLs must use trusted HTTPS publisher origins. A game becoming available in an iframe should be verified in a browser, not inferred solely from missing HTTP restrictions.
+
+Current directory evidence is `.impeccable/review/global-markets/games-desktop.png` and `games-mobile.png`, captured from the actual shared public Games surface. Finish review found no material visual defects; its stale-documentation finding has been corrected. These captures do not prove every game is playable, successful popup navigation, sign-in or saved-progress behavior. Source and test evidence are available; this documentation-only pass ran no new tests.
 
 ## Hosting and public access
 

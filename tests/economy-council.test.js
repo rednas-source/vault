@@ -23,6 +23,14 @@ test('catalogue browses beyond seeds, filters by country/exchange and caches the
  let calls=0;const market=createMarket(()=>({twelveDataApiKey:'fixture'}),async()=>{calls++;return Response.json({data:Array.from({length:70},(_,n)=>({symbol:'TEST'+n,name:'Test '+n,exchange:n<50?'NASDAQ':'OSL',currency:n<50?'USD':'NOK',country:n<50?'United States':'Norway'}))});});
  assert.equal((await market.catalogue()).total,70);assert.equal((await market.catalogue({country:'Norway'})).total,20);assert.equal((await market.catalogue({q:'TEST69'})).items[0].symbol,'TEST69');assert.equal(calls,1);
 });
+test('public catalogue accepts a real-size global response, preserves minor-unit currencies and Oslo aliases without quote credits',async()=>{
+ let calls=0;const market=createMarket(()=>({requestsPerMinute:1}),async url=>{calls++;assert.equal(new URL(url).searchParams.has('apikey'),false);return Response.json({padding:' '.repeat(31e6),data:[{symbol:'M&M',name:'Mahindra',exchange:'NSE',currency:'INR',country:'India'},{symbol:'Equinor',exchange:'OSE',mic_code:'XOSL',currency:'NOK',country:'Norway'},{symbol:'BT.a',exchange:'LSE',currency:'GBp',country:'United Kingdom'}]});});
+ const d=await market.catalogue();assert.equal(d.total,3);assert.equal(d.globalTotal,3);assert.ok(d.currencies.includes('GBp'));assert.equal((await market.catalogue({exchange:' osl ',country:' norway ',currency:'NOK'})).total,1);assert.equal(calls,1);assert.equal(market.usage().day,0);
+});
+test('malformed catalogues are retryable failures, never cached as an empty market',async()=>{
+ let calls=0;const market=createMarket(()=>({}),async()=>Response.json(++calls===1?{}:{data:[{symbol:'EQNR',exchange:'OSE',currency:'NOK'}]}));
+ await assert.rejects(market.catalogue(),/empty stock catalogue/);assert.equal((await market.catalogue()).total,1);
+});
 async function fixture(t,fetcher){const root=await fs.mkdtemp(path.join(os.tmpdir(),'vault-council-'));const app=express();app.use(express.json());const router=economyRoutes({root,fetcher:async(url,options)=>url==='https://developers.openai.com/api/docs/pricing.md'?new Response('### Standard pricing data\n| Model | Input | Cached input | Output |\n| --- | --- | --- | --- |\n| gpt-4.1-mini | $0.10 | $0.01 | $0.20 |'):url==='https://api.openai.com/v1/models'?Response.json({data:[{id:'gpt-4.1-mini'}]}):fetcher(url,options),config:{openaiApiKey:'fixture',economyScheduler:false},auth:(req,res,next)=>{if(!req.headers.authorization)return res.sendStatus(401);req.user={name:req.headers.authorization,role:'admin'};next();}});app.use('/api/economy',router);const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(async()=>{router.research.close();await new Promise(r=>server.close(r));await fs.rm(root,{recursive:true,force:true});});
  const call=async(url='',body,method,user='alice')=>{const r=await fetch('http://127.0.0.1:'+server.address().port+'/api/economy'+url,{method:method||(body?'POST':'GET'),headers:{Authorization:user,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,data:await r.json()};};
  await call('/settings',{models,rates},'PUT');const e=(await call('/experiments',{name:'Council test',mode:'demo'})).data;
@@ -33,6 +41,27 @@ test('end-to-end council records costs, selects and fills one trade; schedules s
  let calls=0;const f=await fixture(t,async()=>{calls++;return response();});const start=await f.call('/experiments/'+f.e.id+'/council',{});assert.equal(start.status,202);const e=await f.result();assert.equal(e.rounds[0].status,'executed',e.rounds[0].error);assert.equal(calls,8);assert.equal(e.orders.length,1);assert.ok(e.analytics.aiUSD>0);assert.equal(e.analytics.unknownCostCalls,0);assert.ok(e.analytics.netPnl<e.summary.pnl);assert.equal(e.research.spentUSD,e.analytics.aiUSD);
  const store=createStore(path.join(f.root,'.economy'));assert.deepEqual(store.accounts(),['alice']);const d=store.read('alice');d.experiments[0].research.enabled=true;d.experiments[0].research.nextAt=0;store.write('alice',d);await f.research.tick();const next=await f.result();assert.equal(next.rounds.length,2);assert.equal(calls,16,JSON.stringify(next.rounds.at(-1)));assert.ok(next.research.nextAt>Date.now());
  assert.equal((await f.call('/experiments/'+f.e.id+'/council',{},undefined,'bob')).status,404);
+});
+test('empty NOK watchlists fail before recording a round; catalogue preflight recovers without spending',async t=>{
+ let modelsCalled=0;const f=await fixture(t,async url=>{if(String(url).includes('/stocks'))return Response.json({data:[{symbol:'EQNR',exchange:'OSE',mic_code:'XOSL',currency:'NOK',country:'Norway'}]});modelsCalled++;return response();});
+ const store=createStore(path.join(f.root,'.economy')),d=store.read('alice'),e=d.experiments[0];e.mode='paper';e.currency='NOK';e.research.enabled=true;e.research.nextAt=0;store.write('alice',d);
+ const attempt=await f.call('/experiments/'+e.id+'/council',{});assert.equal(attempt.status,400);assert.match(attempt.data.error,/watchlist has no NOK/);
+ await f.research.tick();await f.research.tick();const after=(await f.call()).data.experiments[0];assert.equal(after.rounds.length,0);assert.equal(after.research.enabled,false);assert.equal(after.research.spentUSD,0);assert.match(after.research.lastError,/Automatic reviews stopped/);
+ const check=await f.call('/experiments/'+e.id+'/preflight',{source:'catalogue',exchange:'OSL',country:'Norway'});assert.equal(check.status,200);assert.equal(check.data.eligible,1);assert.equal(check.data.currency,'NOK');assert.equal(modelsCalled,0);
+ const start=await f.call('/experiments/'+e.id+'/research',{enabled:true,source:'catalogue',country:'United States',batchSize:2,intervalMinutes:15,durationHours:4,budgetUSD:5},'PUT');assert.equal(start.status,400);assert.match(start.data.error,/No NOK listings/);assert.equal((await f.call()).data.usage.count,0);
+});
+test('three failed evidence reviews stop the schedule without charging models',async t=>{
+ let modelsCalled=0;const f=await fixture(t,async url=>{if(String(url).includes('/stocks'))return Response.json({data:[{symbol:'X',exchange:'NASDAQ',currency:'USD'}]});if(String(url).includes('twelvedata.com'))return Response.json({status:'error',code:403});modelsCalled++;return response();});
+ await f.call('/settings',{twelveDataApiKey:'fixture',requestsPerMinute:1000},'PUT');const store=createStore(path.join(f.root,'.economy'));let d=store.read('alice');d.experiments[0].mode='paper';d.experiments[0].research.source='catalogue';d.experiments[0].research.enabled=true;store.write('alice',d);
+ for(let n=0;n<3;n++){d=store.read('alice');d.experiments[0].research.nextAt=0;store.write('alice',d);await f.research.tick();await f.result();}
+ const e=(await f.call()).data.experiments[0];assert.equal(e.research.enabled,false);assert.equal(e.rounds.length,3);assert.equal(e.rounds.at(-1).phase,'Needs attention');assert.equal(modelsCalled,0);assert.equal(e.research.spentUSD,0);
+});
+test('Stop wins while a timed start is waiting for the global catalogue',async t=>{
+ let release,entered;const gate=new Promise(r=>release=r),started=new Promise(r=>entered=r);const f=await fixture(t,async url=>{assert.ok(String(url).includes('/stocks'));entered();await gate;return Response.json({data:[{symbol:'AAPL',exchange:'NASDAQ',currency:'USD'}]});});
+ await f.call('/settings',{twelveDataApiKey:'fixture'},'PUT');const store=createStore(path.join(f.root,'.economy')),d=store.read('alice');d.experiments[0].mode='paper';store.write('alice',d);
+ const start=f.call('/experiments/'+f.e.id+'/research',{enabled:true,source:'catalogue',batchSize:2,intervalMinutes:15,durationHours:4,budgetUSD:5},'PUT');await started;
+ assert.equal((await f.call('/experiments/'+f.e.id+'/research',{enabled:false},'PUT')).status,200);release();assert.equal((await start).status,400);
+ const e=(await f.call()).data.experiments[0];assert.equal(e.research.enabled,false);assert.equal(e.paused,true);assert.equal(e.rounds.length,0);
 });
 test('insufficient budget and missing rates prevent all model calls',async t=>{
  let calls=0;const f=await fixture(t,async()=>{calls++;return response();});const store=createStore(path.join(f.root,'.economy')),d=store.read('alice');d.experiments[0].research.budgetUSD=0.01;store.write('alice',d);await f.call('/experiments/'+f.e.id+'/council',{});const e=await f.result();assert.equal(calls,0);assert.equal(e.rounds[0].status,'failed');assert.match(e.rounds[0].error,/budget/i);assert.equal(reserveCost({},{rates:{}}),null);

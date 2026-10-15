@@ -41,3 +41,6 @@ body.games-mode #app>main{display:block;min-height:0}body.games-mode .library-wo
 .games-page.is-theater iframe,.games-player:fullscreen iframe{width:100%;height:100%;flex:1;min-height:0}
 .games-page.is-theater .games-player-bar,.games-player:fullscreen .games-player-bar{flex-shrink:0}
 @media(max-width:700px){.games-player-bar{flex-wrap:wrap}.games-player-bar>label{flex-basis:100%;max-width:none}.games-player-tools{width:100%;justify-content:space-between;gap:4px}.games-player-tools button,.games-player-help summary{padding:8px}.games-player select{font-size:16px}}
+
+.games-search{display:flex;flex-direction:column;gap:8px;max-width:420px;margin:0 0 22px;font-size:13px;color:var(--muted)}.games-search input{min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--night,var(--bg));color:var(--light);font:inherit}
+@media(max-width:700px){.games-search input{font-size:16px}}

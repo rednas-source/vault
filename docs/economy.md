@@ -6,14 +6,22 @@ Economy is an authenticated, per-account paper-trading workspace. No endpoint su
 
 1. In Economy → Setup, save Twelve Data and OpenAI keys. Existing keys are preserved. Choose a model for each role from its dropdown. Vault loads available model IDs from OpenAI and matches exact supported text-model IDs to the official Standard pricing table; audio, image, legacy and unpriced variants are excluded or disabled. Prices appear automatically. The default is not a claim of superior trading ability. Test connection checks credentials/model visibility, not actual decision quality.
 2. Set data requests per minute/day to your provider plan, and a model-review daily cap. Defaults are 8/minute, 700/day and 24 reviews/account/day (an older config can retain its existing cap). Raising local limits does not purchase provider access.
-3. Markets browses the provider's complete supported stock catalogue with country/exchange/currency filters, search and 25-row pagination. The catalogue is cached for one day. Unsupported symbol formats are omitted. Listing is not proof that your plan includes the quote. Watchlists support 200 instruments. Quotes load on selection or Refresh first 4; there is no whole-market live stream.
+3. Markets browses Twelve Data's worldwide public stock catalogue without an API key or quote credits, with country/exchange/currency filters, search and 25-row pagination. The catalogue is cached for one day. International symbols, including `@` and `!`, and minor-unit currencies are supported. Failed loading shows an error and retry; it does not silently substitute ten starter instruments. Listing is not proof that your plan includes the quote. Watchlists support 200 instruments. Quotes load on selection or Refresh first 4 and still depend on provider access; there is no whole-market live stream.
 4. Price charts support 5-minute intraday history and daily one-month, three-month, one-year and five-year ranges. Provider availability governs history; Binance daily history is limited to 1,000 observations. The latest candle may still be open. Public BTC/ETH/SOL USDT data requires no account key.
 5. Create an experiment with currency, paper capital, horizon, transaction costs, position/daily-loss/order limits and a benchmark. USD/NOK/EUR/USDT stay separate; no automatic FX conversion occurs.
-6. In its run settings choose watchlist or catalogue, exchange/country scope, new candidates per review (1–20), interval (5–10,080 minutes), duration (1–8,760 hours), AI USD budget and allocated total market-data subscription cost. Long-term defaults: daily for 30 days. Intraday defaults: every 15 minutes for four hours. These are configurable test defaults, not financial advice.
+6. In its run settings choose watchlist or catalogue (the default for new UI selections), exchange/country scope, new candidates per review (1–20), interval (5–10,080 minutes), duration (1–8,760 hours), AI USD budget and allocated total market-data subscription cost. Check the selection before starting: preflight returns the eligible count without model calls or changing saved settings. Long-term defaults: daily for 30 days. Intraday defaults: every 15 minutes for four hours. These are configurable test defaults, not financial advice.
 7. Saving captures Setup's model selections for that experiment. Other experiments retain their own selections. Change Setup then save an experiment's run settings to apply new models. Rates are refreshed automatically before a review when due; each response records its own rate and pricing timestamp, so history is never repriced. The on-screen cost example assumes 10,000 input and 1,000 output tokens per call; it is explicitly illustrative, not a measured bill.
 8. Start the timed experiment, or save settings and run one review manually. Stop also pauses the experiment and prevents an in-flight paper fill. Resume/save before continuing. Export results as JSON.
 
 Synthetic demo prices remain separate from real-market experiments. Demo/manual trading needs no API key, but actual model discussions are billed. No paid model session is started merely by deploying this feature.
+
+## Worldwide catalogue and selection recovery
+
+The public `https://api.twelvedata.com/stocks?format=JSON` endpoint needs no API key. The observed download was 54,525,108 bytes and contained 204,715 source rows, yielding 204,704 distinct supported listings across 57 countries and 70 exchanges, with zero invalid rows after international-symbol and minor-unit currency support. These are observed counts, not a fixed catalogue size or proof of quote entitlement. The earlier 30 MB response limit rejected this catalogue and could lead to an apparent ten-instrument catalogue. Downloads now use a bounded 128 MB stream with a 90-second timeout and daily cache; failures remain explicit and retryable, with no seed-list fallback or quote-credit charge for catalogue retrieval.
+
+All-currency browsing does not add FX trading. Experiment balances remain separate USD, NOK, EUR and USDT portfolios; each review stays within its experiment currency and no automatic conversion occurs.
+
+Preflight checks source, exchange and country against eligible listings without model calls or settings mutation. Start and manual review also validate the selection. An empty selection creates no round and increments no round/usage counter. Scheduled runs stop immediately for an invalid selection; other repeated failures stop after three failures. History and accounted budgets remain intact. **Needs attention** phases and the Decision journal expose the problem and a route back to run settings; correct the selection before restarting. A revision check ensures Stop still wins if a timed start is awaiting the catalogue. Catalogue caching is separate from quote-cache eviction.
 
 ## Four simultaneous agents
 
@@ -51,6 +59,7 @@ Existing Vault bearer tokens retain their full account scope; they are not Econo
 - PUT /api/economy/watchlist — {instruments:[...]}.
 - POST /api/economy/experiments — name, mode paper/demo, currency, initial, horizon day/long, feeBps, spreadBps, slippageBps, maxPositionPct, maxDailyLossPct, maxTradesPerDay, benchmark.
 - PUT /api/economy/experiments/:id/research — enabled, source watchlist/catalogue, exchange, country, batchSize, intervalMinutes, durationHours, budgetUSD, dataCostUSD, usdRate. {enabled:false} alone stops/pauses without changing configuration.
+- POST /api/economy/experiments/:id/preflight — source, exchange and country; returns eligible selection count without model calls or saved-settings mutation.
 - POST /api/economy/experiments/:id/council — starts a budgeted review (202). /rounds is a compatibility alias for this same implementation; there is no unmetered legacy path.
 - POST /api/economy/experiments/:id/orders — {instrument,side,quantity,clientId}; server prices only, retry same clientId safely.
 - POST /api/economy/experiments/:id/refresh — refresh marks.
@@ -62,6 +71,8 @@ Environment TWELVE_DATA_API_KEY / OPENAI_API_KEY override saved keys, then confi
 ## Verification and sources
 
 Tests use fixture providers to verify parallel reviews, debate, consensus, budget refusal, stop, expiration, recovery, accounting, intraday timestamps, catalogue caching, authentication and net-cost truth. They do not claim real-model profitability or paid exchange coverage. Run npm run check and npm test before promotion.
+
+The worldwide-catalogue refinement has source and test evidence. Finish review found no material visual defects; its stale-documentation finding has been corrected. Validation recorded 21 council tests and six client tests passing after the final Stop/preflight and cache-isolation changes. The full suite passed before those final targeted changes; CI will rerun it. `.impeccable/review/global-markets/economy-desktop.png` and `economy-mobile.png` show an isolated local UI preview using public catalogue data with paid calls blocked. They do not establish authenticated production integration, paid quote coverage or model execution. No new tests were run for this documentation-only update.
 
 - [Catalogue discovery](https://support.twelvedata.com/en/articles/5620513-how-to-find-all-available-symbols-at-twelve-data)
 - [Provider credits](https://support.twelvedata.com/en/articles/5615854-credits)
