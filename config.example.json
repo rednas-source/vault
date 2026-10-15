@@ -9,7 +9,7 @@
   "openaiApiKey": "",
   "twelveDataApiKey": "",
   "economyModel": "gpt-4.1-mini",
-  "economyDailyRounds": 10,
+  "economyDailyRounds": 24,
   "recipeAutoImages": true,
   "recipeImageModel": "gpt-image-2",
   "recipeImageDailyLimit": 20,

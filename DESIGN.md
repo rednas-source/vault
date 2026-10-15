@@ -77,6 +77,16 @@ colors:
   economy-negative-dark: "#ff9b91"
   economy-positive-light: "#18734b"
   economy-negative-light: "#ac3530"
+  games-ground-dark: "#0b0f0d"
+  games-text-dark: "#e8e7dd"
+  games-muted-dark: "#aaa99f"
+  games-line-dark: "#30372f"
+  games-accent-dark: "#dba57b"
+  games-ground-light: "#f2f0e8"
+  games-text-light: "#20251e"
+  games-muted-light: "#5c6257"
+  games-line-light: "#d2d4c9"
+  games-accent-light: "#8f4d21"
 typography:
   player-title:
     fontFamily: "Vault Sans, ui-sans-serif, system-ui, sans-serif"
@@ -467,6 +477,8 @@ Listen uses its shell, ground, raised, panel, and hover neutrals with cool-white
 
 Economy inherits Vault's dark/light ground, text, dividers, selection and Appearance accent. Its scoped Positive and Negative dark/light tokens add gain/loss text; negative also marks inline errors. Signed percentages accompany financial color, missing readings use an em dash, and USDT remains an explicit currency suffix. These tokens do not change other surfaces.
 
+The public Games directory uses the scoped Games tokens: a green-black ground and warm light text in dark mode, a warm paper ground and dark green ink in light mode, quiet dividers and a restrained warm accent for link feedback. Its theme follows the operating-system preference; this standalone page does not inherit private Vault's saved Appearance palette. This is a scoped application of Vault's quiet archive treatment, not a new site-wide identity.
+
 ## Typography
 
 **Display Font:** Vault Sans (self-hosted Geist, with a platform sans fallback)
@@ -541,7 +553,11 @@ Asset detail pairs a contained model/reference image with a metadata column in a
 
 Economy extends the incumbent Operate surface with the pinned Nordnet-like table and portfolio pattern. It reserves the shared 68px / 112px / 150px header rows and scrolls beneath them, with a 1580px maximum content width, 36px top padding, clamp(20px, 3vw, 52px) side gutters and 72px bottom padding. Markets pairs table and detail in a 1.25:1 split with a 36px gap; Sandbox pairs a flexible portfolio with a 340px decision column and 38px gap. Flat dividers and balance bands provide hierarchy without new shadows, artwork or decorative motion.
 
-At 1100px and below Markets stacks its detail; selecting an instrument reveals the detail and focuses its heading. Sandbox narrows the decision column to 300px, then stacks at 700px. At 700px and below page padding is 24px 18px 60px; forms stack, experiment selection fills the width, actions and balances wrap, and tables scroll within their container with a 390px minimum width. Local navigation scrolls with 44px minimum targets. At 600px the shared six-section navigation scrolls within its own row.
+At 1100px and below Markets stacks its detail; selecting an instrument reveals the detail and focuses its heading. Sandbox narrows the decision column to 300px, then stacks at 700px. At 700px and below page padding is 24px 18px 60px; experiment and Setup fields stack, experiment selection fills the width, actions and balances wrap, and tables scroll within their container with a 390px minimum width. Local navigation scrolls with 44px minimum targets. Catalogue filters retain two columns with a full-width company/symbol field and a 12px gap. At 600px the shared navigation scrolls within its own row.
+
+### Public Games directory
+
+Header, main and footer share a 1120px maximum width and 24px by 32px padding. Flat link rows form two columns with 24px vertical padding, quiet bottom dividers and a 28px trailing gutter; sections have 48px bottom spacing. At 600px and below the directory becomes one column with 20px page padding and no trailing row gutter. There are no artwork cards, elevated tiles or added motion.
 
 ## Elevation & Depth
 
@@ -598,7 +614,7 @@ Video theater is edge-to-edge with square corners. Its controls use Player Contr
 
 ### Navigation
 
-The primary spaces appear in order: Library, Watch, Listen, Recipes, Apps. They share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps the text labels for icons while preserving accessible labels and titles. Search stays centered outside mobile Listen, and Shared links, Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Shared links sits immediately before Activity. Mobile Listen retains space navigation in its 52px header, moves music search into Search, and groups permission-dependent utility actions in Vault tools beside Appearance. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
+The primary spaces appear in order: Library, Watch, Listen, Recipes, Economy, Games, Apps; Apps stays last. Games is a real link to the public directory. They share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps desktop text labels for icons while preserving accessible labels and titles. At 700px and below, navigation always shows icons with accessible names and at least 40px targets. Search stays centered outside mobile Listen, and Shared links, Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Shared links sits immediately before Activity. Mobile Listen retains space navigation in its 52px header, moves music search into Search, and groups permission-dependent utility actions in Vault tools beside Appearance. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
 
 ### Apps Directory and Workspace
 
@@ -722,15 +738,25 @@ Image controls now share the dark inspection panel: image selection, Expand/Coll
 
 The subsequent asset-actions review returned **SHIP** after correcting stale Saved documentation. Its eleven supplied captures cover desktop/mobile gallery, actions, detail, deletion, light/dark import help and expanded/fullscreen image inspection. Evidence paths remain in the surface record and sidecar; this documentation pass adds no independent interaction or device-test claim.
 
-### Economy Markets, Sandbox and Decision Journal
+### Economy Markets, Sandbox, Decision Journal and Analytics
 
 Economy retains Vault Sans: 30px page heading (28px on phones), 20px section headings, 16px subheadings, 14px/1.6 body, 13px tables/actions, 11px table headers and 12px notes. Quotes use 34px/500; balances use 23px, reducing to 22px at 700px. Numeric columns, quotes and balances use tabular figures. Phone body and fields use 16px; only the API reference uses mono.
 
-Markets / Sandbox / Decision journal / Setup use a quiet local navigation row with a 2px Appearance-accent underline for the current view. The paper-only badge remains beside the heading. Buttons have a 40px minimum height, inputs/selects 42px, and both use 6px corners. Primary buttons invert theme text/ground; secondary actions use transparent ground and shared hover fill. Fields use the raised theme ground. Buttons, fields, links and disclosures retain a 2px accent focus outline with 3px offset; disabled actions use half opacity. Selected rows use the shared soft accent ground and watchlist stars expose pressed state.
+Markets / Sandbox / Decision journal / Analytics / Setup use a quiet local navigation row with a 2px Appearance-accent underline for the current view. The paper-only badge remains beside the heading. Buttons have a 40px minimum height, inputs/selects 42px, and both use 6px corners. Primary buttons invert theme text/ground; secondary actions use transparent ground and shared hover fill. Fields use the raised theme ground. Buttons, fields, links and disclosures retain a 2px accent focus outline with 3px offset; disabled actions use half opacity. Selected rows use the shared soft accent ground and watchlist stars expose pressed state.
 
-Quote detail keeps currency, provider, market-open state, timestamp and delay visible. Its unfilled accent-line chart reads “Daily price history · up to 90 sessions” and explicitly states that the latest session may still be open and its price is provisional. Portfolio charts identify recorded observations; insufficient history shows an explanation instead of invented points. Sandbox identifies experiment, currency and demo status before balances; four numbered roles form the decision workspace, with manual orders and journal reasoning in disclosures. Setup remains reachable without providers; missing connections, stale prices, paused experiments, synthetic demo data and paper-only execution stay explicit.
+Markets separates All stocks, Watchlist and Crypto; company/symbol, exchange, country and currency filters precede a paginated catalogue. Counts and catalogue update time describe listings, not live quote coverage. Prices load on request, with Refresh first 4 explicitly bounded. Missing provider setup identifies starter instruments. Quote detail keeps currency, provider, market-open state, timestamp and delay visible. History selection offers intraday five-minute candles and one-month, three-month, one-year and five-year ranges; its unfilled accent-line chart keeps the provisional latest-session note and exposes history errors. Portfolio charts identify recorded observations; insufficient history shows an explanation instead of invented points.
+
+Sandbox identifies experiment, currency and demo status before balances. A flat experiment-control section shows schedule, rolling scan visits/cursor, pinned models and budget used/reserved; Universe, schedule and spending opens labelled fields. Saving captures Setup's model IDs and token prices for that experiment. Cost examples identify their assumed tokens and remain distinct from costs estimated from recorded usage. Scan copy states that batches rotate through candidates while holdings are reviewed each cycle; timing depends on the server staying online. Four numbered roles precede parallel viewpoints, debate and a vote; journal disclosures preserve phases, model identity, self-reported confidence, evidence timestamps, costs and failures. Setup remains reachable without providers; missing connections, stale prices, paused experiments, synthetic demo data and paper-only execution stay explicit.
+
+Analytics reuses balance bands, unfilled observation charts and contained tables for trading P&L, AI/data costs, net results, exposure, daily history and experiment comparison. Unknown model costs or missing currency conversion keep affected net results unavailable. Token-based costs are labelled estimates, not invoices; configured budget reservations are not provider billing limits. Do not promote illustrative examples, synthetic demo returns, model confidence or catalogue size into measured performance claims.
 
 The supplied final Economy review disposition is **SHIP**. Both findings are resolved: stacked Markets selection reveals/focuses detail, and daily history discloses its provisional latest session. Evidence is recorded in the sidecar from the four supplied desktop/mobile captures. This documentation merge adds no independent device-test claim.
+
+The 2026-10-15 extension also received a supplied fresh **SHIP** disposition with no material fixes for Economy, navigation and Games. The sidecar retains the original review and records the five extension captures separately. These captures show demo/provider-setup states and desktop/phone compositions; they do not establish live provider coverage, paid model results or physical-device validation.
+
+### Public Games links
+
+Games uses the bundled Geist font as Vault Sans, with system sans as fallback: 16px/1.6 body, 48px page title reduced to 36px on phones, 22px section headings, 20px link titles, 15px descriptions and 12px Open site labels. Whole rows are links, with warm-accent title hover and a 2px accent focus outline offset by 5px. Each entry names its external destination and opens a separate tab. The header offers Private Vault; Hosted here explicitly says no local games are installed. These scoped directory styles do not replace the typography or palette of other Vault surfaces.
 
 ## Do's and Don'ts
 
@@ -774,4 +800,4 @@ Shopping disclosure refinement (2026-10-13): Norway alternatives start collapsed
 
 ArtCraft/sharing evidence (2026-10-13): the scoped record in `.impeccable/design.json` identifies the implementation sources and five supplied browser captures. This is a precise extension of the established Operate surface, with no new visual world or approved composition claimed. Final reviewer disposition is **SHIP** for the two scored fixes: usable desktop downloads exclude updater metadata, and PRODUCT/DESIGN persistence is corrected. File-and-capture review found valid desktop/mobile captures and no regressions from these fixes; this is not an independent functional test or a review of unrelated surfaces.
 
-Economy (2026-10-14) extends the established Operate shell with Markets, Sandbox, Decision journal and Setup views. Keep the existing type, surfaces, accent and light/dark behavior. Markets uses a line-divided watchlist beside price/history detail; Sandbox pairs the portfolio and holdings with the four-role decision workspace. On phones these columns stack, table overflow stays contained, and the six-section navigation remains reachable. Provider setup uses standard labelled password/model fields, explicit configuration states and connection tests. Synthetic demo prices and paper-only execution remain explicit. Financial gains/losses use scoped green/red text with numeric signs, never color alone. The detailed contract is `.impeccable/economy-surface.md`.
+Economy (2026-10-14, extended 2026-10-15) extends the established Operate shell with Markets, Sandbox, Decision journal, Analytics and Setup views. Keep the existing type, surfaces, accent and light/dark behavior. Markets uses a line-divided catalogue/watchlist beside price/history detail; Sandbox pairs the portfolio and holdings with the four-role decision workspace. On phones these columns stack, table overflow stays contained, and the seven-destination icon navigation remains reachable with Apps last. Provider setup uses standard labelled password/model/rate fields, explicit configuration states and connection tests. Synthetic demo prices and paper-only execution remain explicit. Financial gains/losses use scoped green/red text with numeric signs, never color alone. The detailed contract is `.impeccable/economy-surface.md`.

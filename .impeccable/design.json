@@ -1,30 +1,59 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-14T00:00:00Z",
+  "generatedAt": "2026-10-15T00:00:00Z",
   "title": "Design System: Vault \u2014 Library, Watch, Listen, and Apps",
   "extensions": {
     "economy": {
-      "updatedAt": "2026-10-14",
+      "updatedAt": "2026-10-15",
       "scope": "Narrow merge of shipped Economy semantics; preserve the incumbent Vault world and unrelated records.",
       "surfaceBrief": ".impeccable/economy-surface.md",
-      "sources": ["public/economy.js", "public/economy.css"],
+      "sources": ["public/economy.js", "public/economy.css", "public/appearance.css", "public/index.html"],
       "authority": "Pinned Operate surface: Nordnet-like table and portfolio pattern inside the existing Vault shell.",
       "tokenRefs": ["colors.economy-positive-dark", "colors.economy-negative-dark", "colors.economy-positive-light", "colors.economy-negative-light"],
       "colors": "Inherit dark/light theme and Appearance accent. Scoped positive/negative text accompanies signed percentages; negative also marks inline errors. Missing values use an em dash; USDT keeps its currency suffix.",
       "layout": "1580px maximum, 36px top and 72px bottom padding, clamp(20px,3vw,52px) side gutters. Markets 1.25:1 with 36px gap; Sandbox flexible portfolio plus 340px decisions with 38px gap. Flat dividers, unfilled accent charts, no new shadows or imagery.",
       "responsive": [
         {"maxWidth": "1100px", "behavior": "112px header. Markets stacks; instrument selection scrolls detail into view and focuses its heading. Sandbox decision column narrows to 300px with 20px gap."},
-        {"maxWidth": "700px", "behavior": "24px 18px 60px page padding; 16px body/fields, 28px heading, 22px balances. Sandbox/forms stack; full-width experiment selector, wrapping actions/balances. Contained table scrolling at 390px minimum. Local tabs scroll with 44px minimum targets."},
-        {"maxWidth": "600px", "behavior": "150px shared header; six-section navigation scrolls within its own row."}
+        {"maxWidth": "700px", "behavior": "24px 18px 60px page padding; 16px body/fields, 28px heading, 22px balances. Sandbox, experiment and Setup fields stack; catalogue filters retain two columns with full-width company/symbol input. Full-width experiment selector, wrapping actions/balances. Contained table scrolling at 390px minimum. Local tabs scroll with 44px minimum targets. Shared navigation always uses accessible labelled icons with 40px minimum targets."},
+        {"maxWidth": "600px", "behavior": "150px shared header; seven-destination navigation scrolls within its own row, with Apps last."}
       ],
       "controls": "40px minimum buttons, 42px fields, 6px corners. Primary actions invert theme text/ground; secondary hover uses the shared fill. Current tab: 2px accent underline. Focus: 2px accent outline, 3px offset. Disabled: 0.5 opacity. Selection uses soft accent; watchlist stars expose pressed state.",
-      "dataSemantics": "Quote source, market-open state, timestamp, delay and currency remain visible. Daily history covers up to 90 sessions with a provisional latest-session note. Portfolio charts identify recorded observations; missing history has an explanatory empty state. Demo, stale marks, missing providers and paper-only execution remain explicit.",
+      "dataSemantics": "Quote source, market-open state, timestamp, delay and currency remain visible. History selection offers intraday five-minute candles and one-month, three-month, one-year and five-year ranges, with a provisional latest-session note and visible errors. Portfolio charts identify recorded observations; missing history has an explanatory empty state. Demo, stale marks, missing providers and paper-only execution remain explicit.",
+      "extension": {
+        "updatedAt": "2026-10-15",
+        "authority": "Extend the incumbent Operate world; no new world, global type replacement or broad token audit.",
+        "catalogue": "All stocks, Watchlist and Crypto precede company/symbol, exchange, country and currency filters. Catalogue count/update time, pagination and Refresh first 4 remain explicit. Inclusion does not promise quote access; prices load on request and missing setup identifies starter instruments.",
+        "runs": "Flat schedule controls and Universe, schedule and spending disclosure reuse standard fields. Show schedule, rolling scan visits/cursor, budget used/reserved and pinned models. Saving snapshots model IDs and token prices from Setup. Batch scanning does not claim every stock is reviewed at once; existing holdings are reviewed each cycle. Server uptime is required.",
+        "journal": "Four parallel viewpoints precede shared debate and vote. Keep phase, model, self-reported confidence, evidence timestamps, estimated costs and errors visible within disclosures; do not invent opinions for empty journals.",
+        "analytics": "Reuse balance bands, observation charts and contained tables for trading P&L, AI/data costs, net results, exposure, daily history and comparisons. Distinguish illustrative token assumptions from estimates based on recorded usage; neither is an invoice. Unknown costs or missing conversion rates leave affected net results unavailable. Budget reservations are estimates, not provider billing limits.",
+        "navigation": "Library, Watch, Listen, Recipes, Economy, Games, Apps. Apps stays last; Games is a link to /games/. Phone navigation always shows accessible labelled icons. Local Economy navigation adds Analytics between Decision journal and Setup.",
+        "review": {
+          "disposition": "SHIP",
+          "materialFixes": [],
+          "scope": "Supplied fresh finish-review verdict for Economy, navigation and Games. Documenter inspected the five supplied captures and source. No independent paid-provider, deployment or physical-device test claim."
+        },
+        "evidence": [".impeccable/review/economy-v2-analytics.png", ".impeccable/review/economy-v2-mobile.png", ".impeccable/review/economy-v2-markets.png", ".impeccable/review/games-v2-desktop.png", ".impeccable/review/games-v2-mobile.png"],
+        "notCanonized": "Illustrative token assumptions, demo returns, self-reported model confidence and provider catalogue size are not measured performance or billing truth. No new visual world, decorative motion, kicker or glyph-icon convention is introduced."
+      },
       "review": {
         "disposition": "SHIP",
         "resolvedFindings": ["Stacked Markets selection reveals detail and focuses its heading.", "Daily price history identifies the potentially open latest session as provisional."],
         "scope": "Supplied final reviewer disposition and four valid captures; documentation only, with no independent interaction or device-test claim."
       },
       "evidence": [".impeccable/review/economy-desktop.png", ".impeccable/review/economy-markets-desktop.png", ".impeccable/review/economy-mobile.png", ".impeccable/review/economy-mobile-markets.png"]
+    },
+    "games": {
+      "updatedAt": "2026-10-15",
+      "scope": "Public flat link directory applying the incumbent Vault sans and quiet archive treatment; scoped palette and typography do not replace other worlds.",
+      "sources": ["public/games/index.html", "public/games/games.css"],
+      "tokenRefs": ["colors.games-ground-dark", "colors.games-text-dark", "colors.games-muted-dark", "colors.games-line-dark", "colors.games-accent-dark", "colors.games-ground-light", "colors.games-text-light", "colors.games-muted-light", "colors.games-line-light", "colors.games-accent-light"],
+      "theme": "System color preference selects the dark/light Games tokens; private Vault's saved Appearance settings are not inherited. Warm accent marks link feedback on flat green-black or warm-paper grounds.",
+      "typography": "Bundled Geist under Vault Sans, with system sans fallback; 16px/1.6 body, 48px page title reduced to 36px at 600px, 22px section headings, 20px link titles, 15px descriptions and 12px Open site labels.",
+      "layout": "Header, main and footer share 1120px maximum width and 24px by 32px padding. Two-column flat directory; rows have 24px vertical padding, 28px trailing gutter and bottom dividers. Sections have 48px bottom spacing. At 600px, one column, 20px page padding and no trailing row gutter. No imagery, elevation or added motion.",
+      "interaction": "Whole rows are external links opening a separate tab with noopener/noreferrer. Title hover uses the scoped accent; visible focus is a 2px accent outline with 5px offset. Header offers Private Vault. Hosted here explicitly states that no local games are installed.",
+      "evidence": [".impeccable/review/games-v2-desktop.png", ".impeccable/review/games-v2-mobile.png"],
+      "review": "Included in the supplied 2026-10-15 SHIP verdict with no material fixes; captures show dark desktop/phone layouts. Light palette is code evidence, not a separate captured light-mode review.",
+      "notCanonized": "External game links do not imply local installation, embedded play or guaranteed availability. The single page headline is not promoted into a global display token."
     },
     "cookbookAccess": {
       "updatedAt": "2026-10-14",

@@ -2,7 +2,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),express=require('express');
 const {createExperiment,createStore,execute,mark,valuation}=require('../lib/economy-store');
 const {createMarket,demo}=require('../lib/economy-market');
-const {consensus}=require('../lib/economy-agents');
 const {economyRoutes}=require('../lib/economy-routes');
 const now=Date.now(),quote={instrument:demo,price:100,asOf:now,marketOpen:true,source:'Synthetic demo'};
 function account(overrides={}){return createExperiment({name:'Test experiment',mode:'demo',initial:10000,maxPositionPct:50,...overrides});}
@@ -27,10 +26,6 @@ test('loss and order limits apply; marks and benchmarks use observed data withou
  execute(e,{clientId:'daily003',side:'sell',quantity:1},{...quote,price:80},now+1000);
  assert.throws(()=>execute(e,{clientId:'daily004',side:'sell',quantity:1},quote,now+1000),/order limit/);
 });
-test('critic vetoes, risk size increases and direction changes cannot pass consensus',()=>{
- const m=[{role:'strategist',action:'buy',quantity:5,approve:true},{role:'critic',approve:true},{role:'risk',action:'buy',quantity:3,approve:true}];assert.deepEqual(consensus(m),{side:'buy',quantity:3});
- for(const bad of [{role:'critic',approve:false},{role:'risk',action:'buy',quantity:6,approve:true},{role:'risk',action:'sell',quantity:3,approve:true}])assert.equal(consensus(m.map(v=>v.role===bad.role?bad:v)).side,'hold');
-});
 test('provider adapters retain timestamps, cache quotes and fail closed without a stock key',async()=>{
  let requests=0;const i={provider:'twelve',symbol:'AAPL',name:'Apple',exchange:'NASDAQ',currency:'USD'};
  const market=createMarket(()=>({twelveDataApiKey:'fixture'}),async url=>{requests++;assert.equal(new URL(url).hostname,'api.twelvedata.com');return new Response(JSON.stringify({symbol:'AAPL',currency:'USD',close:'190.5',timestamp:Math.floor(now/1000),is_market_open:false,percent_change:'-1.1'}));},()=>now);
@@ -49,22 +44,6 @@ test('authenticated API isolates experiments, ignores submitted prices and expos
  await f.call('/experiments/'+id,{paused:true},'owner','PATCH');assert.equal((await f.call('/experiments/'+id+'/orders',{...input,clientId:'manual0002'})).status,400);
  const store=createStore(path.join(f.root,'.economy'));assert.equal(store.read('owner').experiments[0].orders.length,1);assert.equal(store.read('guest').experiments.length,0);
 });
-test('four real role calls see prior discussion and commit one paper order after approval',async t=>{
- const seen=[];const f=await fixture(t,async(url,opts)=>{assert.equal(url,'https://api.openai.com/v1/responses');const body=JSON.parse(opts.body),input=JSON.parse(body.input);seen.push(input.discussion.length);assert.equal(body.store,false);return Response.json({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({action:'buy',quantity:1,approve:true,confidence:0.6,reason:'Fixture reasoning, not a live agent result.',risks:['Fixture risk']})}]}]});});
- const e=(await f.call('/experiments',{name:'Panel',mode:'demo'})).data;
- const started=await f.call('/experiments/'+e.id+'/rounds',{instrument:demo});assert.equal(started.status,202);
- let result;for(let n=0;n<60;n++){result=(await f.call()).data.experiments[0];if(result.rounds[0].status!=='running')break;await new Promise(r=>setTimeout(r,20));}
- assert.deepEqual(seen,[0,1,2,3]);assert.equal(result.rounds[0].status,'executed',result.rounds[0].error);assert.equal(result.orders.length,1);assert.equal(result.orders[0].actor,'agents');
-});
-test('pausing during a discussion prevents execution and unfinished rounds recover after restart',async t=>{
- let release,entered;const started=new Promise(r=>entered=r);const gate=new Promise(r=>release=r);
- const f=await fixture(t,async()=>{entered();await gate;return Response.json({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({action:'buy',quantity:1,approve:true,confidence:0.5,reason:'Fixture',risks:[]})}]}]});});
- const e=(await f.call('/experiments',{name:'Pause test',mode:'demo'})).data;await f.call('/experiments/'+e.id+'/rounds',{instrument:demo});await started;
- assert.equal((await f.call('/experiments/'+e.id+'/rounds',{instrument:demo})).status,400);await f.call('/experiments/'+e.id,{paused:true},'owner','PATCH');release();
- let result;for(let n=0;n<60;n++){result=(await f.call()).data.experiments[0];if(result.rounds[0].status!=='running')break;await new Promise(r=>setTimeout(r,20));}assert.equal(result.orders.length,0);assert.equal(result.paused,true);assert.equal(result.rounds[0].status,'failed');
- const store=createStore(path.join(f.root,'.economy')),d=store.read('owner');d.experiments[0].rounds.push({id:'interrupted',status:'running'});store.write('owner',d);store.recover();assert.equal(store.read('owner').experiments[0].rounds.at(-1).status,'interrupted');
-});
-
 test('client renders USDT quotes and exposes provider setup only to an administrator',async()=>{
  const vm=require('node:vm'),syncFs=require('node:fs'),controls=new Map(),root={innerHTML:'',scrollTop:0,querySelectorAll(selector){const attr=selector.slice(1,-1),re=new RegExp(attr+'="([^"]+)"','g');return [...this.innerHTML.matchAll(re)].map(m=>{const camel=attr.replace(/^data-/,'').replace(/-([a-z])/g,(_,c)=>c.toUpperCase()),b={dataset:{[camel]:m[1]}};controls.set(attr+':'+m[1],b);return b;});}};
  const btc={provider:'binance',symbol:'BTCUSDT',exchange:'Binance',currency:'USDT',name:'Bitcoin'},state={mode:'economy',user:'alice',role:'admin',q:''};

@@ -62,6 +62,12 @@ async function main() {
     assert(blocked.status===403,'Cross-origin browser mutation was accepted');
   }
 
+  const games=await fetch(`${base}/games/`);
+  assert(games.ok && (await games.text()).includes('A place to play.'), 'Public Games directory is unavailable');
+  assert((await fetch(`${base}/games/games.css`)).ok, 'Games assets must stay inside the public games path');
+  assert((await fetch(`${base}/games/geist.woff2`)).ok, 'Games font must stay inside the public games path');
+  assert((await fetch(`${base}/api/files`)).status===401, 'Public games must not expose Vault files');
+  assert((await fetch(`${base}/api/economy`)).status===401, 'Public games must not expose financial experiments');
   const login = await fetch(`${base}/api/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: 'tester', pass: 'correct-horse-battery-staple' }),

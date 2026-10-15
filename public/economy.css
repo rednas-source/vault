@@ -3,6 +3,7 @@ body.economy-mode .library-sidebar,body.economy-mode .library-heading,body.econo
 body.economy-mode #app>main{display:block;min-height:0}body.economy-mode .library-workspace{height:100%;min-height:0}body.economy-mode #scroll{height:100%;overflow:auto;padding:0}
 body.economy-mode #app>main,body.economy-mode #scroll,#app>header.app-header,#app>header .space-nav{min-width:0}
 .economy-market-layout>section,.economy-sandbox-layout>section{min-width:0}
+.economy-catalogue-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}.economy-catalogue-form>label:first-child{grid-column:1/-1}.economy-pagination{justify-content:space-between;margin:20px 0;color:var(--muted)}.economy-run{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:24px}.economy-run summary{cursor:pointer;padding:12px 0;color:var(--accent)}.economy-run small{display:block;margin-top:6px}.economy-run form{margin-top:16px}.economy-model{border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}.economy-model label+label{margin-top:12px}.economy-tabs{overflow-x:auto;white-space:nowrap}.economy-tabs button{flex-shrink:0}
 .economy-page header.economy-heading{height:auto;min-height:0;padding:0;background:none;border:0;position:static;backdrop-filter:none}
 .economy-page{max-width:1580px;margin:auto;padding:36px clamp(20px,3vw,52px) 72px;color:var(--light);font:14px/1.6 var(--sans);--economy-positive:#75cfa5;--economy-negative:#ff9b91}
 html[data-theme=light] .economy-page{--economy-positive:#18734b;--economy-negative:#ac3530}
