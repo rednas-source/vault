@@ -477,7 +477,7 @@ Listen uses its shell, ground, raised, panel, and hover neutrals with cool-white
 
 Economy inherits Vault's dark/light ground, text, dividers, selection and Appearance accent. Its scoped Positive and Negative dark/light tokens add gain/loss text; negative also marks inline errors. Signed percentages accompany financial color, missing readings use an em dash, and USDT remains an explicit currency suffix. These tokens do not change other surfaces.
 
-The public Games directory uses the scoped Games tokens: a green-black ground and warm light text in dark mode, a warm paper ground and dark green ink in light mode, quiet dividers and a restrained warm accent for link feedback. Its theme follows the operating-system preference; this standalone page does not inherit private Vault's saved Appearance palette. This is a scoped application of Vault's quiet archive treatment, not a new site-wide identity.
+The public Games directory uses the scoped Games tokens: a green-black ground and warm light text in dark mode, a warm paper ground and dark green ink in light mode, quiet dividers and a restrained warm accent for link feedback. Its theme follows the operating-system preference; this standalone page does not inherit private Vault's saved Appearance palette. Inside authenticated Vault, Games inherits the shared theme and Appearance accent. This is a scoped application of Vault's quiet archive treatment, not a new site-wide identity.
 
 ## Typography
 
@@ -555,9 +555,9 @@ Economy extends the incumbent Operate surface with the pinned Nordnet-like table
 
 At 1100px and below Markets stacks its detail; selecting an instrument reveals the detail and focuses its heading. Sandbox narrows the decision column to 300px, then stacks at 700px. At 700px and below page padding is 24px 18px 60px; experiment and Setup fields stack, experiment selection fills the width, actions and balances wrap, and tables scroll within their container with a 390px minimum width. Local navigation scrolls with 44px minimum targets. Catalogue filters retain two columns with a full-width company/symbol field and a 12px gap. At 600px the shared navigation scrolls within its own row.
 
-### Public Games directory
+### Shared Games directory
 
-Header, main and footer share a 1120px maximum width and 24px by 32px padding. Flat link rows form two columns with 24px vertical padding, quiet bottom dividers and a 28px trailing gutter; sections have 48px bottom spacing. At 600px and below the directory becomes one column with 20px page padding and no trailing row gutter. There are no artwork cards, elevated tiles or added motion.
+Private Games retains the shared Vault header and scrolls beneath its 68px / 112px / 150px rows. The same directory mounts at public `/games/`. Content has a 1450px maximum width and 36px 36px 64px padding. Two columns use a 36px gap and flat, line-divided entries with 26px vertical padding. At 700px and below, content uses 24px 18px 48px padding and one column; heading and player controls stack. The optional player precedes the directory, with a full-width 70dvh frame (65dvh on phones), a 360px minimum height and viewport-fitting fullscreen treatment. There are no artwork cards, elevated tiles or added motion.
 
 ## Elevation & Depth
 
@@ -614,7 +614,7 @@ Video theater is edge-to-edge with square corners. Its controls use Player Contr
 
 ### Navigation
 
-The primary spaces appear in order: Library, Watch, Listen, Recipes, Economy, Games, Apps; Apps stays last. Games is a real link to the public directory. They share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps desktop text labels for icons while preserving accessible labels and titles. At 700px and below, navigation always shows icons with accessible names and at least 40px targets. Search stays centered outside mobile Listen, and Shared links, Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Shared links sits immediately before Activity. Mobile Listen retains space navigation in its 52px header, moves music search into Search, and groups permission-dependent utility actions in Vault tools beside Appearance. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
+The primary spaces appear in order: Library, Watch, Listen, Recipes, Economy, Games, Apps; Apps stays last. Games opens inside the authenticated Vault shell, with a separate Public games page link. They share unboxed, small-radius tabs. Active state uses a translucent accent fill and accent text; hover uses the local hover surface and primary text. Appearance optionally swaps desktop text labels for icons while preserving accessible labels and titles. At 700px and below, navigation always shows icons with accessible names and at least 40px targets. Search stays centered outside mobile Listen, and Shared links, Activity, Manage Vault, Add to Vault, and Appearance use compact circular icons with existing permission-dependent visibility. Shared links sits immediately before Activity. Mobile Listen retains space navigation in its 52px header, moves music search into Search, and groups permission-dependent utility actions in Vault tools beside Appearance. Watch's local navigation retains its white underline. Browser-local appearance preferences persist; Default colors restores space-specific defaults.
 
 ### Apps Directory and Workspace
 
@@ -752,15 +752,21 @@ Setup groups its four role models in labelled fieldsets with native selects and 
 
 The 2026-10-15 model-selection refinement received a supplied fresh **SHIP** disposition with no material fixes. The documenter inspected the scrolled desktop and phone Setup captures recorded separately in the sidecar; these confirm composition, not live provider prices or physical-device testing.
 
+Sol tests use an inline Sandbox disclosure, the existing native duration select and Prepare Sol tests action. Copy identifies two $100,000 USD paper portfolios, four pinned Sol roles, a fixed five-stock starting universe (Apple, Microsoft, NVIDIA, Amazon and Alphabet) and SPY buy-and-hold. The short preset defaults to four hours, optionally one hour, with 15-minute reviews and a $20 AI cap; the 30-day preset reviews daily with a $10 cap. Preparation makes no paid calls and reuses existing tests without restarting them. Separate explicit start controls retain connection, market-hours and fresh-quote requirements. These are preparation controls, not evidence that live experiments have started.
+
+Run status names its combined amount explicitly: AI spend + reservations: [amount] of [amount] cap. Analytics distinguishes trading return above benchmark from Net return above buy & hold (after AI/data), with Net above benchmark in experiment comparison. Runtime model prices remain data, not design tokens. The supplied final Games/Sol review is **SHIP** for the two scored fixes: unambiguous budget wording and removal of Unicode external-link arrows. The parent reports all five refreshed desktop/phone/player captures inspected and no regressions; this documentation pass adds source review, not independent browser or live-provider testing.
+
 Analytics reuses balance bands, unfilled observation charts and contained tables for trading P&L, AI/data costs, net results, exposure, daily history and experiment comparison. Unknown model costs or missing currency conversion keep affected net results unavailable. Token-based costs are labelled estimates, not invoices; configured budget reservations are not provider billing limits. Do not promote illustrative examples, synthetic demo returns, model confidence or catalogue size into measured performance claims.
 
 The supplied final Economy review disposition is **SHIP**. Both findings are resolved: stacked Markets selection reveals/focuses detail, and daily history discloses its provisional latest session. Evidence is recorded in the sidecar from the four supplied desktop/mobile captures. This documentation merge adds no independent device-test claim.
 
 The 2026-10-15 extension also received a supplied fresh **SHIP** disposition with no material fixes for Economy, navigation and Games. The sidecar retains the original review and records the five extension captures separately. These captures show demo/provider-setup states and desktop/phone compositions; they do not establish live provider coverage, paid model results or physical-device validation.
 
-### Public Games links
+### Games directory and player
 
-Games uses the bundled Geist font as Vault Sans, with system sans as fallback: 16px/1.6 body, 48px page title reduced to 36px on phones, 22px section headings, 20px link titles, 15px descriptions and 12px Open site labels. Whole rows are links, with warm-accent title hover and a 2px accent focus outline offset by 5px. Each entry names its external destination and opens a separate tab. The header offers Private Vault; Hosted here explicitly says no local games are installed. These scoped directory styles do not replace the typography or palette of other Vault surfaces.
+Private Games inherits Vault Sans; public Games loads the existing bundled Geist file under the scoped alias Vault Games Sans, with system sans fallback. Body text is 15px/1.6, increasing to 16px on phones; the page heading is 32px, reducing to 28px, game titles are 20px and notes are 13px. Each line-divided entry separates Play here from Open website. Buttons and links have 44px minimum targets; buttons use 6px corners, transparent ground and divider-colored hover fill. Focus uses a 2px accent outline with 3px offset. External links use explicit text with accessible new-tab context, without Unicode arrow decorations.
+
+Play here creates one sandboxed third-party frame on demand, replacing any previous player and focusing its heading. Close game removes the frame and returns focus to its launch button. Fullscreen keeps the controls with the game; unsupported fullscreen exposes a status message. Open website remains available in both the directory and player. Publisher loading, blank-frame and sign-in limitations remain explicit; Wordle is link-only because its publisher blocks embedding. The private heading links to Public games page; the public heading links to Private Vault. Embedded content is externally hosted, not a local installation or a guaranteed working session.
 
 ## Do's and Don'ts
 

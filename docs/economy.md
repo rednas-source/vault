@@ -68,3 +68,11 @@ Tests use fixture providers to verify parallel reviews, debate, consensus, budge
 - [Structured model outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 - [Model pricing](https://developers.openai.com/api/docs/pricing)
 - [Public Binance data](https://github.com/binance/binance-spot-api-docs/blob/master/faqs/market_data_only.md)
+
+## Sol experiment presets
+
+Sandbox → Sol tests → Prepare Sol tests creates (or reuses) a four-hour test with 15-minute reviews and a $20 AI cap, plus a 30-day test with daily reviews and a $10 AI cap. The short test can instead be one hour. Each uses $100,000 simulated USD, all four roles pinned to gpt-6.1-sol, and SPY buy-and-hold. The initial fixed universe is AAPL, MSFT, NVDA, AMZN and GOOGL: two rotating candidates plus holdings per review. It is a focused starting experiment, not a whole-market scan. Custom experiments still support the provider catalogue.
+
+POST /api/economy/experiment-presets with {"shortHours":4} prepares only: it does not call providers, start a timer or spend API funds. Repeated preparation preserves existing tests and spend. Use the normal research start endpoint for each experiment. Preset schedules run weekdays 09:35–15:50 America/New_York; quotes still validate actual market opening, holidays and freshness. Short starts require a fresh open-market quote; duration is elapsed wall-clock time. Daily presets wait for the next eligible window and retry closed-market evidence after 15 minutes without model calls. These tests require the Vault server to stay online.
+
+Reasoning models receive a 6,000-token output allowance including reasoning; Sol explicitly uses low effort and other models keep their own default; reservations include that maximum before any call. Incomplete/failed rounds retain conservative reservations. The cap is locally enforced against these estimates, not an OpenAI invoice guarantee. Stop never clears accounted spend. Analytics includes net percentage-point return above buy-and-hold after recorded AI and allocated data costs; unknown costs hide net comparisons. Benchmarks exclude dividends, taxes and corporate actions.

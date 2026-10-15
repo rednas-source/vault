@@ -44,6 +44,31 @@ test('stop during concurrent opinions prevents debate and order; failed calls re
 test('analytics never treats unknown AI costs or missing FX as a net profit',()=>{
  const e=createExperiment({name:'NOK',currency:'NOK'});e.rounds=[{messages:[{usage:{input:100,output:10}}]}];assert.equal(analytics(e).netPnl,null);e.rounds=[];assert.equal(analytics(e).aiPortfolio,null);e.research={usdRate:10};assert.equal(analytics(e).netPnl,0);
 });
+
+test('Sol presets are idempotent, unfunded paper tests with fixed caps and benchmarks',()=>{
+ const {prepareSolTests}=require('../lib/economy-presets');const d={experiments:[]};const both=prepareSolTests(d,4,123);
+ assert.equal(d.experiments.length,2);assert.deepEqual(both.map(e=>e.research.budgetUSD),[20,10]);assert.deepEqual(both.map(e=>e.research.durationHours),[4,720]);assert.deepEqual(both.map(e=>e.research.intervalMinutes),[15,1440]);
+ for(const e of both){assert.equal(e.mode,'paper');assert.equal(e.benchmark.instrument.symbol,'SPY');assert.equal(e.research.enabled,false);assert.equal(e.research.endsAt,null);assert.equal(e.universe.length,5);assert.ok(Object.values(e.research.models).every(m=>m==='gpt-6.1-sol'));}
+ both[0].research.spentUSD=3;prepareSolTests(d,4);assert.equal(d.experiments.length,2);assert.equal(d.experiments[0].research.spentUSD,3);
+ assert.equal(prepareSolTests(d,1)[0].research.durationHours,1);assert.equal(d.experiments.length,3);assert.throws(()=>prepareSolTests(d,2),/one-hour/);
+});
+
+test('net benchmark comparison subtracts AI/data costs and hides uncertain results',()=>{
+ const e=createExperiment({name:'After costs',initial:10000});e.cash=10200;e.benchmark={start:100,last:101};e.research={dataCostUSD:10};e.rounds=[{messages:[{estimatedUSD:5}]}];
+ assert.ok(Math.abs(analytics(e).netExcessReturnPct-0.85)<1e-9);e.rounds[0].costUncertain=true;assert.equal(analytics(e).netExcessReturnPct,null);
+});
+
+test('US preset review window follows New York daylight savings and excludes weekends',()=>{
+ const {usReviewWindow}=require('../lib/economy-research');
+ assert.equal(usReviewWindow(Date.parse('2026-10-15T13:35:00Z')),true);assert.equal(usReviewWindow(Date.parse('2026-10-15T12:00:00Z')),false);
+ assert.equal(usReviewWindow(Date.parse('2026-10-17T14:00:00Z')),false);assert.equal(usReviewWindow(Date.parse('2026-12-15T13:35:00Z')),false);assert.equal(usReviewWindow(Date.parse('2026-12-15T14:35:00Z')),true);
+});
+
+test('Sol uses a reasoning allowance covered by the preflight reservation',async()=>{
+ const config={openaiApiKey:'fixture',models:Object.fromEntries(councilRoles.map(r=>[r.id,'gpt-6.1-sol'])),rates};let count=0;
+ await council({candidates:[{instrument:demo}]},config,async(url,options)=>{const body=JSON.parse(options.body);assert.equal(body.max_output_tokens,6000);assert.equal(body.reasoning.effort,'low');count++;return response();});
+ assert.equal(count,8);assert.ok(reserveCost({},config)>reserveCost({},{...config,models}));
+});
 test('intraday history uses five-minute candles and keeps UTC intraday timestamps',async()=>{
  const market=createMarket(()=>({twelveDataApiKey:'fixture'}),async url=>{const u=new URL(url);assert.equal(u.searchParams.get('interval'),'5min');assert.equal(u.searchParams.get('outputsize'),'96');return Response.json({values:[{datetime:'2026-10-15 14:35:00',close:'123.45'}]});});
  const h=await market.history({provider:'twelve',symbol:'AAPL',exchange:'NASDAQ',currency:'USD'},'day');assert.equal(h[0].at,Date.parse('2026-10-15T14:35:00Z'));

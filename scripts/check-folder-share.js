@@ -63,7 +63,8 @@ async function main() {
   }
 
   const games=await fetch(`${base}/games/`);
-  assert(games.ok && (await games.text()).includes('A place to play.'), 'Public Games directory is unavailable');
+  assert(games.ok && (await games.text()).includes('id="publicGames"'), 'Public Games directory is unavailable');
+  assert((await fetch(`${base}/games/games.js`)).ok, 'Public Games player script is unavailable');
   assert((await fetch(`${base}/games/games.css`)).ok, 'Games assets must stay inside the public games path');
   assert((await fetch(`${base}/games/geist.woff2`)).ok, 'Games font must stay inside the public games path');
   assert((await fetch(`${base}/api/files`)).status===401, 'Public games must not expose Vault files');

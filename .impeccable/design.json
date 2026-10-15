@@ -26,7 +26,7 @@
         "runs": "Flat schedule controls and Universe, schedule and spending disclosure reuse standard fields. Show schedule, rolling scan visits/cursor, budget used/reserved and pinned models. Saving captures model selections from Setup; future reviews refresh prices when due, while past responses retain their recorded rates. Batch scanning does not claim every stock is reviewed at once; existing holdings are reviewed each cycle. Server uptime is required.",
         "journal": "Four parallel viewpoints precede shared debate and vote. Keep phase, model, self-reported confidence, evidence timestamps, estimated costs and errors visible within disclosures; do not invent opinions for empty journals.",
         "analytics": "Reuse balance bands, observation charts and contained tables for trading P&L, AI/data costs, net results, exposure, daily history and comparisons. Distinguish illustrative token assumptions from estimates based on recorded usage; neither is an invoice. Unknown costs or missing conversion rates leave affected net results unavailable. Budget reservations are estimates, not provider billing limits.",
-        "navigation": "Library, Watch, Listen, Recipes, Economy, Games, Apps. Apps stays last; Games is a link to /games/. Phone navigation always shows accessible labelled icons. Local Economy navigation adds Analytics between Decision journal and Setup.",
+        "navigation": "Library, Watch, Listen, Recipes, Economy, Games, Apps. Apps stays last; Games opens inside the authenticated shell with a separate Public games page link. Phone navigation always shows accessible labelled icons. Local Economy navigation adds Analytics between Decision journal and Setup.",
         "review": {
           "disposition": "SHIP",
           "materialFixes": [],
@@ -34,6 +34,18 @@
         },
         "evidence": [".impeccable/review/economy-v2-analytics.png", ".impeccable/review/economy-v2-mobile.png", ".impeccable/review/economy-v2-markets.png", ".impeccable/review/games-v2-desktop.png", ".impeccable/review/games-v2-mobile.png"],
         "notCanonized": "Illustrative token assumptions, demo returns, self-reported model confidence and provider catalogue size are not measured performance or billing truth. No new visual world, decorative motion, kicker or glyph-icon convention is introduced."
+      },
+      "solPresetRefinement": {
+        "updatedAt": "2026-10-15",
+        "sources": ["public/economy.js", "public/index.html"],
+        "controls": "Inline Sandbox disclosure uses the existing native duration select and Prepare Sol tests action; preserve current type, theme, spacing and control tokens.",
+        "presets": "Two $100,000 USD paper portfolios, four pinned Sol roles, Apple/Microsoft/NVIDIA/Amazon/Alphabet starting universe and SPY buy-and-hold. Short preset: four hours, optionally one hour, 15-minute reviews and $20 AI cap. Long preset: 30 days, daily reviews and $10 AI cap.",
+        "preparation": "Preparation makes no paid calls and reuses existing tests without restarting them. Each test requires an explicit start; connection, US market-hours and short-test fresh-quote requirements remain visible. No live experiments were launched in this task.",
+        "budget": "AI spend + reservations: [amount] of [amount] cap explicitly labels the combined amount. Reservations are estimates, not provider billing limits.",
+        "analytics": "Distinguish Trading return above benchmark from Net return above buy & hold (after AI/data); experiment comparison includes Net above benchmark.",
+        "review": {"disposition": "SHIP", "resolvedFindings": ["Budget amount now explicitly names AI spend plus reservations and the cap.", "Unicode external-link arrows removed from Games; Economy uses the incumbent icon family."], "scope": "Supplied final reviewer disposition for the two scored fixes with no regressions. Parent reports all five Games/Sol captures refreshed and inspected. Documenter reviewed source only; no independent browser, physical-device or paid-provider test claim."},
+        "evidence": [".impeccable/review/economy-sol-desktop.jpg", ".impeccable/review/economy-sol-mobile.jpg"],
+        "notCanonized": "Runtime model rates, captured results and preset preparation are not permanent pricing, measured model performance or evidence of live experiments starting."
       },
       "modelSelectionRefinement": {
         "updatedAt": "2026-10-15",
@@ -55,16 +67,18 @@
     },
     "games": {
       "updatedAt": "2026-10-15",
-      "scope": "Public flat link directory applying the incumbent Vault sans and quiet archive treatment; scoped palette and typography do not replace other worlds.",
-      "sources": ["public/games/index.html", "public/games/games.css"],
+      "scope": "Shared flat directory with on-demand third-party player inside authenticated Vault and at public /games/; scoped public styling does not replace other worlds.",
+      "sources": ["public/games/index.html", "public/games/games.css", "public/games/games.js", "public/index.html"],
       "tokenRefs": ["colors.games-ground-dark", "colors.games-text-dark", "colors.games-muted-dark", "colors.games-line-dark", "colors.games-accent-dark", "colors.games-ground-light", "colors.games-text-light", "colors.games-muted-light", "colors.games-line-light", "colors.games-accent-light"],
-      "theme": "System color preference selects the dark/light Games tokens; private Vault's saved Appearance settings are not inherited. Warm accent marks link feedback on flat green-black or warm-paper grounds.",
-      "typography": "Bundled Geist under Vault Sans, with system sans fallback; 16px/1.6 body, 48px page title reduced to 36px at 600px, 22px section headings, 20px link titles, 15px descriptions and 12px Open site labels.",
-      "layout": "Header, main and footer share 1120px maximum width and 24px by 32px padding. Two-column flat directory; rows have 24px vertical padding, 28px trailing gutter and bottom dividers. Sections have 48px bottom spacing. At 600px, one column, 20px page padding and no trailing row gutter. No imagery, elevation or added motion.",
-      "interaction": "Whole rows are external links opening a separate tab with noopener/noreferrer. Title hover uses the scoped accent; visible focus is a 2px accent outline with 5px offset. Header offers Private Vault. Hosted here explicitly states that no local games are installed.",
-      "evidence": [".impeccable/review/games-v2-desktop.png", ".impeccable/review/games-v2-mobile.png"],
-      "review": "Included in the supplied 2026-10-15 SHIP verdict with no material fixes; captures show dark desktop/phone layouts. Light palette is code evidence, not a separate captured light-mode review.",
-      "notCanonized": "External game links do not imply local installation, embedded play or guaranteed availability. The single page headline is not promoted into a global display token."
+      "theme": "Private Games inherits Vault theme and Appearance accent. Only body.games-public applies the scoped Games tokens and operating-system light/dark preference; this standalone route does not inherit saved private appearance.",
+      "typography": "Private Games inherits Vault Sans. Public Games uses Vault Games Sans, an alias of the existing bundled Geist woff2, with system sans fallback. Body 15px/1.6 increases to 16px at 700px; heading 32px reduces to 28px; game titles 20px and notes 13px.",
+      "layout": "Private mode preserves shared 68px/112px/150px header rows and scrolling content. Directory maximum 1450px with 36px 36px 64px padding; two columns, 36px gap and 26px vertical row padding. At 700px: one column, 24px 18px 48px padding, stacked heading/player controls. Player precedes directory; frame 70dvh, 65dvh on phones, minimum 360px, fitting viewport in fullscreen. No added artwork, elevation or motion.",
+      "interaction": "Separate Play here and Open website actions; 44px minimum targets, 6px button corners, transparent ground, divider-colored hover and 2px accent focus with 3px offset. External links use explicit text and accessible new-tab context with noopener/noreferrer, without Unicode arrows. Private heading links to Public games page; public heading links to Private Vault.",
+      "player": "Play here creates one sandboxed third-party iframe on demand and focuses its heading; another selection replaces it. Sandbox allows scripts, same-origin, forms and pointer-lock; fullscreen/gamepad permissions and no-referrer are explicit. Close game removes the frame and restores launch-button focus. Fullscreen failure and blank/sign-in limitations use status copy; Open website remains available. Wordle is link-only because publisher headers block embedding.",
+      "priorEvidence": [".impeccable/review/games-v2-desktop.png", ".impeccable/review/games-v2-mobile.png"],
+      "evidence": [".impeccable/review/games-shell-desktop.jpg", ".impeccable/review/games-shell-mobile.jpg", ".impeccable/review/games-player-desktop.jpg"],
+      "review": "Supplied final Games/Sol SHIP verdict for the budget-label and Unicode-arrow fixes, with no regressions. Parent reports refreshed captures inspected; this documenter reviewed source, not browser interactions. OS light theme remains code evidence, not a new captured light-mode review.",
+      "notCanonized": "Third-party embedding does not imply local installation, guaranteed availability or sign-in support. The Games font alias is not a new global face; its page heading is not a global display token. Removed Unicode arrows are not an icon convention."
     },
     "cookbookAccess": {
       "updatedAt": "2026-10-14",
