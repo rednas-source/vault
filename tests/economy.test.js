@@ -54,3 +54,46 @@ test('client renders USDT quotes and exposes provider setup only to an administr
  controls.get('data-eco-tab:setup').onclick();assert.match(root.innerHTML,/Provider settings/);
  state.role='member';context.client.render();assert.doesNotMatch(root.innerHTML,/id="ecoSettings"/);assert.match(root.innerHTML,/Ask a Vault administrator/);
 });
+
+const foreign={provider:'twelve',symbol:'AAPL',exchange:'NASDAQ',currency:'USD',name:'Apple'};
+const nokAccount=()=>account({mode:'paper',currency:'NOK',marketScope:'global',feeBps:10,spreadBps:0,slippageBps:0});
+const convertedQuote=(rate=10,overrides={})=>({instrument:foreign,price:100,asOf:now,marketOpen:true,source:'Fixture',fx:{from:'USD',to:'NOK',rate,asOf:now,source:'Fixture'},...overrides});
+test('foreign fills, risk limits, profits and buy-and-hold use NOK, including currency movements',()=>{
+ const e=nokAccount(),q=convertedQuote();e.benchmark={instrument:foreign,start:null,last:null};mark(e,[q],now);
+ const order=execute(e,{clientId:'fx-buy-001',side:'buy',quantity:2},q,now);
+ assert.equal(order.price,1000);assert.equal(order.fee,2);assert.equal(order.gross,2000);assert.equal(order.nativeQuotePrice,100);assert.equal(e.cash,7998);assert.equal(e.positions[0].avgCost,1001);
+ assert.throws(()=>execute(e,{clientId:'fx-risk-01',side:'buy',quantity:4},q,now),/position limit/);
+ const later=convertedQuote(11);mark(e,[later],now);assert.equal(valuation(e,now).equity,10198);assert.equal(valuation(e,now).benchmark,11000);
+ const sold=execute(e,{clientId:'fx-sell-01',side:'sell',quantity:2},later,now);assert.equal(sold.realized,195.8);assert.equal(e.cash,10195.8);assert.equal(e.orders[0].fx.rate,10);assert.equal(e.benchmark.startFx.rate,10);
+});
+test('foreign orders reject missing, stale, reversed and future FX; legacy scope stays single currency',()=>{
+ const e=nokAccount(),buy={clientId:'fx-safe-01',side:'buy',quantity:1},q=convertedQuote();e.horizon='day';
+ for(const fx of [null,{...q.fx,rate:0},{...q.fx,rate:NaN},{...q.fx,from:'NOK',to:'USD'},{...q.fx,asOf:now-120001},{...q.fx,asOf:now+60001}])assert.throws(()=>execute(e,buy,{...q,fx},now),/exchange rate/);
+ e.marketScope='domestic';assert.throws(()=>execute(e,buy,q,now),/Enable Global/);assert.equal(e.orders.length,0);assert.equal(e.cash,10000);
+});
+test('closed foreign holdings allow another open market to trade only with recently retrieved close and current FX',()=>{
+ const e=nokAccount(),q=convertedQuote();execute(e,{clientId:'closed-initial',side:'buy',quantity:1},q,now);
+ const closed={...q,asOf:now-3*3600000,marketOpen:false,observedAt:now};mark(e,[closed],now);assert.equal(valuation(e,now).stale,false);assert.equal(valuation(e,now).closedMarketMarks,1);
+ const other={...q,instrument:{...foreign,symbol:'MSFT'}};execute(e,{clientId:'open-other-01',side:'buy',quantity:1},other,now);assert.equal(e.orders.length,2);
+ assert.throws(()=>execute(e,{clientId:'closed-sell-1',side:'sell',quantity:1},closed,now),/Market is closed/);
+ mark(e,[{...closed,observedAt:now-1200001}],now);assert.equal(valuation(e,now).stale,true);
+ mark(e,[{...closed,marketOpen:null}],now);assert.equal(valuation(e,now).stale,true);
+ assert.throws(()=>mark(e,[{...closed,asOf:now+120000}],now),/valid quote/);
+ mark(e,[{...closed,asOf:now-8*86400000}],now);assert.equal(valuation(e,now).stale,true);
+});
+test('FX adapter caches per major pair, normalizes minor units and never assumes a stablecoin peg',async()=>{
+ const pairs=[],market=createMarket(()=>({twelveDataApiKey:'fixture',requestsPerMinute:100}),async url=>{const pair=new URL(url).searchParams.get('symbol');pairs.push(pair);return Response.json({symbol:pair,rate:pair==='GBP/NOK'?13:pair==='USDT/NOK'?9.9:10,timestamp:Math.floor(now/1000)});},()=>now);
+ assert.equal((await market.fx('GBp','NOK')).rate,.13);assert.equal((await market.fx('GBX','NOK')).rate,.13);assert.equal((await market.fx('GBP','NOK')).rate,13);assert.equal(pairs.length,1);
+ assert.equal((await market.fx('ZAc','NOK')).rate,.1);assert.equal((await market.fx('ILA','NOK')).rate,.1);assert.equal((await market.fx('GBp','GBP')).rate,.01);assert.equal((await market.fx('USDT','NOK')).rate,9.9);assert.ok(pairs.includes('USDT/NOK'));
+ const bad=createMarket(()=>({twelveDataApiKey:'fixture'}),async()=>Response.json({symbol:'NOK/USD',rate:10,timestamp:Math.floor(now/1000)}),()=>now);await assert.rejects(bad.fx('USD','NOK'),/unexpected/);
+ const old=createMarket(()=>({twelveDataApiKey:'fixture'}),async()=>Response.json({symbol:'USD/NOK',rate:10,timestamp:Math.floor(now/1000)-1201}),()=>now);await assert.rejects(old.fx('USD','NOK'),/fresh/);
+});
+test('API converts server quotes and ignores client FX, retaining account isolation and foreign benchmark rules',async t=>{
+ const f=await fixture(t,async url=>{const u=new URL(url);return u.pathname==='/exchange_rate'?Response.json({symbol:u.searchParams.get('symbol'),rate:10,timestamp:Math.floor(Date.now()/1000)}):Response.json({symbol:'AAPL',currency:'USD',close:100,timestamp:Math.floor(Date.now()/1000),is_market_open:true});});
+ await f.call('/settings',{twelveDataApiKey:'fixture',requestsPerMinute:100},'owner','PUT');
+ const created=await f.call('/experiments',{name:'Worldwide NOK',currency:'NOK',marketScope:'global',initial:10000,benchmark:foreign,spreadBps:0,slippageBps:0,feeBps:0});assert.equal(created.status,201);
+ const trade=await f.call('/experiments/'+created.data.id+'/orders',{instrument:foreign,clientId:'fx-api-001',side:'buy',quantity:1,price:1,basePrice:1,fx:{rate:.001,from:'USD',to:'NOK',asOf:Date.now()}});assert.equal(trade.status,201);assert.equal(trade.data.price,1000);assert.equal(trade.data.fx.rate,10);
+ const e=(await f.call()).data.experiments[0];assert.equal(e.summary.benchmark,10000);assert.equal(e.cash,9000);
+ assert.equal((await f.call('/experiments',{name:'Legacy NOK',currency:'NOK',benchmark:foreign})).status,400);
+ const downgrade=await f.call('/experiments/'+e.id+'/research',{enabled:false,source:'catalogue',marketScope:'domestic'},'owner','PUT');assert.equal(downgrade.status,400);assert.match(downgrade.data.error,/Keep Global/);
+});

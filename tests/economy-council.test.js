@@ -71,7 +71,30 @@ test('stop during concurrent opinions prevents debate and order; failed calls re
  await f.call('/experiments/'+f.e.id+'/research',{enabled:false},'PUT');release();const e=await f.result();assert.equal(entered,4);assert.equal(e.orders.length,0);assert.equal(e.paused,true);assert.equal(e.rounds[0].costUncertain,true);assert.ok(e.research.spentUSD>0);assert.equal(e.analytics.netPnl,null);
 });
 test('analytics never treats unknown AI costs or missing FX as a net profit',()=>{
- const e=createExperiment({name:'NOK',currency:'NOK'});e.rounds=[{messages:[{usage:{input:100,output:10}}]}];assert.equal(analytics(e).netPnl,null);e.rounds=[];assert.equal(analytics(e).aiPortfolio,null);e.research={usdRate:10};assert.equal(analytics(e).netPnl,0);
+ const e=createExperiment({name:'NOK',currency:'NOK'});e.rounds=[{messages:[{usage:{input:100,output:10}}]}];assert.equal(analytics(e).netPnl,null);e.rounds=[{messages:[{estimatedUSD:1}]}];assert.equal(analytics(e).aiPortfolio,null);e.research={usdRate:10};assert.equal(analytics(e).netPnl,-10);e.rounds=[];assert.equal(analytics(e).netPnl,0);
+});
+
+test('global NOK council considers countries and currencies together and records FX with its decision and costs',async t=>{
+ const stocks=[{symbol:'AAPL',name:'Apple',exchange:'NASDAQ',currency:'USD',country:'United States'},{symbol:'SAP',name:'SAP',exchange:'XETRA',currency:'EUR',country:'Germany'},{symbol:'EQNR',name:'Equinor',exchange:'OSE',currency:'NOK',country:'Norway'}];let modelCalls=0,context;
+ const f=await fixture(t,async(url,options)=>{const u=new URL(url);
+  if(u.pathname==='/stocks')return Response.json({data:stocks});
+  if(u.pathname==='/exchange_rate')return Response.json({symbol:u.searchParams.get('symbol'),rate:u.searchParams.get('symbol')==='EUR/NOK'?12:10,timestamp:Math.floor(Date.now()/1000)});
+  if(u.pathname==='/time_series')return Response.json({values:[{datetime:'2026-10-15',close:100},{datetime:'2026-10-14',close:99}]});
+  if(u.pathname==='/quote'){const i=stocks.find(i=>i.symbol===u.searchParams.get('symbol'));return Response.json({...i,close:100,timestamp:Math.floor(Date.now()/1000),is_market_open:true});}
+  assert.equal(u.pathname,'/v1/responses');modelCalls++;context=JSON.parse(JSON.parse(options.body).input).evidence;return response({...vote,instrumentKey:'twelve:SAP:XETRA'});
+ });
+ await f.call('/settings',{twelveDataApiKey:'fixture',requestsPerMinute:1000},'PUT');
+ const store=createStore(path.join(f.root,'.economy')),d=store.read('alice'),e=d.experiments[0];e.mode='paper';e.currency='NOK';e.research.source='catalogue';e.research.batchSize=3;e.benchmark={instrument:{...stocks[0],provider:'twelve'},start:null,last:null};store.write('alice',d);
+ const check=await f.call('/experiments/'+e.id+'/preflight',{source:'catalogue',marketScope:'global'});assert.equal(check.data.eligible,3);assert.equal(modelCalls,0);assert.notEqual(store.read('alice').experiments[0].marketScope,'global');
+ const save=await f.call('/experiments/'+e.id+'/research',{enabled:false,marketScope:'global',source:'catalogue',batchSize:3,intervalMinutes:15,durationHours:4,budgetUSD:5},'PUT');assert.equal(save.status,200);
+ assert.equal((await f.call('/experiments/'+e.id+'/council',{})).status,202);const result=await f.result();assert.equal(result.rounds[0].status,'executed',result.rounds[0].error||result.rounds[0].result);assert.equal(modelCalls,8);
+ assert.deepEqual(new Set(context.candidates.map(c=>c.instrument.currency)),new Set(['USD','EUR','NOK']));assert.equal(context.universe.currency,'NOK');assert.equal(context.candidates.find(c=>c.instrument.symbol==='SAP').quote.basePrice,1200);assert.equal(context.candidates.find(c=>c.instrument.symbol==='SAP').history[0].close,99);
+ assert.equal(result.orders[0].fx.rate,12);assert.equal(result.benchmark.start,1000);assert.equal(result.rounds[0].costFx.rate,10);assert.ok(Math.abs(result.analytics.aiPortfolio-result.analytics.aiUSD*10)<1e-9);assert.equal(result.marketScopeChanges[0].to,'global');
+});
+
+test('recorded review FX remains fixed and missing historical conversions keep net returns unavailable',()=>{
+ const e=createExperiment({name:'Costs in NOK',currency:'NOK',marketScope:'global'});e.rounds=[{costFx:{from:'USD',to:'NOK',rate:10},messages:[{estimatedUSD:2}]}];e.costFx={from:'USD',to:'NOK',rate:12};e.research={dataCostUSD:1};assert.equal(analytics(e).aiPortfolio,32);
+ e.costFx.rate=13;assert.equal(analytics(e).aiPortfolio,33);e.rounds.push({messages:[{estimatedUSD:1}]});assert.equal(analytics(e).netPnl,null);e.research.usdRate=9;assert.equal(analytics(e).aiPortfolio,42);
 });
 
 test('Sol presets are idempotent, unfunded paper tests with fixed caps and benchmarks',()=>{
