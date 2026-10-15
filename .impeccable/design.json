@@ -23,7 +23,7 @@
         "updatedAt": "2026-10-15",
         "authority": "Extend the incumbent Operate world; no new world, global type replacement or broad token audit.",
         "catalogue": "All stocks, Watchlist and Crypto precede company/symbol, exchange, country and currency filters. Catalogue count/update time, pagination and Refresh first 4 remain explicit. Inclusion does not promise quote access; prices load on request and missing setup identifies starter instruments.",
-        "runs": "Flat schedule controls and Universe, schedule and spending disclosure reuse standard fields. Show schedule, rolling scan visits/cursor, budget used/reserved and pinned models. Saving snapshots model IDs and token prices from Setup. Batch scanning does not claim every stock is reviewed at once; existing holdings are reviewed each cycle. Server uptime is required.",
+        "runs": "Flat schedule controls and Universe, schedule and spending disclosure reuse standard fields. Show schedule, rolling scan visits/cursor, budget used/reserved and pinned models. Saving captures model selections from Setup; future reviews refresh prices when due, while past responses retain their recorded rates. Batch scanning does not claim every stock is reviewed at once; existing holdings are reviewed each cycle. Server uptime is required.",
         "journal": "Four parallel viewpoints precede shared debate and vote. Keep phase, model, self-reported confidence, evidence timestamps, estimated costs and errors visible within disclosures; do not invent opinions for empty journals.",
         "analytics": "Reuse balance bands, observation charts and contained tables for trading P&L, AI/data costs, net results, exposure, daily history and comparisons. Distinguish illustrative token assumptions from estimates based on recorded usage; neither is an invoice. Unknown costs or missing conversion rates leave affected net results unavailable. Budget reservations are estimates, not provider billing limits.",
         "navigation": "Library, Watch, Listen, Recipes, Economy, Games, Apps. Apps stays last; Games is a link to /games/. Phone navigation always shows accessible labelled icons. Local Economy navigation adds Analytics between Decision journal and Setup.",
@@ -34,6 +34,17 @@
         },
         "evidence": [".impeccable/review/economy-v2-analytics.png", ".impeccable/review/economy-v2-mobile.png", ".impeccable/review/economy-v2-markets.png", ".impeccable/review/games-v2-desktop.png", ".impeccable/review/games-v2-mobile.png"],
         "notCanonized": "Illustrative token assumptions, demo returns, self-reported model confidence and provider catalogue size are not measured performance or billing truth. No new visual world, decorative motion, kicker or glyph-icon convention is introduced."
+      },
+      "modelSelectionRefinement": {
+        "updatedAt": "2026-10-15",
+        "sources": ["public/economy.js", "public/economy.css", "docs/economy.md"],
+        "controls": "Four role fieldsets use labelled native model selects and read-only price notes, replacing editable model IDs and rates. Account-available supported text models match exact official price IDs. Notes show input/output prices per million tokens and available cache/long-context rates, linked to the select with aria-describedby and updated in a polite live region.",
+        "layout": "Existing two-column Setup fields stack at 700px; price notes wrap within the bordered fieldsets. Retain incumbent theme roles, 6px corners, field sizing and focus treatment; no new tokens.",
+        "refresh": "Automatic loading and Refresh models & prices expose loading, freshness and errors in a status region. Refresh preserves unsaved form values and selections. Unsupported or unpriced models cannot start reviews.",
+        "history": "Experiments pin model selections; future reviews refresh prices when due. Past responses retain recorded rates and are not repriced.",
+        "review": {"disposition": "SHIP", "materialFixes": [], "scope": "Supplied fresh finish-review verdict. Documenter inspected source and the two valid scrolled Setup captures; no independent live-provider or physical-device testing claim."},
+        "evidence": [".impeccable/review/economy-models-desktop.png", ".impeccable/review/economy-models-mobile.png"],
+        "notCanonized": "Captured model names and price amounts are runtime data, not design tokens or permanent pricing claims."
       },
       "review": {
         "disposition": "SHIP",
