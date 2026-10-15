@@ -9,4 +9,6 @@ FIRST VIEWPORT: Existing shared header and Games heading above two category butt
 FORM: Bounded extension of the incumbent interface; no concept seed or replacement composition required.
 FINISH: Desktop/mobile captures, functional switching and mode checks, fresh finish review and scoped documentation.
 
-Publisher truth: Wordle and Krillion block cross-site frames; LoLdle detects cross-site embedding and is offered website-only. Globle Capitals has a direct player entry. Sandbox allows user-opened popup links but no top-navigation permission. No proxy or header stripping. Switching games unloads the current frame; changing display mode or category does not.
+Publisher truth: Wordle, Krillion and PokéLike block cross-site frames; LoLdle visibly refuses cross-site embedding. These entries request a dedicated browser window immediately and show a retry/link fallback. Globle Capitals has a direct player entry. Sandbox allows user-opened popup links but no top-navigation permission. No proxy or header stripping. Switching games unloads the current frame; changing display mode or category does not.
+
+Compact refinement: one 44px toolbar row on desktop and two on phones, with 4px theater/fullscreen padding and an 8px gap before the game. The grouped native select switches immediately. More contains help, reload and external launch actions. Keep publisher restrictions explicit and do not mistake a frame load or popup request for successful gameplay.

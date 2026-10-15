@@ -81,20 +81,57 @@
     "games": {
       "updatedAt": "2026-10-15",
       "scope": "Shared flat directory with on-demand third-party player inside authenticated Vault and at public /games/; scoped public styling does not replace other worlds.",
-      "sources": ["public/games/index.html", "public/games/games.css", "public/games/games.js", "public/index.html", "docs/games.md", ".impeccable/games-surface.md"],
-      "tokenRefs": ["colors.games-ground-dark", "colors.games-text-dark", "colors.games-muted-dark", "colors.games-line-dark", "colors.games-accent-dark", "colors.games-ground-light", "colors.games-text-light", "colors.games-muted-light", "colors.games-line-light", "colors.games-accent-light"],
+      "sources": [
+        "public/games/index.html",
+        "public/games/games.css",
+        "public/games/games.js",
+        "public/index.html",
+        "docs/games.md",
+        ".impeccable/games-surface.md"
+      ],
+      "tokenRefs": [
+        "colors.games-ground-dark",
+        "colors.games-text-dark",
+        "colors.games-muted-dark",
+        "colors.games-line-dark",
+        "colors.games-accent-dark",
+        "colors.games-ground-light",
+        "colors.games-text-light",
+        "colors.games-muted-light",
+        "colors.games-line-light",
+        "colors.games-accent-light"
+      ],
       "theme": "Private Games inherits Vault theme and Appearance accent. Only body.games-public applies the scoped Games tokens and operating-system light/dark preference; this standalone route does not inherit saved private appearance.",
       "typography": "Private Games inherits Vault Sans. Public Games uses Vault Games Sans, an alias of the existing bundled Geist woff2, with system sans fallback. Body 15px/1.6 increases to 16px at 700px; heading 32px reduces to 28px; game titles 20px and notes 13px.",
-      "layout": "Private mode preserves shared 68px/112px/150px header rows and scrolling content. Directory maximum 1450px with 36px 36px 64px padding; category buttons precede two columns, 36px gap and 26px vertical row padding. At 700px: one column, 24px 18px 48px padding, stacked heading/player controls. Player precedes directory; normal frame 70dvh, 65dvh on phones, minimum 360px. Theater hides the directory and fills the private workspace below the header or the public viewport. Theater/fullscreen use 16px padding, 12px on phones, with controls above a flexible frame and no frame minimum height. Fullscreen includes the complete player and menu. No added artwork, elevation or motion.",
-      "interaction": "Separate Play here and Open website actions; 44px minimum targets, 6px button corners, transparent ground, divider-colored hover and 2px accent focus with 3px offset. External links use explicit text and accessible new-tab context with noopener/noreferrer, without Unicode arrows. Private heading links to Public games page; public heading links to Private Vault.",
-      "categories": "Daily’s: Wordle, Globle, Globle Capitals, LoLdle, Krillion and Pokédle. Games: WoW browser project and PokéRogue. Pressed category uses an accent underline. Category changes preserve the current frame. The grouped native Switch game select includes all eight entries and labels website-only games; Switch commits a different selection, unloading the previous frame. Select/actions retain 44px targets and accent focus; phone controls wrap with a full-width select.",
-      "player": "Shared private/public implementation creates one sandboxed third-party iframe on demand and focuses its heading. Category and display-mode changes preserve the frame; switching unloads it. Copy says to save progress in the game first, with no autosave promise. Globle Capitals embeds directly. Wordle and Krillion block embedding; LoLdle is unreliable in cross-site frames, so all three are website-only. Selecting them in the player shows a publisher link without an iframe. Open website remains available and opens another tab with noopener/noreferrer. Sandbox allows scripts, same-origin, forms, pointer-lock, allow-popups and allow-popups-to-escape-sandbox for user-opened publisher links; browser popup policies apply and no top-navigation permission is granted. Fullscreen/gamepad permissions and no-referrer remain explicit. Close exits display modes, removes the frame, restores its directory category and focuses the launch button or the matching category after switching. Fullscreen retains the grouped menu and exit controls, disabling the theater toggle while active. Escape in the parent player exits theater and focuses the toggle. Fullscreen failure and blank/sign-in limitations use status copy.",
-      "priorEvidence": [".impeccable/review/games-v2-desktop.png", ".impeccable/review/games-v2-mobile.png"],
-      "priorPlayerEvidence": [".impeccable/review/games-shell-desktop.jpg", ".impeccable/review/games-shell-mobile.jpg", ".impeccable/review/games-player-desktop.jpg"],
-      "evidence": [".impeccable/review/games-categories-desktop.jpg", ".impeccable/review/games-categories-mobile.jpg", ".impeccable/review/games-theater-desktop.jpg", ".impeccable/review/games-theater-mobile.jpg", ".impeccable/review/games-public-theater-mobile.jpg", ".impeccable/review/games-fullscreen-desktop.jpg"],
-      "review": "Supplied fresh 2026-10-15 finish-review disposition SHIP; no material fixes after desktop recapture. Reviewer validated all six captures: category/theater desktop at 1280x720, category/theater/public-theater mobile at 390x844, fullscreen desktop at 3440x1440. Parent reports category filtering, fullscreen switching, private/public theater, mobile layout, LoLdle placeholder without iframe and close-focus checks passed, plus npm run check and npm test. Documenter reviewed source only; no independent browser, publisher-availability or physical-device claim. OS light theme remains code evidence, not a new captured light-mode review. Detector reported only existing Games Sans alias and 32px heading advisories.",
-      "notCanonized": "Third-party embedding does not imply local installation, guaranteed availability, sign-in support or autosaved progress. The existing Games font alias is not a new global face; its 32px page heading is not a global display token. These detector advisories remain scoped facts, not conventions for new surfaces. Removed Unicode arrows are not an icon convention."
-    },
+      "layout": "Private mode preserves shared 68px/112px/150px header rows and scrolling content. Directory maximum 1450px with 36px 36px 64px padding; category buttons precede two columns, 36px gap and 26px vertical row padding. At 700px: one column and 24px 18px 48px padding. Normal frame 70dvh, 65dvh on phones, minimum 360px. Theater fills the private workspace below the header or public viewport. Theater/fullscreen use 4px padding and an 8px content gap above a flexible frame without minimum height. Desktop has one 44px toolbar row and frame starts 56px below the player top; phones use two 44px rows and frame starts at 108px. Fullscreen retains the complete toolbar. No added artwork, elevation or motion.",
+      "interaction": "Separate Play here or Play in window and Open website actions; 44px minimum targets, 6px corners, transparent ground, divider-colored hover and 2px accent focus with 3px offset. External links use explicit text and accessible new-tab context with noopener/noreferrer, without Unicode arrows. More reveals Open in window, Open website, Reload game, status/help and save-first copy in a bordered overlay with 6px corners and contained scrolling. Private heading links to Public games page; public heading links to Private Vault.",
+      "categories": "Daily’s: Wordle, Globle, Globle Capitals, LoLdle, Krillion and Pokédle. Games: WoW browser project, PokéRogue and PokéLike. Pressed category uses an accent underline. Category changes preserve the current frame. The grouped native select includes all nine entries, labels blocked embeds as separate-window games and switches immediately on change; no Switch button. Its accessible label warns that switching reloads the player and to save first. Select and actions retain 44px targets and accent focus; phones place the full-width select above Theater, Fullscreen, More and Close.",
+      "player": "Shared private/public implementation creates one supported iframe on demand and focuses the switcher. Category and display-mode changes preserve the frame; switching or Reload game unloads it. Save-first copy makes no autosave promise. Globle Capitals embeds directly. Wordle, LoLdle, Krillion and PokéLike request direct publisher popups with noopener/noreferrer and no iframe. A visible reason, retry button and new-tab fallback remain. Status says window requested because noopener may return null even on success; browser popup policies apply. More also offers window launch for supported embeds; window launch exits player fullscreen. Supported iframe sandbox retains scripts, same-origin, forms, pointer-lock, allow-popups and allow-popups-to-escape-sandbox without top-navigation permission. Fullscreen/gamepad and no-referrer remain explicit. No embedding restrictions are bypassed. Close removes the frame, exits modes, restores the matching category and focuses the launch button or category after switching. Fullscreen retains select, More and exit controls and disables Theater. Escape first closes More and focuses its summary, otherwise exits theater and focuses its toggle. Fullscreen failure reveals More with recovery copy.",
+      "priorEvidence": [
+        ".impeccable/review/games-v2-desktop.png",
+        ".impeccable/review/games-v2-mobile.png"
+      ],
+      "priorPlayerEvidence": [
+        ".impeccable/review/games-shell-desktop.jpg",
+        ".impeccable/review/games-shell-mobile.jpg",
+        ".impeccable/review/games-player-desktop.jpg"
+      ],
+      "evidence": [
+        ".impeccable/review/games-compact-desktop.png",
+        ".impeccable/review/games-compact-mobile.png",
+        ".impeccable/review/games-window-mobile.png"
+      ],
+      "review": "Supplied fresh compact-toolbar and publisher-window review disposition ship, no material fixes after corrected desktop recapture. Reviewer confirmed nine entries, compact toolbar, immediate switching and explicit external recovery. Valid desktop capture 1280x720; compact and window-fallback mobile captures 390x844. Parent reports npm run check, scoped layout detector (no findings) and git diff --check passed. Parent verified explicit LoLdle iframe refusal and PokéLike X-Frame-Options SAMEORIGIN plus CSP frame-ancestors self, with standalone page loading. Popup navigation was not fully verified because Codex browser popup interception limits the tab inventory. Documenter reviewed source only; no claim all games embed, permanent publisher availability or physical-device testing. Prior category/theater review was SHIP; its six captures are retained separately.",
+      "notCanonized": "Third-party embedding does not imply local installation, guaranteed availability, sign-in support or autosaved progress. A popup request is not confirmed navigation. The existing Games font alias and 32px heading remain scoped implementation facts, not new global typography rules. Removed Unicode arrows are not an icon convention.",
+      "priorTheaterEvidence": [
+        ".impeccable/review/games-categories-desktop.jpg",
+        ".impeccable/review/games-categories-mobile.jpg",
+        ".impeccable/review/games-theater-desktop.jpg",
+        ".impeccable/review/games-theater-mobile.jpg",
+        ".impeccable/review/games-public-theater-mobile.jpg",
+        ".impeccable/review/games-fullscreen-desktop.jpg"
+      ]
+        },
     "cookbookAccess": {
       "updatedAt": "2026-10-14",
       "sources": ["public/index.html", "public/library-tools.js", "lib/recipe-shares.js"],

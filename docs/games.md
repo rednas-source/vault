@@ -3,17 +3,18 @@
 The Games space and public `/games/` page share the same directory and player.
 
 - **Daily’s:** Wordle, Globle, Globle Capitals, LoLdle, Krillion and Pokédle.
-- **Games:** WoW browser project and PokéRogue.
+- **Games:** WoW browser project, PokéRogue and PokéLike.
 - **Theater mode:** fills the available workspace, keeping Vault's header in the private space. On the public page it fills the browser viewport.
 - **Fullscreen:** expands the complete player, including the grouped game switcher and exit controls. Browsers without fullscreen support can still use theater mode.
-- **Switch game:** select a game and press Switch. Switching unloads the previous frame, so save progress in the game first. Category changes and display-mode changes preserve the loaded frame.
+- **Switch game:** choosing a game immediately switches the player. Switching unloads the previous frame, so save progress in the game first. Category changes and display-mode changes preserve the loaded frame.
+- **Compact controls:** theater/fullscreen use one 44px toolbar row on desktop, with the game starting 56px from the top. Phones use two rows and 44px touch targets. More contains Open in window, Open website, Reload game and help instead of permanent explanatory rows.
 - **Close game:** removes the embedded game and restores the matching directory category and keyboard focus.
 
-Wordle and Krillion block cross-site embedding; LoLdle detects cross-site frames and does not reliably work there. These games use explicit publisher links that open in another tab, keeping Vault open. Selecting one in the player menu shows its website link instead of a broken frame.
+Wordle, Krillion and PokéLike block cross-site embedding; LoLdle shows an explicit refusal inside a cross-site frame. Selecting these games requests a dedicated browser window immediately, keeping Vault open. The player also shows the reason, an Open game window retry and a normal new-tab link if popup handling prevents the launch. Browsers may use a tab rather than a window. Launches use `noopener,noreferrer`; because `window.open` may return null even on success with these protections, the status says the window was requested rather than claiming it opened. External launches leave fullscreen so another window can be seen.
 
 Globle Capitals has a direct embedded entry, so it can be opened through Vault's switcher. The sandbox also permits publisher links to open separate tabs; browser popup policies still apply. Frames may run scripts, forms and pointer lock and use their own origin storage. They do not receive top-navigation permission. Vault does not proxy game code, strip publisher security headers, share Vault credentials with games or guarantee publisher sign-in/storage behavior.
 
-Publisher availability was checked on 2026-10-15. Krillion returned `X-Frame-Options: SAMEORIGIN` and `Content-Security-Policy: frame-ancestors 'self'`; LoLdle's public client explicitly checks whether it is embedded on another origin. Globle and Globle Capitals returned no frame prohibition and loaded in the local player. These observations may change as publishers update their sites.
+Publisher availability was checked on 2026-10-15. Krillion and PokéLike returned `X-Frame-Options: SAMEORIGIN` and a CSP containing `frame-ancestors 'self'`. LoLdle's embedded page displayed “you're trying to play from a non-official website”; its experimental embed was removed after that check. PokéLike's standalone page loaded. Globle and Globle Capitals loaded in the local player. These observations may change as publishers update their sites. There is no general iframe option that overrides the publishers' restrictions. An isolated remote-browser service would be a separate deployment with its own resource and session-security requirements; it is not included here.
 
 Entries live in `public/games/games.js`. Keep the category and embed/website-only behavior explicit when adding games. External URLs must use trusted HTTPS publisher origins. A game becoming available in an iframe should be verified in a browser, not inferred solely from missing HTTP restrictions.
 
