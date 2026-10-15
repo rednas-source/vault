@@ -10,3 +10,29 @@ body.games-mode #app>main{display:block;min-height:0}body.games-mode .library-wo
 @media(max-width:1100px){body.games-mode #app.on{grid-template-rows:112px minmax(0,1fr)}}
 @media(max-width:700px){.games-page{padding:24px 18px 48px;font-size:16px}.games-page h1{font-size:28px}.games-list{grid-template-columns:1fr}.games-heading,.games-player-bar{align-items:flex-start;flex-direction:column;gap:12px}.games-player iframe{height:65dvh}.games-actions{gap:10px}}
 @media(max-width:600px){body.games-mode #app.on{grid-template-rows:150px minmax(0,1fr)}}
+.games-categories{display:flex;gap:20px;margin-bottom:28px;border-bottom:1px solid var(--line)}
+.games-categories button{border:0;border-bottom:2px solid transparent;border-radius:0;padding:10px 4px;color:var(--muted)}
+.games-categories button[aria-pressed=true]{border-bottom-color:var(--accent);color:var(--light)}
+.games-list article[hidden]{display:none}
+.games-player-tools,.games-player-navigation{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.games-player-navigation{margin-top:12px;align-items:flex-end}
+.games-player-navigation label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:13px}
+.games-player-navigation select{font:inherit;font-size:15px;color:var(--light);background:var(--bg,#0b0f0d);border:1px solid var(--line);border-radius:6px;min-height:44px;padding:8px;max-width:100%;width:260px}
+.games-player-navigation a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
+.games-page select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.games-page button:disabled{opacity:.5;cursor:default}
+.games-player-content{min-height:0;margin-top:12px}
+.games-player-content iframe{display:block;margin:0}
+.games-external{padding:36px 0;min-height:180px}
+.games-external h3{margin:0 0 16px;font-size:20px}
+.games-external a{display:inline-flex;min-height:44px;align-items:center}
+.games-page.is-theater{height:100%;max-width:none;padding:16px;display:flex;flex-direction:column}
+.games-public .games-page.is-theater{height:100dvh}
+.games-page.is-theater>:not(.games-player){display:none}
+.games-page.is-theater .games-player,.games-player:fullscreen{display:flex;flex-direction:column;flex:1;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.games-player:fullscreen{height:100dvh;width:100%;padding:16px}
+.games-page.is-theater .games-player-content,.games-player:fullscreen .games-player-content{flex:1;min-height:80px;overflow:auto}
+.games-page.is-theater iframe,.games-player:fullscreen iframe{width:100%;height:100%;min-height:0}
+.games-page.is-theater .games-player-bar,.games-player:fullscreen .games-player-bar{flex-shrink:0}
+@media(max-width:700px){.games-player-navigation label{flex:1;min-width:180px}.games-player-navigation select{width:100%;font-size:16px}.games-player-tools button{padding:8px 10px}.games-player-bar{gap:10px}.games-page.is-theater{padding:12px}.games-player:fullscreen{padding:12px}.games-player-status,.games-switch-note{font-size:12px}}
+@media(max-height:500px){.games-page.is-theater .games-player-status,.games-page.is-theater .games-switch-note,.games-player:fullscreen .games-player-status,.games-player:fullscreen .games-switch-note{display:none}.games-page.is-theater .games-player-bar,.games-player:fullscreen .games-player-bar{flex-direction:row;align-items:center}.games-page.is-theater .games-player-bar h2,.games-player:fullscreen .games-player-bar h2{font-size:16px}}
