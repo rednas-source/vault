@@ -48,9 +48,38 @@ test('analytics never treats unknown AI costs or missing FX as a net profit',()=
 test('Sol presets are idempotent, unfunded paper tests with fixed caps and benchmarks',()=>{
  const {prepareSolTests}=require('../lib/economy-presets');const d={experiments:[]};const both=prepareSolTests(d,4,123);
  assert.equal(d.experiments.length,2);assert.deepEqual(both.map(e=>e.research.budgetUSD),[20,10]);assert.deepEqual(both.map(e=>e.research.durationHours),[4,720]);assert.deepEqual(both.map(e=>e.research.intervalMinutes),[15,1440]);
- for(const e of both){assert.equal(e.mode,'paper');assert.equal(e.benchmark.instrument.symbol,'SPY');assert.equal(e.research.enabled,false);assert.equal(e.research.endsAt,null);assert.equal(e.universe.length,5);assert.ok(Object.values(e.research.models).every(m=>m==='gpt-6.1-sol'));}
+ for(const e of both){assert.equal(e.mode,'paper');assert.equal(e.benchmark.instrument.symbol,'SPY');assert.equal(e.research.enabled,false);assert.equal(e.research.endsAt,null);assert.equal(e.universe,undefined);assert.equal(e.research.source,'catalogue');assert.equal(e.research.batchSize,20);assert.ok(Object.values(e.research.models).every(m=>m==='gpt-6.1-sol'));}
  both[0].research.spentUSD=3;prepareSolTests(d,4);assert.equal(d.experiments.length,2);assert.equal(d.experiments[0].research.spentUSD,3);
  assert.equal(prepareSolTests(d,1)[0].research.durationHours,1);assert.equal(d.experiments.length,3);assert.throws(()=>prepareSolTests(d,2),/one-hour/);
+});
+
+test('legacy Sol scope expands once without changing money, schedule, history or custom scopes',()=>{
+ const {prepareSolTests,upgradeSolTests}=require('../lib/economy-presets'),d={experiments:[]};prepareSolTests(d,4,100);
+ const e=d.experiments[0];e.research.source='preset';e.universe=[demo];e.research.spentUSD=3;e.research.enabled=true;e.research.endsAt=900;e.orders=[{id:'existing'}];e.paused=false;
+ d.experiments[1].research.source='watchlist';
+ assert.equal(upgradeSolTests(d,200),true);assert.equal(e.research.source,'catalogue');assert.equal(e.universe,undefined);assert.equal(e.research.spentUSD,3);assert.equal(e.research.enabled,true);assert.equal(e.research.endsAt,900);assert.equal(e.orders[0].id,'existing');assert.equal(e.scopeChanges[0].at,200);assert.equal(e.paused,false);
+ assert.equal(d.experiments[1].research.source,'watchlist');assert.equal(upgradeSolTests(d,300),false);assert.equal(e.scopeChanges.length,1);
+});
+
+test('catalogue research rotates beyond five stocks, lets agents choose, tracks unique coverage and retains holdings',async t=>{
+ const inputs=[],now=Date.now(),stocks=Array.from({length:45},(_,n)=>({symbol:'TEST'+String(n).padStart(2,'0'),name:'Fixture '+n,exchange:'NASDAQ',currency:'USD',country:'United States'}));stocks.push(stocks[0]);stocks.push({symbol:'NOKONLY',exchange:'OSL',currency:'NOK',country:'Norway'});
+ const f=await fixture(t,async(url,options)=>{if(String(url).includes('twelvedata.com')){const u=new URL(url);if(u.pathname==='/stocks')return Response.json({data:stocks});if(u.pathname==='/time_series')return Response.json({values:[{datetime:'2026-10-14',close:'100'}]});return Response.json({symbol:u.searchParams.get('symbol'),name:'Fixture',currency:'USD',close:'100',timestamp:Math.floor(now/1000),is_market_open:true});}
+  const input=JSON.parse(JSON.parse(options.body).input);if(input.phase==='initial')inputs.push(input);const chosen=input.evidence.candidates.at(-1);return response({...vote,instrumentKey:chosen.instrumentKey});
+ });
+ await f.call('/settings',{twelveDataApiKey:'fixture',requestsPerMinute:10000,requestsPerDay:10000},'PUT');
+ const store=createStore(path.join(f.root,'.economy')),d=store.read('alice');d.experiments[0].mode='paper';store.write('alice',d);
+ await f.call('/experiments/'+f.e.id+'/research',{enabled:false,source:'catalogue',batchSize:20,intervalMinutes:15,durationHours:4,budgetUSD:5},'PUT');
+ for(let n=0;n<3;n++){assert.equal((await f.call('/experiments/'+f.e.id+'/council',{})).status,202);const e=await f.result();assert.equal(e.rounds.at(-1).status,'executed',e.rounds.at(-1).error||e.rounds.at(-1).result);}
+ const e=await f.result();assert.equal(e.research.universeSize,45);assert.equal(e.research.coverage.attempted,45);assert.equal(e.research.coverage.withData,45);assert.equal(e.research.coverage.reviewed,45);assert.equal(e.research.coverage.remaining,0);
+ assert.equal(e.orders.length,3);assert.equal(inputs[0].evidence.candidates.length,20);assert.equal(inputs[4].evidence.candidates.length,21);assert.ok(inputs[4].evidence.candidates.some(c=>c.instrument.symbol==='TEST19'));assert.ok(inputs[4].evidence.candidates.some(c=>c.instrument.symbol==='TEST39'));assert.ok(inputs.every(v=>v.evidence.candidates.every(c=>c.instrument.currency==='USD')));
+ const saved=store.read('alice').experiments[0];assert.equal(saved.research.coverage.reviewed,45);
+ await f.call('/experiments/'+f.e.id+'/research',{enabled:false,source:'catalogue',exchange:'NASDAQ',batchSize:20,intervalMinutes:15,durationHours:4,budgetUSD:5},'PUT');const reset=(await f.call()).data.experiments[0];assert.equal(reset.research.coverage,null);assert.equal(reset.research.cursor,0);assert.ok(reset.research.spentUSD>0);
+});
+
+test('failed history is not reviewed and quota stops leave the next listing pending without model charges',async t=>{
+ let modelsCalled=0;const f=await fixture(t,async url=>{if(!String(url).includes('twelvedata.com')){modelsCalled++;return response();}const u=new URL(url);if(u.pathname==='/stocks')return Response.json({data:[{symbol:'EMPTY',exchange:'NASDAQ',currency:'USD'},{symbol:'LIMIT',exchange:'NASDAQ',currency:'USD'},{symbol:'NEXT',exchange:'NASDAQ',currency:'USD'}]});if(u.searchParams.get('symbol')==='EMPTY')return Response.json({values:[]});return Response.json({status:'error',code:429});});
+ await f.call('/settings',{twelveDataApiKey:'fixture',requestsPerMinute:10000},'PUT');const store=createStore(path.join(f.root,'.economy')),d=store.read('alice');d.experiments[0].mode='paper';store.write('alice',d);
+ await f.call('/experiments/'+f.e.id+'/research',{enabled:false,source:'catalogue',batchSize:20,intervalMinutes:15,durationHours:4,budgetUSD:5},'PUT');await f.call('/experiments/'+f.e.id+'/council',{});const e=await f.result();assert.equal(e.research.cursor,1);assert.equal(e.research.coverage.attempted,2);assert.equal(e.research.coverage.withData,0);assert.equal(e.research.coverage.reviewed,0);assert.equal(e.research.coverage.remaining,3);assert.equal(modelsCalled,0);assert.equal(e.research.spentUSD,0);assert.equal(e.rounds[0].dataErrors.length,2);
 });
 
 test('net benchmark comparison subtracts AI/data costs and hides uncertain results',()=>{
