@@ -1327,6 +1327,7 @@ body.media-mode .scroll{padding:0 0 46px;scroll-behavior:smooth}
 <link rel="stylesheet" href="/listen-mobile.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/player.css?v=vault-assets-variants-20261005">
 <link rel="stylesheet" href="/recipes.css?v=vault-cookbook-access-20261014">
+<link rel="stylesheet" href="/passwords.css?v=20261118-1">
 </head>
 <body>
 <!-- DIRECTION CONTRACT: Listen and shared header, September 2026.
@@ -1365,6 +1366,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <button data-space="recipes" aria-label="Recipes" title="Recipes"><i class="ph ph-fork-knife" aria-hidden="true"></i><span>Recipes</span></button>
       <button data-space="economy" aria-label="Economy" title="Economy"><i class="ph ph-chart-line" aria-hidden="true"></i><span>Economy</span></button>
       <button data-space="games" aria-label="Games" title="Games"><i class="ph ph-game-controller" aria-hidden="true"></i><span>Games</span></button>
+      <button data-space="passwords" aria-label="Passwords" title="Passwords"><i class="ph ph-lock-key" aria-hidden="true"></i><span>Passwords</span></button>
       <button data-space="apps" aria-label="Apps" title="Apps"><i class="ph ph-squares-four" aria-hidden="true"></i><span>Apps</span></button>
     </nav>
     <label class="search global-search">
@@ -1573,6 +1575,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <script src="/artcraft.js?v=artcraft-1"></script>
 <script src="/artcraft-files.js?v=app-files-1"></script>
 <script src="/apps.js?v=vault-assets-variants-20261005"></script>
+<script src="/passwords.js?v=20261118-1"></script>
 <script src="/economy.js?v=economy-7"></script>
 <script src="/games/games.js?v=6"></script>
 <script src="/document-reader.js?v=vault-assets-variants-20261005"></script>
@@ -1594,7 +1597,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 const $ = (s) => document.querySelector(s);
 const FRONTEND_BUILD = document.querySelector('meta[name="vault-build"]')?.content || '';
-const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'az', view: 'list', mode: 'files', showDetail: null, movieDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, musicMetadata: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set(), featureCycle: { movies:0, series:0 } };
+const state = { files: [], folders: [], disk: null, shelf: 'all', folder: '', q: '', sort: 'az', view: 'list', mode: new URLSearchParams(location.search).get('section') === 'passwords' ? 'passwords' : 'files', showDetail: null, movieDetail: null, user: null, role: null, thumbs: false, mkvTranscode: false, artwork: false, musicMetadata: false, transcoder: null, qualities: [], aiSubtitles: null, pendingShelf: null, group: true, open: new Set(), picked: new Set(), featureCycle: { movies:0, series:0 } };
 const droppedPaths = new WeakMap();
 
 /* Shelves are server-defined now. These start empty and are filled by the
@@ -1640,6 +1643,8 @@ document.querySelectorAll('[data-space]').forEach((button) => {
       if(['movies','series','music'].includes(state.shelf)) state.shelf = 'all';
     }else if(space === 'recipes'){
       state.mode='recipes';state.recipePage='home';state.recipeDetail=null;state.shelf='all';
+    }else if(space === 'passwords'){
+      state.mode='passwords';state.shelf='all';
     }else if(space === 'apps'){
       state.mode='apps';
     }else if(space === 'economy'){
@@ -1760,6 +1765,7 @@ function enter(user, role){
 }
 
 $('#btnOut').addEventListener('click', async () => {
+  window.VaultPasswords?.close();
   await fetch('/api/logout', { method:'POST' });
   location.reload();
 });
@@ -2194,9 +2200,10 @@ function render(){
   syncAssetsSurface();
   closeFileMenu();
   syncAppsSurface();
+  window.VaultPasswords?.sync();
   Economy.sync();
   document.body.classList.toggle('games-mode',state.mode==='games');
-  $('#q').disabled=['economy','games'].includes(state.mode);
+  $('#q').disabled=['economy','games','passwords'].includes(state.mode);
   Recipes.sync();
   $('#sort').value=state.sort;
   document.body.classList.toggle('watch-mode',watchActive());
@@ -2218,7 +2225,7 @@ function render(){
   }
 
   document.querySelectorAll('[data-space]').forEach((button)=>{
-    const active=button.dataset.space==='games'?state.mode==='games':button.dataset.space==='economy'?state.mode==='economy':button.dataset.space==='recipes'?state.mode==='recipes':button.dataset.space==='apps'?state.mode==='apps':button.dataset.space==='library'?!['recipes','apps','economy','games','entertainment'].includes(state.mode):button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
+    const active=button.dataset.space==='passwords'?state.mode==='passwords':button.dataset.space==='games'?state.mode==='games':button.dataset.space==='economy'?state.mode==='economy':button.dataset.space==='recipes'?state.mode==='recipes':button.dataset.space==='apps'?state.mode==='apps':button.dataset.space==='library'?!['recipes','apps','economy','games','passwords','entertainment'].includes(state.mode):button.dataset.space==='listen'?state.mode==='entertainment'&&state.shelf==='music':state.mode==='entertainment'&&['movies','series'].includes(state.shelf);
     button.classList.toggle('on',active);button.toggleAttribute('aria-current',active);
   });
   $('#q').placeholder=state.mode==='games'?'Choose a game below':state.mode==='economy'?'Search stocks in Markets below':state.mode==='recipes'?'Search recipes or ingredients':state.mode==='apps'?'Search apps':state.mode==='shares'?'Search shared links':state.mode==='files'?'Search files and folders':state.shelf==='music'?'Search albums and tracks':'Search films and shows';
@@ -2286,6 +2293,14 @@ function render(){
   if(state.mode==='recipes'){
     clearTimeout(featureTimer);document.body.classList.remove('media-mode');
     wireFileInteractions([]);Recipes.render();return;
+  }
+  if(state.mode==='passwords'){
+    clearTimeout(featureTimer);document.body.classList.remove('media-mode');
+    $('#resume').classList.remove('on');$('#resume').innerHTML='';
+    wireFileInteractions([]);updateBulkBar();
+    if(window.VaultPasswords)window.VaultPasswords.render();
+    else $('#scroll').innerHTML='<p>Password manager could not load. Refresh to try again, or use another Vault section.</p>';
+    return;
   }
   if(state.mode==='apps'){
     clearTimeout(featureTimer);document.body.classList.remove('media-mode');
@@ -3979,7 +3994,7 @@ const cursorFile = () => {
 };
 
 document.addEventListener('keydown', (e) => {
-  if(['recipes','economy','games'].includes(state.mode))return;
+  if(['recipes','economy','games','passwords'].includes(state.mode))return;
   const typing = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
   const dialogOpen = $('#modal').classList.contains('on') || $('#viewer').classList.contains('on');
 
